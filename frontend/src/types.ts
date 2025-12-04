@@ -37,6 +37,7 @@ export interface Client {
   payment: PaymentInfo;
   submitted_to_immigration: boolean;
   application_date?: string;
+  custom_reminder_date?: string; // Custom reminder date set by team
   notifications: Notification[];
   additional_docs_required: boolean;
   notes?: string;

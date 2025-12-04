@@ -129,6 +129,7 @@ class DatabaseAdapter {
           payment JSONB,
           submitted_to_immigration BOOLEAN DEFAULT FALSE,
           application_date TIMESTAMP,
+          custom_reminder_date TIMESTAMP,
           notifications JSONB,
           additional_docs_required BOOLEAN DEFAULT FALSE,
           notes TEXT,
@@ -136,6 +137,12 @@ class DatabaseAdapter {
           created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
           updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
         )
+      `);
+      
+      // Add custom_reminder_date column if it doesn't exist (for existing databases)
+      await this.pool.query(`
+        ALTER TABLE clients 
+        ADD COLUMN IF NOT EXISTS custom_reminder_date TIMESTAMP
       `);
 
       console.log('✅ PostgreSQL database initialized and tables created');
@@ -382,9 +389,9 @@ class DatabaseAdapter {
       await this.pool.query(
         `INSERT INTO clients (id, first_name, last_name, parent_name, email, phone, case_template_id, case_type, details,
          required_documents, reminder_interval_days, administrative_silence_days, payment, 
-         submitted_to_immigration, application_date, notifications, additional_docs_required, 
+         submitted_to_immigration, application_date, custom_reminder_date, notifications, additional_docs_required, 
          notes, additional_documents, created_at, updated_at)
-         VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21)`,
+         VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21, $22)`,
         [
           client.id,
           client.first_name,
@@ -401,6 +408,7 @@ class DatabaseAdapter {
           JSON.stringify(client.payment),
           client.submitted_to_immigration,
           client.application_date || null,
+          client.custom_reminder_date || null,
           JSON.stringify(client.notifications),
           client.additional_docs_required,
           client.notes || null,
@@ -454,6 +462,7 @@ class DatabaseAdapter {
         ? JSON.parse(row.additional_documents) 
         : row.additional_documents,
       application_date: row.application_date ? row.application_date.toISOString() : undefined,
+      custom_reminder_date: row.custom_reminder_date ? row.custom_reminder_date.toISOString() : undefined,
       created_at: row.created_at.toISOString(),
       updated_at: row.updated_at.toISOString(),
     };
@@ -481,6 +490,7 @@ class DatabaseAdapter {
         payment: data.payment,
         submitted_to_immigration: data.submitted_to_immigration,
         application_date: data.application_date,
+        custom_reminder_date: data.custom_reminder_date,
         notifications: data.notifications,
         additional_docs_required: data.additional_docs_required,
         notes: data.notes,

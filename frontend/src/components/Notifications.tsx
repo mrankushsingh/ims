@@ -34,6 +34,41 @@ export default function Notifications({ onClientClick }: Props) {
       const newReminders: Reminder[] = [];
 
       clients.forEach((client: Client) => {
+        // Check for custom reminder date first (highest priority)
+        if (client.custom_reminder_date) {
+          const reminderDate = new Date(client.custom_reminder_date);
+          const today = new Date();
+          today.setHours(0, 0, 0, 0);
+          reminderDate.setHours(0, 0, 0, 0);
+          const daysUntilReminder = Math.ceil((reminderDate.getTime() - today.getTime()) / (1000 * 60 * 60 * 24));
+          
+          // Show reminder if it's today, approaching (within 2 days), or overdue
+          if (daysUntilReminder <= 2) {
+            let priority: 'high' | 'medium' | 'low';
+            if (daysUntilReminder < 0) {
+              priority = daysUntilReminder <= -7 ? 'high' : daysUntilReminder <= -3 ? 'medium' : 'low';
+            } else if (daysUntilReminder === 0) {
+              priority = 'high';
+            } else {
+              priority = daysUntilReminder === 1 ? 'medium' : 'low';
+            }
+            
+            const message = daysUntilReminder < 0
+              ? `Custom reminder for ${client.first_name} ${client.last_name} was ${Math.abs(daysUntilReminder)} day(s) ago`
+              : daysUntilReminder === 0
+              ? `Custom reminder for ${client.first_name} ${client.last_name} is due today`
+              : `Custom reminder for ${client.first_name} ${client.last_name} is in ${daysUntilReminder} day(s)`;
+            
+            newReminders.push({
+              client,
+              type: 'reminder',
+              message,
+              priority,
+              daysRemaining: daysUntilReminder,
+            });
+          }
+        }
+        
         // Check for administrative silence expiring/expired
         if (client.submitted_to_immigration && client.application_date) {
           const applicationDate = new Date(client.application_date);
