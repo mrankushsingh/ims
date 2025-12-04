@@ -36,34 +36,39 @@ export default function Notifications({ onClientClick }: Props) {
 
       clients.forEach((client: Client) => {
         // Check for custom reminder date first (highest priority)
-        // Only show if due date hasn't passed (not overdue)
+        // Only show if due date hasn't passed (not overdue) AND there's a remaining balance
         if (client.custom_reminder_date) {
-          const reminderDate = new Date(client.custom_reminder_date);
-          const today = new Date();
-          today.setHours(0, 0, 0, 0);
-          reminderDate.setHours(0, 0, 0, 0);
-          const daysUntilReminder = Math.ceil((reminderDate.getTime() - today.getTime()) / (1000 * 60 * 60 * 24));
+          const remainingAmount = (client.payment?.totalFee || 0) - (client.payment?.paidAmount || 0);
           
-          // Only show reminder if it's today or in the future (not overdue)
-          if (daysUntilReminder >= 0 && daysUntilReminder <= 2) {
-            let priority: 'high' | 'medium' | 'low';
-            if (daysUntilReminder === 0) {
-              priority = 'high';
-            } else {
-              priority = daysUntilReminder === 1 ? 'medium' : 'low';
+          // Only show payment reminders if there's a remaining balance
+          if (remainingAmount > 0) {
+            const reminderDate = new Date(client.custom_reminder_date);
+            const today = new Date();
+            today.setHours(0, 0, 0, 0);
+            reminderDate.setHours(0, 0, 0, 0);
+            const daysUntilReminder = Math.ceil((reminderDate.getTime() - today.getTime()) / (1000 * 60 * 60 * 24));
+            
+            // Only show reminder if it's today or in the future (not overdue)
+            if (daysUntilReminder >= 0 && daysUntilReminder <= 2) {
+              let priority: 'high' | 'medium' | 'low';
+              if (daysUntilReminder === 0) {
+                priority = 'high';
+              } else {
+                priority = daysUntilReminder === 1 ? 'medium' : 'low';
+              }
+              
+              const message = daysUntilReminder === 0
+                ? `Payment reminder for ${client.first_name} ${client.last_name} is due today (€${remainingAmount.toFixed(2)} remaining)`
+                : `Payment reminder for ${client.first_name} ${client.last_name} is in ${daysUntilReminder} day(s) (€${remainingAmount.toFixed(2)} remaining)`;
+              
+              newReminders.push({
+                client,
+                type: 'reminder',
+                message,
+                priority,
+                daysRemaining: daysUntilReminder,
+              });
             }
-            
-            const message = daysUntilReminder === 0
-              ? `Payment reminder for ${client.first_name} ${client.last_name} is due today`
-              : `Payment reminder for ${client.first_name} ${client.last_name} is in ${daysUntilReminder} day(s)`;
-            
-            newReminders.push({
-              client,
-              type: 'reminder',
-              message,
-              priority,
-              daysRemaining: daysUntilReminder,
-            });
           }
         }
         

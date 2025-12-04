@@ -115,6 +115,17 @@ export default function ClientDetailsModal({ client, onClose, onSuccess }: Props
       setPaymentForm({ amount: '', method: 'Cash', note: '' });
       setShowPaymentForm(false);
       await loadClient();
+      
+      // Check if payment is complete and clear reminder if so
+      const updatedClient = await api.getClient(client.id);
+      const remainingAmount = (updatedClient.payment?.totalFee || 0) - (updatedClient.payment?.paidAmount || 0);
+      if (remainingAmount <= 0 && updatedClient.custom_reminder_date) {
+        // Clear the reminder date since payment is complete
+        await api.updateClient(client.id, { custom_reminder_date: null });
+        setCustomReminderDate('');
+      }
+      
+      await loadClient();
       onSuccess();
     } catch (error: any) {
       setError(error.message || 'Failed to add payment');
@@ -337,8 +348,6 @@ export default function ClientDetailsModal({ client, onClose, onSuccess }: Props
       setDeleting(false);
     }
   };
-
-  const remainingAmount = (clientData.payment?.totalFee || 0) - (clientData.payment?.paidAmount || 0);
   
   // Count total submitted documents (including optional)
   const totalSubmittedDocs = (clientData.required_documents?.filter((d: any) => d.submitted).length || 0) + 
@@ -579,41 +588,47 @@ export default function ClientDetailsModal({ client, onClose, onSuccess }: Props
 
         {/* Payment Section */}
         <div className="mb-6 p-5 bg-gradient-to-br from-green-50/50 to-white rounded-xl border border-gray-200 shadow-sm">
-          <div className="flex justify-between items-center mb-4">
-            <h3 className="text-lg font-bold text-gray-900 flex items-center space-x-2">
-              <div className="p-2 bg-green-100 rounded-lg">
-                <DollarSign className="w-5 h-5 text-green-700" />
-              </div>
-              <span>Payments</span>
-            </h3>
-            <div className="flex items-center space-x-2">
-              <button
-                onClick={handleOpenReminderCalendar}
-                className={`px-3 py-2 text-sm rounded-lg transition-colors flex items-center space-x-2 ${
-                  customReminderDate
-                    ? 'bg-purple-100 text-purple-700 hover:bg-purple-200'
-                    : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-                }`}
-                title={customReminderDate ? `Payment Reminder: ${new Date(customReminderDate).toLocaleDateString()}` : 'Set payment reminder'}
-              >
-                <Calendar className="w-4 h-4" />
-                {customReminderDate ? (
-                  <span className="text-xs font-medium">
-                    {new Date(customReminderDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
-                  </span>
-                ) : (
-                  <span>Payment Reminder</span>
-                )}
-              </button>
-              <button
-                onClick={() => setShowPaymentForm(!showPaymentForm)}
-                className="px-4 py-2 bg-green-600 text-white text-sm rounded-lg hover:bg-green-700 transition-colors flex items-center space-x-2"
-              >
-                <Plus className="w-4 h-4" />
-                <span>Add Payment</span>
-              </button>
-            </div>
-          </div>
+          {(() => {
+            const remainingAmount = (clientData.payment?.totalFee || 0) - (clientData.payment?.paidAmount || 0);
+            return (
+              <>
+                <div className="flex justify-between items-center mb-4">
+                  <h3 className="text-lg font-bold text-gray-900 flex items-center space-x-2">
+                    <div className="p-2 bg-green-100 rounded-lg">
+                      <DollarSign className="w-5 h-5 text-green-700" />
+                    </div>
+                    <span>Payments</span>
+                  </h3>
+                  <div className="flex items-center space-x-2">
+                    {remainingAmount > 0 && (
+                      <button
+                        onClick={handleOpenReminderCalendar}
+                        className={`px-3 py-2 text-sm rounded-lg transition-colors flex items-center space-x-2 ${
+                          customReminderDate
+                            ? 'bg-purple-100 text-purple-700 hover:bg-purple-200'
+                            : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                        }`}
+                        title={customReminderDate ? `Payment Reminder: ${new Date(customReminderDate).toLocaleDateString()}` : 'Set payment reminder'}
+                      >
+                        <Calendar className="w-4 h-4" />
+                        {customReminderDate ? (
+                          <span className="text-xs font-medium">
+                            {new Date(customReminderDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
+                          </span>
+                        ) : (
+                          <span>Payment Reminder</span>
+                        )}
+                      </button>
+                    )}
+                    <button
+                      onClick={() => setShowPaymentForm(!showPaymentForm)}
+                      className="px-4 py-2 bg-green-600 text-white text-sm rounded-lg hover:bg-green-700 transition-colors flex items-center space-x-2"
+                    >
+                      <Plus className="w-4 h-4" />
+                      <span>Add Payment</span>
+                    </button>
+                  </div>
+                </div>
 
           {showPaymentForm && (
             <form onSubmit={handleAddPayment} className="mb-4 p-4 bg-green-50 rounded-lg border border-green-200">
@@ -712,6 +727,9 @@ export default function ClientDetailsModal({ client, onClose, onSuccess }: Props
               </div>
             )}
           </div>
+              </>
+            );
+          })()}
         </div>
 
         {/* Notes Section */}
