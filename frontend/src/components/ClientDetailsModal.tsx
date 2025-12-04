@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { X, Upload, CheckCircle, FileText, Download, Trash2, Plus, DollarSign, StickyNote, Archive, XCircle, AlertCircle, Send, Clock } from 'lucide-react';
+import { X, Upload, CheckCircle, FileText, Download, Trash2, Plus, DollarSign, StickyNote, Archive, XCircle, AlertCircle, Send, Clock, Eye } from 'lucide-react';
 import JSZip from 'jszip';
 import { api } from '../utils/api';
 import { Client, RequiredDocument, AdditionalDocument } from '../types';
@@ -154,6 +154,17 @@ export default function ClientDetailsModal({ client, onClose, onSuccess }: Props
     link.href = fileUrl;
     link.download = fileName;
     link.click();
+  };
+
+  const handleViewDocument = (fileUrl: string) => {
+    // Handle relative URLs (if fileUrl starts with /uploads, it's relative to the server)
+    let url = fileUrl;
+    if (fileUrl.startsWith('/uploads/')) {
+      // For relative paths, use the current origin
+      url = window.location.origin + fileUrl;
+    }
+    // Open document in new tab
+    window.open(url, '_blank');
   };
 
   const handleDownloadAllAsZip = async () => {
@@ -725,6 +736,13 @@ export default function ClientDetailsModal({ client, onClose, onSuccess }: Props
                       {doc.submitted && doc.fileUrl ? (
                         <>
                           <button
+                            onClick={() => handleViewDocument(doc.fileUrl!)}
+                            className="p-2.5 text-green-600 hover:bg-green-50 rounded-lg transition-colors border border-green-200 hover:border-green-300"
+                            title="View Document"
+                          >
+                            <Eye className="w-4 h-4" />
+                          </button>
+                          <button
                             onClick={() => handleDownload(doc.fileUrl!, doc.fileName || 'document')}
                             className="p-2.5 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors border border-blue-200 hover:border-blue-300"
                             title="Download"
@@ -885,15 +903,22 @@ export default function ClientDetailsModal({ client, onClose, onSuccess }: Props
                     </div>
                     <div className="flex items-center space-x-2 ml-4">
                       <button
+                        onClick={() => handleViewDocument(doc.fileUrl)}
+                        className="p-2 text-green-600 hover:bg-green-50 rounded-lg transition-colors border border-green-200 hover:border-green-300"
+                        title="View Document"
+                      >
+                        <Eye className="w-4 h-4" />
+                      </button>
+                      <button
                         onClick={() => handleDownload(doc.fileUrl, doc.fileName)}
-                        className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
+                        className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors border border-blue-200 hover:border-blue-300"
                         title="Download"
                       >
                         <Download className="w-4 h-4" />
                       </button>
                       <button
                         onClick={() => handleRemoveAdditionalDocument(doc.id)}
-                        className="p-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors"
+                        className="p-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors border border-red-200 hover:border-red-300"
                         title="Remove"
                       >
                         <Trash2 className="w-4 h-4" />
