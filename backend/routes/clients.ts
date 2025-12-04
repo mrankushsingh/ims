@@ -140,12 +140,13 @@ router.post('/:id/documents/:documentCode', upload.single('file'), async (req, r
       return res.status(400).json({ error: 'No file uploaded' });
     }
 
+    const file = req.file; // Store in const for TypeScript narrowing
     const client = await memoryDb.getClient(req.params.id);
     if (!client) {
       return res.status(404).json({ error: 'Client not found' });
     }
 
-    const fileUrl = `/uploads/${req.file.filename}`;
+    const fileUrl = `/uploads/${file.filename}`;
     const updatedDocuments = client.required_documents.map((doc: any) => {
       if (doc.code === req.params.documentCode) {
         // Delete old file if exists
@@ -165,8 +166,8 @@ router.post('/:id/documents/:documentCode', upload.single('file'), async (req, r
           submitted: true,
           fileUrl: fileUrl,
           uploadedAt: new Date().toISOString(),
-          fileName: req.file.originalname,
-          fileSize: req.file.size,
+          fileName: file.originalname,
+          fileSize: file.size,
         };
       }
       return doc;
@@ -189,19 +190,20 @@ router.post('/:id/additional-documents', upload.single('file'), async (req, res)
       return res.status(400).json({ error: 'No file uploaded' });
     }
 
+    const file = req.file; // Store in const for TypeScript narrowing
     const client = await memoryDb.getClient(req.params.id);
     if (!client) {
       return res.status(404).json({ error: 'Client not found' });
     }
 
-    const fileUrl = `/uploads/${req.file.filename}`;
+    const fileUrl = `/uploads/${file.filename}`;
     const newDocument = {
       id: `doc_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
-      name: req.body.name || req.file.originalname,
+      name: req.body.name || file.originalname,
       description: req.body.description || undefined,
       fileUrl: fileUrl,
-      fileName: req.file.originalname,
-      fileSize: req.file.size,
+      fileName: file.originalname,
+      fileSize: file.size,
       uploadedAt: new Date().toISOString(),
     };
 

@@ -326,7 +326,7 @@ class DatabaseAdapter {
   async deleteTemplate(id: string): Promise<boolean> {
     if (this.usePostgres && this.pool) {
       const result = await this.pool.query('DELETE FROM case_templates WHERE id = $1', [id]);
-      return result.rowCount > 0;
+      return (result.rowCount ?? 0) > 0;
     }
 
     const deleted = this.templates.delete(id);
@@ -517,7 +517,7 @@ class DatabaseAdapter {
 
     if (this.usePostgres && this.pool) {
       const result = await this.pool.query('DELETE FROM clients WHERE id = $1', [id]);
-      return result.rowCount > 0;
+      return (result.rowCount ?? 0) > 0;
     }
 
     const deleted = this.clients.delete(id);
