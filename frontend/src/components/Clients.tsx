@@ -92,10 +92,7 @@ export default function Clients() {
             >
               <div className="flex items-start justify-between mb-4">
                 <div className="flex-1">
-                  <h3
-                    onClick={() => setSelectedClient(client)}
-                    className="text-xl font-bold text-slate-900 mb-1 cursor-pointer hover:text-slate-700 transition-colors"
-                  >
+                  <h3 className="text-xl font-bold text-slate-900 mb-1">
                     {client.first_name} {client.last_name}
                   </h3>
                   <p className="text-sm text-slate-500 font-medium">{client.case_type || 'No template assigned'}</p>
