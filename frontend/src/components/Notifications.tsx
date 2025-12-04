@@ -36,6 +36,7 @@ export default function Notifications({ onClientClick }: Props) {
 
       clients.forEach((client: Client) => {
         // Check for custom reminder date first (highest priority)
+        // Only show if due date hasn't passed (not overdue)
         if (client.custom_reminder_date) {
           const reminderDate = new Date(client.custom_reminder_date);
           const today = new Date();
@@ -43,20 +44,16 @@ export default function Notifications({ onClientClick }: Props) {
           reminderDate.setHours(0, 0, 0, 0);
           const daysUntilReminder = Math.ceil((reminderDate.getTime() - today.getTime()) / (1000 * 60 * 60 * 24));
           
-          // Show reminder if it's today, approaching (within 2 days), or overdue
-          if (daysUntilReminder <= 2) {
+          // Only show reminder if it's today or in the future (not overdue)
+          if (daysUntilReminder >= 0 && daysUntilReminder <= 2) {
             let priority: 'high' | 'medium' | 'low';
-            if (daysUntilReminder < 0) {
-              priority = daysUntilReminder <= -7 ? 'high' : daysUntilReminder <= -3 ? 'medium' : 'low';
-            } else if (daysUntilReminder === 0) {
+            if (daysUntilReminder === 0) {
               priority = 'high';
             } else {
               priority = daysUntilReminder === 1 ? 'medium' : 'low';
             }
             
-            const message = daysUntilReminder < 0
-              ? `Payment reminder for ${client.first_name} ${client.last_name} was ${Math.abs(daysUntilReminder)} day(s) ago`
-              : daysUntilReminder === 0
+            const message = daysUntilReminder === 0
               ? `Payment reminder for ${client.first_name} ${client.last_name} is due today`
               : `Payment reminder for ${client.first_name} ${client.last_name} is in ${daysUntilReminder} day(s)`;
             
@@ -177,8 +174,12 @@ export default function Notifications({ onClientClick }: Props) {
 
       setReminders(unreadReminders);
       
-      // Show pop-ups for high priority reminders
-      if (showPopups && newReminders.filter(r => r.priority === 'high').length > 0) {
+      // Show pop-ups for high priority reminders (excluding overdue payment reminders)
+      const highPriorityReminders = unreadReminders.filter(r => 
+        r.priority === 'high' && 
+        !(r.type === 'reminder' && r.daysRemaining !== undefined && r.daysRemaining < 0)
+      );
+      if (showPopups && highPriorityReminders.length > 0) {
         setTimeout(() => {
           setShowPopups(false);
         }, 5000);
@@ -342,11 +343,17 @@ export default function Notifications({ onClientClick }: Props) {
         )}
       </div>
 
-      {/* Pop-up Notifications for High Priority */}
-      {showPopups && reminders.filter(r => r.priority === 'high').length > 0 && (
+      {/* Pop-up Notifications for High Priority (excluding overdue payment reminders) */}
+      {showPopups && reminders.filter(r => 
+        r.priority === 'high' && 
+        !(r.type === 'reminder' && r.daysRemaining !== undefined && r.daysRemaining < 0)
+      ).length > 0 && (
         <div className="fixed bottom-4 right-4 z-50 space-y-3 max-w-md">
           {reminders
-            .filter(r => r.priority === 'high')
+            .filter(r => 
+              r.priority === 'high' && 
+              !(r.type === 'reminder' && r.daysRemaining !== undefined && r.daysRemaining < 0)
+            )
             .slice(0, 3)
             .map((reminder, index) => (
               <div
