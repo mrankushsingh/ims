@@ -31,6 +31,7 @@ interface Client {
   payment: any;
   submitted_to_immigration: boolean;
   application_date?: string;
+  custom_reminder_date?: string;
   notifications: any[];
   additional_docs_required: boolean;
   notes?: string;
