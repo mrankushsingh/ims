@@ -54,10 +54,10 @@ export default function Notifications({ onClientClick }: Props) {
             }
             
             const message = daysUntilReminder < 0
-              ? `Custom reminder for ${client.first_name} ${client.last_name} was ${Math.abs(daysUntilReminder)} day(s) ago`
+              ? `Payment reminder for ${client.first_name} ${client.last_name} was ${Math.abs(daysUntilReminder)} day(s) ago`
               : daysUntilReminder === 0
-              ? `Custom reminder for ${client.first_name} ${client.last_name} is due today`
-              : `Custom reminder for ${client.first_name} ${client.last_name} is in ${daysUntilReminder} day(s)`;
+              ? `Payment reminder for ${client.first_name} ${client.last_name} is due today`
+              : `Payment reminder for ${client.first_name} ${client.last_name} is in ${daysUntilReminder} day(s)`;
             
             newReminders.push({
               client,

@@ -623,7 +623,7 @@ export default function ClientDetailsModal({ client, onClose, onSuccess }: Props
                     ? 'bg-purple-100 text-purple-700 hover:bg-purple-200'
                     : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
                 }`}
-                title={customReminderDate ? `Reminder: ${new Date(customReminderDate).toLocaleDateString()}` : 'Set reminder'}
+                title={customReminderDate ? `Payment Reminder: ${new Date(customReminderDate).toLocaleDateString()}` : 'Set payment reminder'}
               >
                 <Calendar className="w-4 h-4" />
                 {customReminderDate ? (
@@ -631,7 +631,7 @@ export default function ClientDetailsModal({ client, onClose, onSuccess }: Props
                     {new Date(customReminderDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
                   </span>
                 ) : (
-                  <span>Reminder</span>
+                  <span>Payment Reminder</span>
                 )}
               </button>
               <button
@@ -743,14 +743,14 @@ export default function ClientDetailsModal({ client, onClose, onSuccess }: Props
           </div>
         </div>
 
-        {/* Custom Reminder Section */}
+        {/* Payment Reminder Section */}
         <div id="reminder-section" className="mb-6 p-5 bg-gradient-to-br from-purple-50/50 to-white rounded-xl border border-gray-200 shadow-sm transition-all duration-300">
           <div className="flex justify-between items-center mb-4">
             <h3 className="text-lg font-bold text-gray-900 flex items-center space-x-2">
               <div className="p-2 bg-purple-100 rounded-lg">
                 <Calendar className="w-5 h-5 text-purple-700" />
               </div>
-              <span>Custom Reminder</span>
+              <span>Payment Reminder</span>
             </h3>
             <div className="flex items-center space-x-2">
               {customReminderDate && (
@@ -824,7 +824,7 @@ export default function ClientDetailsModal({ client, onClose, onSuccess }: Props
             {!customReminderDate && (
               <div className="mt-3 text-xs text-gray-500 flex items-center space-x-1">
                 <AlertCircle className="w-3.5 h-3.5" />
-                <span>Select a date to set a custom reminder for this client</span>
+                <span>Select a date to set a payment reminder for this client</span>
               </div>
             )}
           </div>
@@ -1319,8 +1319,8 @@ export default function ClientDetailsModal({ client, onClose, onSuccess }: Props
                     <Calendar className="w-5 h-5 text-purple-700" />
                   </div>
                   <div>
-                    <h3 className="text-lg font-bold text-gray-900">Custom Reminder</h3>
-                    <p className="text-xs text-gray-600 mt-0.5">Select a date to set a custom reminder</p>
+                    <h3 className="text-lg font-bold text-gray-900">Payment Reminder</h3>
+                    <p className="text-xs text-gray-600 mt-0.5">Select a date to set a payment reminder</p>
                   </div>
                 </div>
                 <button
@@ -1388,7 +1388,7 @@ export default function ClientDetailsModal({ client, onClose, onSuccess }: Props
                   <div className="p-4 bg-gray-50 rounded-lg border border-gray-200">
                     <div className="flex items-center space-x-2 text-sm text-gray-500">
                       <AlertCircle className="w-4 h-4" />
-                      <span>Select a date to set a custom reminder for this client</span>
+                      <span>Select a date to set a payment reminder for this client</span>
                     </div>
                   </div>
                 )}
