@@ -588,13 +588,42 @@ export default function ClientDetailsModal({ client, onClose, onSuccess }: Props
               </div>
               <span>Payments</span>
             </h3>
-            <button
-              onClick={() => setShowPaymentForm(!showPaymentForm)}
-              className="px-4 py-2 bg-green-600 text-white text-sm rounded-lg hover:bg-green-700 transition-colors flex items-center space-x-2"
-            >
-              <Plus className="w-4 h-4" />
-              <span>Add Payment</span>
-            </button>
+            <div className="flex items-center space-x-2">
+              <button
+                onClick={() => {
+                  const reminderSection = document.getElementById('reminder-section');
+                  if (reminderSection) {
+                    reminderSection.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+                    reminderSection.classList.add('ring-2', 'ring-purple-500', 'ring-offset-2');
+                    setTimeout(() => {
+                      reminderSection.classList.remove('ring-2', 'ring-purple-500', 'ring-offset-2');
+                    }, 2000);
+                  }
+                }}
+                className={`px-3 py-2 text-sm rounded-lg transition-colors flex items-center space-x-2 ${
+                  customReminderDate
+                    ? 'bg-purple-100 text-purple-700 hover:bg-purple-200'
+                    : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                }`}
+                title={customReminderDate ? `Reminder: ${new Date(customReminderDate).toLocaleDateString()}` : 'Set reminder'}
+              >
+                <Calendar className="w-4 h-4" />
+                {customReminderDate ? (
+                  <span className="text-xs font-medium">
+                    {new Date(customReminderDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
+                  </span>
+                ) : (
+                  <span>Reminder</span>
+                )}
+              </button>
+              <button
+                onClick={() => setShowPaymentForm(!showPaymentForm)}
+                className="px-4 py-2 bg-green-600 text-white text-sm rounded-lg hover:bg-green-700 transition-colors flex items-center space-x-2"
+              >
+                <Plus className="w-4 h-4" />
+                <span>Add Payment</span>
+              </button>
+            </div>
           </div>
 
           {showPaymentForm && (
@@ -697,7 +726,7 @@ export default function ClientDetailsModal({ client, onClose, onSuccess }: Props
         </div>
 
         {/* Custom Reminder Section */}
-        <div className="mb-6 p-5 bg-gradient-to-br from-purple-50/50 to-white rounded-xl border border-gray-200 shadow-sm">
+        <div id="reminder-section" className="mb-6 p-5 bg-gradient-to-br from-purple-50/50 to-white rounded-xl border border-gray-200 shadow-sm transition-all duration-300">
           <div className="flex justify-between items-center mb-4">
             <h3 className="text-lg font-bold text-gray-900 flex items-center space-x-2">
               <div className="p-2 bg-purple-100 rounded-lg">
