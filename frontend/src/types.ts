@@ -24,10 +24,12 @@ export interface Client {
   id: string;
   first_name: string;
   last_name: string;
+  parent_name?: string;
   email?: string;
   phone?: string;
   case_template_id?: string;
   case_type?: string;
+  details?: string;
   required_documents: RequiredDocument[];
   reminder_interval_days: number;
   administrative_silence_days: number;

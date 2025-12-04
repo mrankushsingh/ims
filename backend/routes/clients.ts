@@ -36,7 +36,7 @@ const upload = multer({
 
 router.post('/', async (req, res) => {
   try {
-    const { firstName, lastName, email, phone, caseTemplateId, totalFee } = req.body;
+    const { firstName, lastName, parentName, email, phone, caseTemplateId, totalFee, details } = req.body;
     
     if (!firstName || !lastName) {
       return res.status(400).json({ error: 'First name and last name are required' });
@@ -69,10 +69,12 @@ router.post('/', async (req, res) => {
     const client = await memoryDb.insertClient({
       first_name: firstName,
       last_name: lastName,
-      email,
-      phone,
+      parent_name: parentName || null,
+      email: email || null,
+      phone: phone || null,
       case_template_id: caseTemplateId || null,
       case_type: caseType,
+      details: details || null,
       required_documents: requiredDocs,
       reminder_interval_days: reminderInterval,
       administrative_silence_days: adminSilenceDays,

@@ -20,6 +20,8 @@ export default function ClientDetailsModal({ client, onClose, onSuccess }: Props
   const [additionalDocForm, setAdditionalDocForm] = useState({ name: '', description: '', file: null as File | null });
   const [notes, setNotes] = useState(client.notes || '');
   const [savingNotes, setSavingNotes] = useState(false);
+  const [details, setDetails] = useState(client.details || '');
+  const [savingDetails, setSavingDetails] = useState(false);
   const [downloadingZip, setDownloadingZip] = useState(false);
   const [deleting, setDeleting] = useState(false);
   const [viewingDocument, setViewingDocument] = useState<{ url: string; fileName: string } | null>(null);
@@ -30,7 +32,8 @@ export default function ClientDetailsModal({ client, onClose, onSuccess }: Props
 
   useEffect(() => {
     setNotes(clientData.notes || '');
-  }, [clientData.notes]);
+    setDetails(clientData.details || '');
+  }, [clientData.notes, clientData.details]);
 
   const loadClient = async () => {
     try {
@@ -101,6 +104,20 @@ export default function ClientDetailsModal({ client, onClose, onSuccess }: Props
       setError(error.message || 'Failed to save notes');
     } finally {
       setSavingNotes(false);
+    }
+  };
+
+  const handleSaveDetails = async () => {
+    setSavingDetails(true);
+    setError('');
+    try {
+      await api.updateClient(client.id, { details });
+      await loadClient();
+      onSuccess();
+    } catch (error: any) {
+      setError(error.message || 'Failed to save details');
+    } finally {
+      setSavingDetails(false);
     }
   };
 
@@ -430,7 +447,7 @@ export default function ClientDetailsModal({ client, onClose, onSuccess }: Props
         {/* Client Information */}
         <div className="mb-6 p-4 bg-gray-50 rounded-lg">
           <h3 className="text-lg font-semibold text-gray-900 mb-3">Client Information</h3>
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-sm">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-sm mb-4">
             <div>
               <span className="text-gray-600">Email:</span>
               <span className="ml-2 text-gray-900">{clientData.email || 'N/A'}</span>
@@ -438,6 +455,10 @@ export default function ClientDetailsModal({ client, onClose, onSuccess }: Props
             <div>
               <span className="text-gray-600">Phone:</span>
               <span className="ml-2 text-gray-900">{clientData.phone || 'N/A'}</span>
+            </div>
+            <div>
+              <span className="text-gray-600">Parent Name:</span>
+              <span className="ml-2 text-gray-900">{clientData.parent_name || 'N/A'}</span>
             </div>
             <div>
               <span className="text-gray-600">Payment:</span>
@@ -467,6 +488,27 @@ export default function ClientDetailsModal({ client, onClose, onSuccess }: Props
                 )}
               </div>
             </div>
+          </div>
+          
+          {/* Client Details Section */}
+          <div className="mt-4 pt-4 border-t border-gray-200">
+            <div className="flex justify-between items-center mb-2">
+              <h4 className="text-sm font-semibold text-gray-700">Client Details</h4>
+              <button
+                onClick={handleSaveDetails}
+                disabled={savingDetails}
+                className="px-3 py-1.5 bg-blue-600 text-white text-xs rounded-lg hover:bg-blue-700 transition-colors disabled:opacity-50"
+              >
+                {savingDetails ? 'Saving...' : 'Save Details'}
+              </button>
+            </div>
+            <textarea
+              value={details}
+              onChange={(e) => setDetails(e.target.value)}
+              rows={4}
+              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none resize-none text-sm"
+              placeholder="Enter additional details about the client..."
+            />
           </div>
         </div>
 

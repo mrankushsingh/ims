@@ -12,10 +12,12 @@ export default function CreateClientModal({ onClose, onSuccess }: Props) {
   const [formData, setFormData] = useState({
     firstName: '',
     lastName: '',
+    parentName: '',
     email: '',
     phone: '',
     caseTemplateId: '',
     totalFee: '',
+    details: '',
   });
   const [templates, setTemplates] = useState<CaseTemplate[]>([]);
   const [loading, setLoading] = useState(false);
@@ -48,10 +50,12 @@ export default function CreateClientModal({ onClose, onSuccess }: Props) {
       await api.createClient({
         firstName: formData.firstName.trim(),
         lastName: formData.lastName.trim(),
+        parentName: formData.parentName.trim() || undefined,
         email: formData.email.trim() || undefined,
         phone: formData.phone.trim() || undefined,
         caseTemplateId: formData.caseTemplateId || undefined,
         totalFee: formData.totalFee ? parseFloat(formData.totalFee) : undefined,
+        details: formData.details.trim() || undefined,
       });
       onSuccess();
       onClose();
@@ -112,6 +116,17 @@ export default function CreateClientModal({ onClose, onSuccess }: Props) {
           </div>
 
           <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">Parent Name</label>
+            <input
+              type="text"
+              value={formData.parentName}
+              onChange={(e) => setFormData({ ...formData, parentName: e.target.value })}
+              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition"
+              placeholder="Parent's full name"
+            />
+          </div>
+
+          <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">Email</label>
             <input
               type="email"
@@ -159,6 +174,17 @@ export default function CreateClientModal({ onClose, onSuccess }: Props) {
               onChange={(e) => setFormData({ ...formData, totalFee: e.target.value })}
               className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition"
               placeholder="0.00"
+            />
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">Client Details</label>
+            <textarea
+              value={formData.details}
+              onChange={(e) => setFormData({ ...formData, details: e.target.value })}
+              rows={4}
+              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition resize-none"
+              placeholder="Enter additional details about the client..."
             />
           </div>
 

@@ -19,10 +19,12 @@ interface Client {
   id: string;
   first_name: string;
   last_name: string;
+  parent_name?: string;
   email?: string;
   phone?: string;
   case_template_id?: string;
   case_type?: string;
+  details?: string;
   required_documents: any[];
   reminder_interval_days: number;
   administrative_silence_days: number;
@@ -99,10 +101,12 @@ class DatabaseAdapter {
           id VARCHAR(255) PRIMARY KEY,
           first_name VARCHAR(255) NOT NULL,
           last_name VARCHAR(255) NOT NULL,
+          parent_name VARCHAR(255),
           email VARCHAR(255),
           phone VARCHAR(255),
           case_template_id VARCHAR(255),
           case_type VARCHAR(255),
+          details TEXT,
           required_documents JSONB,
           reminder_interval_days INTEGER DEFAULT 10,
           administrative_silence_days INTEGER DEFAULT 60,
@@ -349,19 +353,21 @@ class DatabaseAdapter {
 
     if (this.usePostgres && this.pool) {
       await this.pool.query(
-        `INSERT INTO clients (id, first_name, last_name, email, phone, case_template_id, case_type, 
+        `INSERT INTO clients (id, first_name, last_name, parent_name, email, phone, case_template_id, case_type, details,
          required_documents, reminder_interval_days, administrative_silence_days, payment, 
          submitted_to_immigration, application_date, notifications, additional_docs_required, 
          notes, additional_documents, created_at, updated_at)
-         VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19)`,
+         VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21)`,
         [
           client.id,
           client.first_name,
           client.last_name,
+          client.parent_name || null,
           client.email || null,
           client.phone || null,
           client.case_template_id || null,
           client.case_type || null,
+          client.details || null,
           JSON.stringify(client.required_documents),
           client.reminder_interval_days,
           client.administrative_silence_days,
@@ -433,10 +439,12 @@ class DatabaseAdapter {
       const fields: { [key: string]: any } = {
         first_name: data.first_name,
         last_name: data.last_name,
+        parent_name: data.parent_name,
         email: data.email,
         phone: data.phone,
         case_template_id: data.case_template_id,
         case_type: data.case_type,
+        details: data.details,
         required_documents: data.required_documents,
         reminder_interval_days: data.reminder_interval_days,
         administrative_silence_days: data.administrative_silence_days,
