@@ -1,0 +1,21 @@
+services:
+  - type: web
+    name: immigration-case-manager-backend
+    env: node
+    buildCommand: npm install && npm run build:backend
+    startCommand: cd backend && node dist/index.js
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: PORT
+        value: 4000
+
+  - type: web
+    name: immigration-case-manager-frontend
+    env: node
+    buildCommand: npm install && cd frontend && npm run build
+    staticPublishPath: frontend/dist
+    envVars:
+      - key: NODE_ENV
+        value: production
+

@@ -1,0 +1,43 @@
+{
+  "name": "immigration-case-manager",
+  "version": "1.0.0",
+  "type": "module",
+  "scripts": {
+    "dev": "cd frontend && vite",
+    "dev:server": "cd backend && tsx watch index.ts",
+    "dev:all": "concurrently \"npm run dev:server\" \"npm run dev\"",
+    "build": "cd frontend && tsc && vite build",
+    "build:backend": "cd backend && tsc",
+    "build:all": "npm run build:backend && npm run build",
+    "preview": "cd frontend && vite preview",
+    "start": "cd backend && node dist/index.js"
+  },
+  "dependencies": {
+    "express": "^4.18.2",
+    "cors": "^2.8.5",
+    "jszip": "^3.10.1",
+    "react": "^18.2.0",
+    "react-dom": "^18.2.0",
+    "lucide-react": "^0.263.1",
+    "multer": "^1.4.5-lts.1",
+    "pg": "^8.11.3"
+  },
+  "devDependencies": {
+    "@types/cors": "^2.8.17",
+    "@types/express": "^4.17.17",
+    "@types/multer": "^1.4.11",
+    "@types/node": "^20.5.0",
+    "@types/pg": "^8.10.9",
+    "@types/react": "^18.2.15",
+    "@types/react-dom": "^18.2.7",
+    "@vitejs/plugin-react": "^4.0.3",
+    "autoprefixer": "^10.4.14",
+    "concurrently": "^8.2.0",
+    "postcss": "^8.4.27",
+    "tailwindcss": "^3.3.3",
+    "tsx": "^3.12.7",
+    "typescript": "^5.1.6",
+    "vite": "^4.4.5"
+  }
+}
+
