@@ -22,6 +22,7 @@ export default function ClientDetailsModal({ client, onClose, onSuccess }: Props
   const [savingNotes, setSavingNotes] = useState(false);
   const [downloadingZip, setDownloadingZip] = useState(false);
   const [deleting, setDeleting] = useState(false);
+  const [viewingDocument, setViewingDocument] = useState<{ url: string; fileName: string } | null>(null);
 
   useEffect(() => {
     loadClient();
@@ -156,15 +157,15 @@ export default function ClientDetailsModal({ client, onClose, onSuccess }: Props
     link.click();
   };
 
-  const handleViewDocument = (fileUrl: string) => {
+  const handleViewDocument = (fileUrl: string, fileName: string) => {
     // Handle relative URLs (if fileUrl starts with /uploads, it's relative to the server)
     let url = fileUrl;
     if (fileUrl.startsWith('/uploads/')) {
       // For relative paths, use the current origin
       url = window.location.origin + fileUrl;
     }
-    // Open document in new tab
-    window.open(url, '_blank');
+    // Show document in modal
+    setViewingDocument({ url, fileName });
   };
 
   const handleDownloadAllAsZip = async () => {
@@ -736,7 +737,7 @@ export default function ClientDetailsModal({ client, onClose, onSuccess }: Props
                       {doc.submitted && doc.fileUrl ? (
                         <>
                           <button
-                            onClick={() => handleViewDocument(doc.fileUrl!)}
+                            onClick={() => handleViewDocument(doc.fileUrl!, doc.fileName || 'document')}
                             className="p-2.5 text-green-600 hover:bg-green-50 rounded-lg transition-colors border border-green-200 hover:border-green-300"
                             title="View Document"
                           >
@@ -903,7 +904,7 @@ export default function ClientDetailsModal({ client, onClose, onSuccess }: Props
                     </div>
                     <div className="flex items-center space-x-2 ml-4">
                       <button
-                        onClick={() => handleViewDocument(doc.fileUrl)}
+                        onClick={() => handleViewDocument(doc.fileUrl, doc.fileName)}
                         className="p-2 text-green-600 hover:bg-green-50 rounded-lg transition-colors border border-green-200 hover:border-green-300"
                         title="View Document"
                       >
@@ -957,6 +958,65 @@ export default function ClientDetailsModal({ client, onClose, onSuccess }: Props
           </button>
         </div>
       </div>
+
+      {/* Document Viewer Modal */}
+      {viewingDocument && (
+        <div className="fixed inset-0 bg-black/80 flex items-center justify-center z-[60] p-4 animate-fade-in">
+          <div className="bg-white rounded-xl max-w-6xl w-full max-h-[95vh] flex flex-col shadow-2xl animate-scale-in">
+            <div className="flex justify-between items-center p-4 border-b">
+              <h3 className="text-lg font-semibold text-gray-900 truncate flex-1 mr-4">
+                {viewingDocument.fileName}
+              </h3>
+              <div className="flex items-center space-x-2">
+                <button
+                  onClick={() => handleDownload(viewingDocument.url, viewingDocument.fileName)}
+                  className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
+                  title="Download"
+                >
+                  <Download className="w-5 h-5" />
+                </button>
+                <button
+                  onClick={() => setViewingDocument(null)}
+                  className="p-2 text-gray-600 hover:bg-gray-100 rounded-lg transition-colors"
+                  title="Close"
+                >
+                  <X className="w-5 h-5" />
+                </button>
+              </div>
+            </div>
+            <div className="flex-1 overflow-auto p-4 bg-gray-50">
+              {viewingDocument.url.toLowerCase().endsWith('.pdf') ? (
+                <iframe
+                  src={viewingDocument.url}
+                  className="w-full h-full min-h-[600px] border-0 rounded-lg"
+                  title={viewingDocument.fileName}
+                />
+              ) : viewingDocument.url.match(/\.(jpg|jpeg|png|gif|webp|bmp)$/i) ? (
+                <div className="flex items-center justify-center">
+                  <img
+                    src={viewingDocument.url}
+                    alt={viewingDocument.fileName}
+                    className="max-w-full max-h-[70vh] object-contain rounded-lg shadow-lg"
+                  />
+                </div>
+              ) : (
+                <div className="flex flex-col items-center justify-center h-full min-h-[400px] text-gray-500">
+                  <FileText className="w-16 h-16 mb-4 text-gray-400" />
+                  <p className="text-lg font-medium mb-2">Preview not available</p>
+                  <p className="text-sm mb-4">This file type cannot be previewed in the browser.</p>
+                  <button
+                    onClick={() => handleDownload(viewingDocument.url, viewingDocument.fileName)}
+                    className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors flex items-center space-x-2"
+                  >
+                    <Download className="w-4 h-4" />
+                    <span>Download to view</span>
+                  </button>
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
