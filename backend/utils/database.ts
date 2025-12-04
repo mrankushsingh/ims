@@ -53,6 +53,7 @@ class DatabaseAdapter {
   private clients: Map<string, Client>;
   private templateCounter: number = 0;
   private clientCounter: number = 0;
+  private dbInitialized: Promise<void> | null = null;
 
   constructor() {
     this.dataDir = join(__dirname, '../../data');
@@ -71,10 +72,19 @@ class DatabaseAdapter {
         connectionString: databaseUrl,
         ssl: process.env.NODE_ENV === 'production' ? { rejectUnauthorized: false } : false,
       });
-      this.initPostgres();
+      // Initialize database and store the promise
+      this.dbInitialized = this.initPostgres();
     } else {
       // Use file-based storage for local development
       this.initFileStorage();
+      this.dbInitialized = Promise.resolve();
+    }
+  }
+
+  // Ensure database is initialized before queries
+  private async ensureInitialized() {
+    if (this.dbInitialized) {
+      await this.dbInitialized;
     }
   }
 
@@ -230,6 +240,7 @@ class DatabaseAdapter {
 
   // Templates
   async insertTemplate(data: Omit<CaseTemplate, 'id' | 'created_at' | 'updated_at'>): Promise<CaseTemplate> {
+    await this.ensureInitialized();
     const id = `template_${++this.templateCounter}_${Date.now()}`;
     const now = new Date().toISOString();
     const template: CaseTemplate = {
@@ -263,6 +274,7 @@ class DatabaseAdapter {
   }
 
   async getTemplates(): Promise<CaseTemplate[]> {
+    await this.ensureInitialized();
     if (this.usePostgres && this.pool) {
       const result = await this.pool.query('SELECT * FROM case_templates ORDER BY created_at DESC');
       return result.rows.map((row: any) => ({
@@ -278,6 +290,7 @@ class DatabaseAdapter {
   }
 
   async getTemplate(id: string): Promise<CaseTemplate | null> {
+    await this.ensureInitialized();
     if (this.usePostgres && this.pool) {
       const result = await this.pool.query('SELECT * FROM case_templates WHERE id = $1', [id]);
       if (result.rows.length === 0) return null;
@@ -293,6 +306,7 @@ class DatabaseAdapter {
   }
 
   async updateTemplate(id: string, data: Partial<CaseTemplate>): Promise<CaseTemplate | null> {
+    await this.ensureInitialized();
     if (this.usePostgres && this.pool) {
       const updates: string[] = [];
       const values: any[] = [];
@@ -339,6 +353,7 @@ class DatabaseAdapter {
   }
 
   async deleteTemplate(id: string): Promise<boolean> {
+    await this.ensureInitialized();
     if (this.usePostgres && this.pool) {
       const result = await this.pool.query('DELETE FROM case_templates WHERE id = $1', [id]);
       return (result.rowCount ?? 0) > 0;
@@ -353,6 +368,7 @@ class DatabaseAdapter {
 
   // Clients
   async insertClient(data: Omit<Client, 'id' | 'created_at' | 'updated_at'>): Promise<Client> {
+    await this.ensureInitialized();
     const id = `client_${++this.clientCounter}_${Date.now()}`;
     const now = new Date().toISOString();
     const client: Client = {
@@ -402,6 +418,7 @@ class DatabaseAdapter {
   }
 
   async getClients(): Promise<Client[]> {
+    await this.ensureInitialized();
     if (this.usePostgres && this.pool) {
       const result = await this.pool.query('SELECT * FROM clients ORDER BY created_at DESC');
       return result.rows.map((row: any) => this.parseClientRow(row));
@@ -412,6 +429,7 @@ class DatabaseAdapter {
   }
 
   async getClient(id: string): Promise<Client | null> {
+    await this.ensureInitialized();
     if (this.usePostgres && this.pool) {
       const result = await this.pool.query('SELECT * FROM clients WHERE id = $1', [id]);
       if (result.rows.length === 0) return null;
@@ -442,6 +460,7 @@ class DatabaseAdapter {
   }
 
   async updateClient(id: string, data: Partial<Client>): Promise<Client | null> {
+    await this.ensureInitialized();
     if (this.usePostgres && this.pool) {
       const updates: string[] = [];
       const values: any[] = [];
@@ -499,6 +518,7 @@ class DatabaseAdapter {
   }
 
   async deleteClient(id: string): Promise<boolean> {
+    await this.ensureInitialized();
     const client = await this.getClient(id);
     if (client) {
       // Delete associated files
