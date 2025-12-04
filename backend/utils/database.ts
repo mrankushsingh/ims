@@ -141,9 +141,17 @@ class DatabaseAdapter {
       `);
       
       // Add custom_reminder_date column if it doesn't exist (for existing databases)
+      // Use DO block to handle cases where column might already exist
       await this.pool.query(`
-        ALTER TABLE clients 
-        ADD COLUMN IF NOT EXISTS custom_reminder_date TIMESTAMP
+        DO $$ 
+        BEGIN
+          IF NOT EXISTS (
+            SELECT 1 FROM information_schema.columns 
+            WHERE table_name = 'clients' AND column_name = 'custom_reminder_date'
+          ) THEN
+            ALTER TABLE clients ADD COLUMN custom_reminder_date TIMESTAMP;
+          END IF;
+        END $$;
       `);
 
       console.log('✅ PostgreSQL database initialized and tables created');
