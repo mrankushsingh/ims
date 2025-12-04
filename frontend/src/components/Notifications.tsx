@@ -20,6 +20,7 @@ export default function Notifications({ onClientClick }: Props) {
   const [reminders, setReminders] = useState<Reminder[]>([]);
   const [loading, setLoading] = useState(true);
   const [showPopups, setShowPopups] = useState(true);
+  const [readReminders, setReadReminders] = useState<Set<string>>(new Set());
 
   useEffect(() => {
     loadReminders();
@@ -168,7 +169,13 @@ export default function Notifications({ onClientClick }: Props) {
         }
       });
 
-      setReminders(newReminders);
+      // Filter out read reminders
+      const unreadReminders = newReminders.filter(reminder => {
+        const reminderKey = `${reminder.client.id}-${reminder.type}`;
+        return !readReminders.has(reminderKey);
+      });
+
+      setReminders(unreadReminders);
       
       // Show pop-ups for high priority reminders
       if (showPopups && newReminders.filter(r => r.priority === 'high').length > 0) {
@@ -269,6 +276,9 @@ export default function Notifications({ onClientClick }: Props) {
                       <div
                         key={`${reminder.client.id}-${reminder.type}-${index}`}
                         onClick={() => {
+                          // Mark reminder as read
+                          const reminderKey = `${reminder.client.id}-${reminder.type}`;
+                          setReadReminders(prev => new Set([...prev, reminderKey]));
                           onClientClick(reminder.client);
                           setIsOpen(false);
                         }}
@@ -378,6 +388,9 @@ export default function Notifications({ onClientClick }: Props) {
                     )}
                     <button
                       onClick={() => {
+                        // Mark reminder as read
+                        const reminderKey = `${reminder.client.id}-${reminder.type}`;
+                        setReadReminders(prev => new Set([...prev, reminderKey]));
                         onClientClick(reminder.client);
                         setShowPopups(false);
                       }}
