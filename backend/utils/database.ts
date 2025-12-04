@@ -82,7 +82,13 @@ class DatabaseAdapter {
     if (!this.pool) return;
 
     try {
+      // Test connection first
+      console.log('🔌 Testing PostgreSQL connection...');
+      await this.pool.query('SELECT NOW()');
+      console.log('✅ PostgreSQL connection successful');
+
       // Create tables if they don't exist
+      console.log('📋 Creating database tables...');
       await this.pool.query(`
         CREATE TABLE IF NOT EXISTS case_templates (
           id VARCHAR(255) PRIMARY KEY,
@@ -122,10 +128,15 @@ class DatabaseAdapter {
         )
       `);
 
-      console.log('✅ PostgreSQL database initialized');
-    } catch (error) {
-      console.error('❌ Error initializing PostgreSQL:', error);
-      throw error;
+      console.log('✅ PostgreSQL database initialized and tables created');
+    } catch (error: any) {
+      console.error('❌ Error initializing PostgreSQL:', error.message);
+      console.error('Full error:', error);
+      // Don't throw - fall back to file storage if database fails
+      console.warn('⚠️ Falling back to file-based storage');
+      this.usePostgres = false;
+      this.pool = null;
+      this.initFileStorage();
     }
   }
 

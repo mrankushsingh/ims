@@ -21,8 +21,36 @@ const uploadsDir = db.getUploadsDir();
 app.use('/uploads', express.static(uploadsDir));
 
 // API Routes
-app.get('/health', (req, res) => {
-  res.json({ status: 'ok', timestamp: new Date().toISOString() });
+app.get('/health', async (req, res) => {
+  try {
+    const dbStatus = {
+      type: process.env.DATABASE_URL ? 'PostgreSQL' : 'File-based',
+      connected: false,
+    };
+
+    if (process.env.DATABASE_URL) {
+      try {
+        await db.getTemplates(); // Test database connection
+        dbStatus.connected = true;
+      } catch (error) {
+        dbStatus.connected = false;
+      }
+    } else {
+      dbStatus.connected = true; // File-based always works
+    }
+
+    res.json({ 
+      status: 'ok', 
+      timestamp: new Date().toISOString(),
+      database: dbStatus
+    });
+  } catch (error) {
+    res.status(500).json({ 
+      status: 'error', 
+      timestamp: new Date().toISOString(),
+      error: 'Health check failed'
+    });
+  }
 });
 
 app.use('/api/case-templates', caseTemplatesRoutes);
@@ -41,11 +69,28 @@ app.get('*', (req, res) => {
   res.sendFile(join(frontendDist, 'index.html'));
 });
 
-app.listen(PORT, '0.0.0.0', () => {
+app.listen(PORT, '0.0.0.0', async () => {
   console.log(`🚀 Server running on http://localhost:${PORT}`);
   console.log(`🌐 Server accessible on all network interfaces`);
   console.log(`📦 Serving frontend from: ${frontendDist}`);
-  console.log(`💾 Storage: ${process.env.DATABASE_URL ? 'PostgreSQL (Railway)' : 'File-based (Local)'}`);
+  
+  if (process.env.DATABASE_URL) {
+    console.log(`💾 Database: PostgreSQL (Railway)`);
+    console.log(`   DATABASE_URL: ${process.env.DATABASE_URL.substring(0, 20)}...`);
+    try {
+      // Test database connection
+      await db.getTemplates();
+      console.log(`✅ Database connection verified`);
+    } catch (error: any) {
+      console.error(`❌ Database connection failed: ${error.message}`);
+      console.log(`⚠️  Using file-based storage as fallback`);
+    }
+  } else {
+    console.log(`💾 Storage: File-based (Local)`);
+    console.log(`   No DATABASE_URL found - using local file storage`);
+  }
+  
   console.log(`📁 Uploads directory: ${uploadsDir}`);
+  console.log(`\n🔍 Check /health endpoint for database status`);
 });
 
