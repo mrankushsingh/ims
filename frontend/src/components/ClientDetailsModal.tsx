@@ -381,8 +381,19 @@ export default function ClientDetailsModal({ client, onClose, onSuccess }: Props
   const silenceInfo = calculateSilenceCountdown();
 
   return (
-    <div className="fixed inset-0 bg-gradient-to-br from-slate-900/40 via-gray-900/30 to-slate-800/40 backdrop-blur-md flex items-center justify-center z-50 p-2 sm:p-4 animate-fade-in overflow-y-auto">
-      <div className="bg-white rounded-2xl shadow-2xl max-w-6xl w-full max-h-[98vh] flex flex-col animate-scale-in my-2 sm:my-4 border border-gray-200/50 ring-1 ring-gray-200/50">
+    <div 
+      className="fixed inset-0 bg-gradient-to-br from-slate-900/50 via-gray-900/45 to-slate-800/50 backdrop-blur-lg flex items-center justify-center z-[100] p-2 sm:p-4 animate-fade-in overflow-y-auto"
+      onClick={(e) => {
+        // Close modal when clicking on backdrop
+        if (e.target === e.currentTarget) {
+          onClose();
+        }
+      }}
+    >
+      <div 
+        className="bg-white rounded-2xl shadow-2xl max-w-6xl w-full max-h-[98vh] flex flex-col animate-scale-in my-2 sm:my-4 border border-gray-200/50 ring-1 ring-gray-200/50"
+        onClick={(e) => e.stopPropagation()}
+      >
         {/* Fixed Header */}
         <div className="flex-shrink-0 flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4 p-6 border-b border-gray-200 bg-gradient-to-r from-gray-50 to-white">
           <div>
