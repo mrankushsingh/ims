@@ -149,35 +149,6 @@ export default function ClientDetailsModal({ client, onClose, onSuccess }: Props
     }
   };
 
-  const handleSaveReminder = async () => {
-    setSavingReminder(true);
-    setError('');
-    try {
-      await api.updateClient(client.id, { custom_reminder_date: customReminderDate || null });
-      await loadClient();
-      onSuccess();
-    } catch (error: any) {
-      setError(error.message || 'Failed to save reminder date');
-    } finally {
-      setSavingReminder(false);
-    }
-  };
-
-  const handleClearReminder = async () => {
-    if (!confirm('Are you sure you want to clear the reminder date?')) return;
-    setSavingReminder(true);
-    setError('');
-    try {
-      await api.updateClient(client.id, { custom_reminder_date: null });
-      setCustomReminderDate('');
-      await loadClient();
-      onSuccess();
-    } catch (error: any) {
-      setError(error.message || 'Failed to clear reminder date');
-    } finally {
-      setSavingReminder(false);
-    }
-  };
 
   const handleOpenReminderCalendar = () => {
     setTempReminderDate(customReminderDate || '');
@@ -738,93 +709,6 @@ export default function ClientDetailsModal({ client, onClose, onSuccess }: Props
                     </div>
                   ))}
                 </div>
-              </div>
-            )}
-          </div>
-        </div>
-
-        {/* Payment Reminder Section */}
-        <div id="reminder-section" className="mb-6 p-5 bg-gradient-to-br from-purple-50/50 to-white rounded-xl border border-gray-200 shadow-sm transition-all duration-300">
-          <div className="flex justify-between items-center mb-4">
-            <h3 className="text-lg font-bold text-gray-900 flex items-center space-x-2">
-              <div className="p-2 bg-purple-100 rounded-lg">
-                <Calendar className="w-5 h-5 text-purple-700" />
-              </div>
-              <span>Payment Reminder</span>
-            </h3>
-            <div className="flex items-center space-x-2">
-              {customReminderDate && (
-                <button
-                  onClick={handleClearReminder}
-                  disabled={savingReminder}
-                  className="px-3 py-1.5 bg-red-100 text-red-700 text-xs rounded-lg hover:bg-red-200 transition-colors disabled:opacity-50 flex items-center space-x-1"
-                >
-                  <X className="w-3.5 h-3.5" />
-                  <span>Clear</span>
-                </button>
-              )}
-              <button
-                onClick={handleSaveReminder}
-                disabled={savingReminder}
-                className="px-4 py-2 bg-purple-600 text-white text-sm rounded-lg hover:bg-purple-700 transition-colors disabled:opacity-50 flex items-center space-x-2"
-              >
-                {savingReminder ? 'Saving...' : 'Save Reminder'}
-              </button>
-            </div>
-          </div>
-          
-          <div className="bg-white border border-gray-200 rounded-lg p-4">
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              Select Reminder Date
-            </label>
-            <div className="flex items-center space-x-3">
-              <input
-                type="date"
-                value={customReminderDate}
-                onChange={(e) => setCustomReminderDate(e.target.value)}
-                min={new Date().toISOString().split('T')[0]}
-                className="flex-1 px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent outline-none text-sm cursor-pointer"
-              />
-              <div className="p-2.5 bg-purple-50 rounded-lg">
-                <Calendar className="w-5 h-5 text-purple-600" />
-              </div>
-            </div>
-            
-            {customReminderDate && (
-              <div className="mt-4 pt-4 border-t border-gray-200">
-                <div className="flex items-center space-x-2 text-sm">
-                  <Clock className="w-4 h-4 text-purple-600" />
-                  <span className="text-gray-600">Reminder set for:</span>
-                  <span className="font-semibold text-purple-700">
-                    {new Date(customReminderDate).toLocaleDateString('en-US', { 
-                      weekday: 'long', 
-                      year: 'numeric', 
-                      month: 'long', 
-                      day: 'numeric' 
-                    })}
-                  </span>
-                </div>
-                {new Date(customReminderDate) < new Date() && (
-                  <div className="mt-2 flex items-center space-x-2 text-xs text-red-600">
-                    <AlertCircle className="w-3.5 h-3.5" />
-                    <span>This date is in the past</span>
-                  </div>
-                )}
-                {new Date(customReminderDate) >= new Date() && (
-                  <div className="mt-2 flex items-center space-x-2 text-xs text-blue-600">
-                    <Clock className="w-3.5 h-3.5" />
-                    <span>
-                      {Math.ceil((new Date(customReminderDate).getTime() - new Date().getTime()) / (1000 * 60 * 60 * 24))} day(s) from now
-                    </span>
-                  </div>
-                )}
-              </div>
-            )}
-            
-            {!customReminderDate && (
-              <div className="mt-3 text-xs text-gray-500 flex items-center space-x-1">
-                <AlertCircle className="w-3.5 h-3.5" />
-                <span>Select a date to set a payment reminder for this client</span>
               </div>
             )}
           </div>
