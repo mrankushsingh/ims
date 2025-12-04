@@ -105,9 +105,6 @@ export default function Notifications({ onClientClick }: Props) {
             // 1. Reminder date has passed (overdue), OR
             // 2. Reminder is approaching (within 2 days)
             if (daysUntilReminder <= 2) {
-              const submittedRequiredCount = client.required_documents?.filter((d: any) => d.submitted && !d.isOptional).length || 0;
-              const totalRequiredCount = client.required_documents?.filter((d: any) => !d.isOptional).length || 0;
-              
               // Determine priority based on how overdue or approaching
               let priority: 'high' | 'medium' | 'low';
               if (daysUntilReminder < 0) {

@@ -312,11 +312,6 @@ export default function ClientDetailsModal({ client, onClose, onSuccess }: Props
   // Count total submitted documents (including optional)
   const totalSubmittedDocs = (clientData.required_documents?.filter((d: any) => d.submitted).length || 0) + 
                               (clientData.additional_documents?.length || 0);
-  
-  // Count required (non-optional) documents
-  const requiredDocs = clientData.required_documents?.filter((d: any) => !d.isOptional) || [];
-  const submittedRequiredDocs = requiredDocs.filter((d: any) => d.submitted).length;
-  const totalRequiredDocs = requiredDocs.length;
 
   // Calculate administrative silence countdown
   const calculateSilenceCountdown = () => {
