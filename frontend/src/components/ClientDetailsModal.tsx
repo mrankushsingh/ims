@@ -27,6 +27,8 @@ export default function ClientDetailsModal({ client, onClose, onSuccess }: Props
   const [viewingDocument, setViewingDocument] = useState<{ url: string; fileName: string } | null>(null);
   const [customReminderDate, setCustomReminderDate] = useState(client.custom_reminder_date || '');
   const [savingReminder, setSavingReminder] = useState(false);
+  const [showReminderCalendar, setShowReminderCalendar] = useState(false);
+  const [tempReminderDate, setTempReminderDate] = useState('');
 
   useEffect(() => {
     loadClient();
@@ -172,6 +174,31 @@ export default function ClientDetailsModal({ client, onClose, onSuccess }: Props
       onSuccess();
     } catch (error: any) {
       setError(error.message || 'Failed to clear reminder date');
+    } finally {
+      setSavingReminder(false);
+    }
+  };
+
+  const handleOpenReminderCalendar = () => {
+    setTempReminderDate(customReminderDate || '');
+    setShowReminderCalendar(true);
+  };
+
+  const handleSaveReminderFromCalendar = async () => {
+    if (!tempReminderDate) {
+      setError('Please select a date');
+      return;
+    }
+    setSavingReminder(true);
+    setError('');
+    try {
+      await api.updateClient(client.id, { custom_reminder_date: tempReminderDate });
+      setCustomReminderDate(tempReminderDate);
+      setShowReminderCalendar(false);
+      await loadClient();
+      onSuccess();
+    } catch (error: any) {
+      setError(error.message || 'Failed to save reminder date');
     } finally {
       setSavingReminder(false);
     }
@@ -590,16 +617,7 @@ export default function ClientDetailsModal({ client, onClose, onSuccess }: Props
             </h3>
             <div className="flex items-center space-x-2">
               <button
-                onClick={() => {
-                  const reminderSection = document.getElementById('reminder-section');
-                  if (reminderSection) {
-                    reminderSection.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
-                    reminderSection.classList.add('ring-2', 'ring-purple-500', 'ring-offset-2');
-                    setTimeout(() => {
-                      reminderSection.classList.remove('ring-2', 'ring-purple-500', 'ring-offset-2');
-                    }, 2000);
-                  }
-                }}
+                onClick={handleOpenReminderCalendar}
                 className={`px-3 py-2 text-sm rounded-lg transition-colors flex items-center space-x-2 ${
                   customReminderDate
                     ? 'bg-purple-100 text-purple-700 hover:bg-purple-200'
@@ -1285,6 +1303,125 @@ export default function ClientDetailsModal({ client, onClose, onSuccess }: Props
                   </button>
                 </div>
               )}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Reminder Calendar Modal */}
+      {showReminderCalendar && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50 p-4">
+          <div className="bg-white rounded-xl shadow-2xl max-w-md w-full max-h-[90vh] overflow-hidden flex flex-col">
+            <div className="p-5 border-b border-gray-200 bg-gradient-to-r from-purple-50 to-indigo-50">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center space-x-3">
+                  <div className="p-2 bg-purple-100 rounded-lg">
+                    <Calendar className="w-5 h-5 text-purple-700" />
+                  </div>
+                  <div>
+                    <h3 className="text-lg font-bold text-gray-900">Custom Reminder</h3>
+                    <p className="text-xs text-gray-600 mt-0.5">Select a date to set a custom reminder</p>
+                  </div>
+                </div>
+                <button
+                  onClick={() => setShowReminderCalendar(false)}
+                  className="p-2 text-gray-500 hover:bg-gray-100 rounded-lg transition-colors"
+                >
+                  <X className="w-5 h-5" />
+                </button>
+              </div>
+            </div>
+            
+            <div className="flex-1 overflow-auto p-6">
+              <div className="space-y-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Select Reminder Date
+                  </label>
+                  <div className="relative">
+                    <input
+                      type="date"
+                      value={tempReminderDate}
+                      onChange={(e) => setTempReminderDate(e.target.value)}
+                      min={new Date().toISOString().split('T')[0]}
+                      className="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500 outline-none text-base cursor-pointer"
+                      autoFocus
+                    />
+                    <div className="absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none">
+                      <Calendar className="w-5 h-5 text-gray-400" />
+                    </div>
+                  </div>
+                </div>
+
+                {tempReminderDate && (
+                  <div className="p-4 bg-purple-50 rounded-lg border border-purple-200">
+                    <div className="flex items-center space-x-2 text-sm">
+                      <Clock className="w-4 h-4 text-purple-600" />
+                      <span className="text-gray-700">Reminder set for:</span>
+                      <span className="font-semibold text-purple-700">
+                        {new Date(tempReminderDate).toLocaleDateString('en-US', { 
+                          weekday: 'long', 
+                          year: 'numeric', 
+                          month: 'long', 
+                          day: 'numeric' 
+                        })}
+                      </span>
+                    </div>
+                    {new Date(tempReminderDate) < new Date() && (
+                      <div className="mt-2 flex items-center space-x-2 text-xs text-red-600">
+                        <AlertCircle className="w-3.5 h-3.5" />
+                        <span>This date is in the past</span>
+                      </div>
+                    )}
+                    {new Date(tempReminderDate) >= new Date() && (
+                      <div className="mt-2 flex items-center space-x-2 text-xs text-blue-600">
+                        <Clock className="w-3.5 h-3.5" />
+                        <span>
+                          {Math.ceil((new Date(tempReminderDate).getTime() - new Date().getTime()) / (1000 * 60 * 60 * 24))} day(s) from now
+                        </span>
+                      </div>
+                    )}
+                  </div>
+                )}
+
+                {!tempReminderDate && (
+                  <div className="p-4 bg-gray-50 rounded-lg border border-gray-200">
+                    <div className="flex items-center space-x-2 text-sm text-gray-500">
+                      <AlertCircle className="w-4 h-4" />
+                      <span>Select a date to set a custom reminder for this client</span>
+                    </div>
+                  </div>
+                )}
+              </div>
+            </div>
+
+            <div className="p-5 border-t border-gray-200 bg-gray-50 flex items-center justify-end space-x-3">
+              <button
+                onClick={() => {
+                  setShowReminderCalendar(false);
+                  setTempReminderDate('');
+                }}
+                className="px-4 py-2 text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleSaveReminderFromCalendar}
+                disabled={!tempReminderDate || savingReminder}
+                className="px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center space-x-2"
+              >
+                {savingReminder ? (
+                  <>
+                    <div className="animate-spin rounded-full h-4 w-4 border-2 border-white border-t-transparent"></div>
+                    <span>Saving...</span>
+                  </>
+                ) : (
+                  <>
+                    <CheckCircle className="w-4 h-4" />
+                    <span>Save Reminder</span>
+                  </>
+                )}
+              </button>
             </div>
           </div>
         </div>
