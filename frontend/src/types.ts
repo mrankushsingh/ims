@@ -18,6 +18,7 @@ export interface RequiredDocument {
   uploadedAt?: string;
   fileName?: string;
   fileSize?: number;
+  isOptional?: boolean; // If true, document is optional for this client
 }
 
 export interface Client {

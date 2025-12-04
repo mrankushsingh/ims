@@ -39,9 +39,9 @@ export default function Dashboard() {
     );
   }
 
-  const totalDocs = clients.reduce((sum, client) => sum + (client.required_documents?.length || 0), 0);
+  const totalDocs = clients.reduce((sum, client) => sum + (client.required_documents?.filter((d: any) => !d.isOptional).length || 0), 0);
   const submittedDocs = clients.reduce(
-    (sum, client) => sum + (client.required_documents?.filter((d: any) => d.submitted).length || 0),
+    (sum, client) => sum + (client.required_documents?.filter((d: any) => d.submitted && !d.isOptional).length || 0),
     0
   );
   const submittedToAdmin = clients.filter((client) => client.submitted_to_immigration);

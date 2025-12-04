@@ -61,6 +61,7 @@ router.post('/', async (req, res) => {
             submitted: false,
             fileUrl: null,
             uploadedAt: null,
+            isOptional: false, // Default to required, can be changed per client
           }));
         }
       }

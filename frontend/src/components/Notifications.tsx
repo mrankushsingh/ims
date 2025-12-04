@@ -65,11 +65,12 @@ export default function Notifications({ onClientClick }: Props) {
         }
 
         // Check for reminder interval based on document activity
-        // Only show reminder if client has pending documents and hasn't been submitted
+        // Only show reminder if client has pending REQUIRED documents and hasn't been submitted
         if (!client.submitted_to_immigration) {
-          const pendingDocs = client.required_documents?.filter((d: any) => !d.submitted).length || 0;
+          // Only count required (non-optional) documents
+          const pendingRequiredDocs = client.required_documents?.filter((d: any) => !d.submitted && !d.isOptional).length || 0;
           
-          if (pendingDocs > 0) {
+          if (pendingRequiredDocs > 0) {
             // Find the most recent activity date (document upload or client creation)
             const submittedDocs = client.required_documents?.filter((d: any) => d.submitted && d.uploadedAt) || [];
             let lastActivityDate: Date;
@@ -104,8 +105,8 @@ export default function Notifications({ onClientClick }: Props) {
             // 1. Reminder date has passed (overdue), OR
             // 2. Reminder is approaching (within 2 days)
             if (daysUntilReminder <= 2) {
-              const submittedCount = client.required_documents?.filter((d: any) => d.submitted).length || 0;
-              const totalCount = client.required_documents?.length || 0;
+              const submittedRequiredCount = client.required_documents?.filter((d: any) => d.submitted && !d.isOptional).length || 0;
+              const totalRequiredCount = client.required_documents?.filter((d: any) => !d.isOptional).length || 0;
               
               // Determine priority based on how overdue or approaching
               let priority: 'high' | 'medium' | 'low';
@@ -118,10 +119,10 @@ export default function Notifications({ onClientClick }: Props) {
               }
               
               const message = daysUntilReminder < 0
-                ? `${pendingDocs} document(s) pending for ${client.first_name} ${client.last_name}. Reminder overdue by ${Math.abs(daysUntilReminder)} day(s). Last activity: ${daysSinceLastActivity} day(s) ago.`
+                ? `${pendingRequiredDocs} required document(s) pending for ${client.first_name} ${client.last_name}. Reminder overdue by ${Math.abs(daysUntilReminder)} day(s). Last activity: ${daysSinceLastActivity} day(s) ago.`
                 : daysUntilReminder === 0
-                ? `${pendingDocs} document(s) pending for ${client.first_name} ${client.last_name}. Reminder due today. Last activity: ${daysSinceLastActivity} day(s) ago.`
-                : `${pendingDocs} document(s) pending for ${client.first_name} ${client.last_name}. Reminder in ${daysUntilReminder} day(s). Last activity: ${daysSinceLastActivity} day(s) ago.`;
+                ? `${pendingRequiredDocs} required document(s) pending for ${client.first_name} ${client.last_name}. Reminder due today. Last activity: ${daysSinceLastActivity} day(s) ago.`
+                : `${pendingRequiredDocs} required document(s) pending for ${client.first_name} ${client.last_name}. Reminder in ${daysUntilReminder} day(s). Last activity: ${daysSinceLastActivity} day(s) ago.`;
               
               newReminders.push({
                 client,

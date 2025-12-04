@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { X, Upload, CheckCircle, FileText, Download, Trash2, Plus, DollarSign, StickyNote, Archive, XCircle, AlertCircle, Send, Clock, Eye } from 'lucide-react';
+import { X, Upload, CheckCircle, FileText, Download, Trash2, Plus, DollarSign, StickyNote, Archive, XCircle, AlertCircle, Send, Clock, Eye, ToggleLeft, ToggleRight } from 'lucide-react';
 import JSZip from 'jszip';
 import { api } from '../utils/api';
 import { Client, RequiredDocument, AdditionalDocument } from '../types';
@@ -69,6 +69,29 @@ export default function ClientDetailsModal({ client, onClose, onSuccess }: Props
       onSuccess();
     } catch (error: any) {
       setError(error.message || 'Failed to remove document');
+    }
+  };
+
+  const handleToggleOptional = async (documentCode: string, currentOptional: boolean) => {
+    setError('');
+    try {
+      const updatedDocuments = clientData.required_documents.map((doc: any) => {
+        if (doc.code === documentCode) {
+          return {
+            ...doc,
+            isOptional: !currentOptional,
+          };
+        }
+        return doc;
+      });
+
+      await api.updateClient(client.id, {
+        required_documents: updatedDocuments,
+      });
+      await loadClient();
+      onSuccess();
+    } catch (error: any) {
+      setError(error.message || 'Failed to update document');
     }
   };
 
@@ -286,9 +309,14 @@ export default function ClientDetailsModal({ client, onClose, onSuccess }: Props
 
   const remainingAmount = (clientData.payment?.totalFee || 0) - (clientData.payment?.paidAmount || 0);
   
-  // Count total submitted documents
+  // Count total submitted documents (including optional)
   const totalSubmittedDocs = (clientData.required_documents?.filter((d: any) => d.submitted).length || 0) + 
                               (clientData.additional_documents?.length || 0);
+  
+  // Count required (non-optional) documents
+  const requiredDocs = clientData.required_documents?.filter((d: any) => !d.isOptional) || [];
+  const submittedRequiredDocs = requiredDocs.filter((d: any) => d.submitted).length;
+  const totalRequiredDocs = requiredDocs.length;
 
   // Calculate administrative silence countdown
   const calculateSilenceCountdown = () => {
@@ -675,18 +703,23 @@ export default function ClientDetailsModal({ client, onClose, onSuccess }: Props
                 <span>Required Documents</span>
               </h3>
               {clientData.required_documents && clientData.required_documents.length > 0 && (
-                <div className="flex items-center space-x-3 text-sm">
+                <div className="flex items-center space-x-3 text-sm flex-wrap">
                   <span className="text-slate-600">
-                    {clientData.required_documents.filter((d: any) => d.submitted).length} of {clientData.required_documents.length} submitted
+                    {clientData.required_documents.filter((d: any) => !d.isOptional && d.submitted).length} of {clientData.required_documents.filter((d: any) => !d.isOptional).length} required submitted
                   </span>
+                  {clientData.required_documents.filter((d: any) => d.isOptional).length > 0 && (
+                    <span className="text-blue-600 text-xs">
+                      ({clientData.required_documents.filter((d: any) => d.isOptional).length} optional)
+                    </span>
+                  )}
                   <span className="text-emerald-600 flex items-center space-x-1">
                     <CheckCircle className="w-4 h-4" />
                     <span>{clientData.required_documents.filter((d: any) => d.submitted).length}</span>
                   </span>
-                  {clientData.required_documents.filter((d: any) => !d.submitted).length > 0 && (
+                  {clientData.required_documents.filter((d: any) => !d.isOptional && !d.submitted).length > 0 && (
                     <span className="text-red-600 flex items-center space-x-1">
                       <XCircle className="w-4 h-4" />
-                      <span>{clientData.required_documents.filter((d: any) => !d.submitted).length}</span>
+                      <span>{clientData.required_documents.filter((d: any) => !d.isOptional && !d.submitted).length} required pending</span>
                     </span>
                   )}
                 </div>
@@ -725,6 +758,8 @@ export default function ClientDetailsModal({ client, onClose, onSuccess }: Props
                   className={`border-2 rounded-xl p-5 transition-all shadow-sm hover:shadow-md ${
                     doc.submitted
                       ? 'border-emerald-300 bg-gradient-to-br from-emerald-50 to-white'
+                      : doc.isOptional
+                      ? 'border-gray-300 bg-gradient-to-br from-gray-50 to-white'
                       : 'border-red-300 bg-gradient-to-br from-red-50 to-white'
                   }`}
                 >
@@ -741,18 +776,29 @@ export default function ClientDetailsModal({ client, onClose, onSuccess }: Props
                           </div>
                         )}
                         <div className="flex-1">
-                          <h4 className={`font-semibold text-base ${
-                            doc.submitted ? 'text-slate-900' : 'text-red-900'
-                          }`}>
-                            {doc.name}
-                          </h4>
+                          <div className="flex items-center space-x-2">
+                            <h4 className={`font-semibold text-base ${
+                              doc.submitted ? 'text-slate-900' : 'text-red-900'
+                            }`}>
+                              {doc.name}
+                            </h4>
+                            {doc.isOptional && (
+                              <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-semibold bg-blue-100 text-blue-700">
+                                Optional
+                              </span>
+                            )}
+                          </div>
                           {doc.submitted ? (
                             <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold bg-emerald-100 text-emerald-700 mt-1">
                               ✓ Submitted
                             </span>
                           ) : (
-                            <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold bg-red-100 text-red-700 mt-1">
-                              ✗ Pending
+                            <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold mt-1 ${
+                              doc.isOptional 
+                                ? 'bg-gray-100 text-gray-700' 
+                                : 'bg-red-100 text-red-700'
+                            }`}>
+                              {doc.isOptional ? '○ Optional' : '✗ Pending'}
                             </span>
                           )}
                         </div>
@@ -794,6 +840,21 @@ export default function ClientDetailsModal({ client, onClose, onSuccess }: Props
                       </div>
                     </div>
                     <div className="flex items-center space-x-2 ml-4">
+                      <button
+                        onClick={() => handleToggleOptional(doc.code, doc.isOptional || false)}
+                        className={`p-2 rounded-lg transition-colors border ${
+                          doc.isOptional
+                            ? 'text-blue-600 hover:bg-blue-50 border-blue-200 hover:border-blue-300'
+                            : 'text-gray-600 hover:bg-gray-50 border-gray-200 hover:border-gray-300'
+                        }`}
+                        title={doc.isOptional ? 'Mark as Required' : 'Mark as Optional'}
+                      >
+                        {doc.isOptional ? (
+                          <ToggleRight className="w-5 h-5" />
+                        ) : (
+                          <ToggleLeft className="w-5 h-5" />
+                        )}
+                      </button>
                       {doc.submitted && doc.fileUrl ? (
                         <>
                           <button
