@@ -318,32 +318,40 @@ export default function ClientDetailsModal({ client, onClose, onSuccess }: Props
   const silenceInfo = calculateSilenceCountdown();
 
   return (
-    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-2 sm:p-4 animate-fade-in overflow-y-auto">
-      <div className="bg-white rounded-xl sm:rounded-2xl p-4 sm:p-6 max-w-5xl w-full max-h-[95vh] sm:max-h-[90vh] overflow-y-auto shadow-2xl animate-scale-in my-2 sm:my-8">
-        <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4 mb-4 sm:mb-6">
+    <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-2 sm:p-4 animate-fade-in overflow-y-auto">
+      <div className="bg-white rounded-2xl shadow-2xl max-w-6xl w-full max-h-[98vh] flex flex-col animate-scale-in my-2 sm:my-4 border border-gray-200/50">
+        {/* Fixed Header */}
+        <div className="flex-shrink-0 flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4 p-6 border-b border-gray-200 bg-gradient-to-r from-gray-50 to-white">
           <div>
-            <h2 className="text-xl sm:text-2xl font-bold text-gray-900">
+            <h2 className="text-2xl sm:text-3xl font-bold text-gray-900 tracking-tight">
               {clientData.first_name} {clientData.last_name}
             </h2>
-            <p className="text-gray-600 mt-1">{clientData.case_type || 'No template assigned'}</p>
+            <p className="text-gray-600 mt-1.5 text-sm sm:text-base font-medium">{clientData.case_type || 'No template assigned'}</p>
           </div>
           <button
             onClick={onClose}
-            className="p-2 text-gray-600 hover:bg-gray-100 rounded-lg transition-colors"
+            className="p-2.5 text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded-xl transition-all duration-200 self-start sm:self-auto"
           >
             <X className="w-5 h-5" />
           </button>
         </div>
+        
+        {/* Scrollable Content */}
+        <div className="flex-1 overflow-y-auto overscroll-contain custom-scrollbar smooth-scroll">
+          <div className="p-6 space-y-6">
 
-        {error && (
-          <div className="mb-4 p-3 bg-red-50 border border-red-200 text-red-700 rounded-lg text-sm animate-slide-down">
-            {error}
-          </div>
-        )}
+            {error && (
+              <div className="mb-4 p-4 bg-red-50 border-l-4 border-red-500 text-red-700 rounded-lg text-sm animate-slide-down shadow-sm">
+                <div className="flex items-center space-x-2">
+                  <AlertCircle className="w-5 h-5 flex-shrink-0" />
+                  <span>{error}</span>
+                </div>
+              </div>
+            )}
 
         {/* Administrative Submission Status */}
         {!clientData.submitted_to_immigration ? (
-          <div className="mb-6 p-5 bg-amber-50 border-2 border-amber-200 rounded-xl">
+          <div className="mb-6 p-5 bg-gradient-to-br from-amber-50 to-amber-100/50 border-2 border-amber-300 rounded-xl shadow-md">
             <div className="flex items-center justify-between">
               <div className="flex items-center space-x-3">
                 <div className="bg-amber-100 p-3 rounded-lg">
@@ -364,12 +372,12 @@ export default function ClientDetailsModal({ client, onClose, onSuccess }: Props
             </div>
           </div>
         ) : (
-          <div className={`mb-6 p-5 rounded-xl border-2 ${
+          <div className={`mb-6 p-5 rounded-xl border-2 shadow-md ${
             silenceInfo?.isExpired
-              ? 'bg-red-50 border-red-200'
+              ? 'bg-gradient-to-br from-red-50 to-red-100/50 border-red-300'
               : silenceInfo?.isExpiringSoon
-              ? 'bg-orange-50 border-orange-200'
-              : 'bg-emerald-50 border-emerald-200'
+              ? 'bg-gradient-to-br from-orange-50 to-orange-100/50 border-orange-300'
+              : 'bg-gradient-to-br from-emerald-50 to-emerald-100/50 border-emerald-300'
           }`}>
             <div className="flex items-center justify-between">
               <div className="flex items-center space-x-3">
@@ -445,8 +453,11 @@ export default function ClientDetailsModal({ client, onClose, onSuccess }: Props
         )}
 
         {/* Client Information */}
-        <div className="mb-6 p-4 bg-gray-50 rounded-lg">
-          <h3 className="text-lg font-semibold text-gray-900 mb-3">Client Information</h3>
+        <div className="mb-6 p-5 bg-gradient-to-br from-gray-50 to-white rounded-xl border border-gray-200 shadow-sm">
+          <h3 className="text-lg font-bold text-gray-900 mb-4 flex items-center space-x-2">
+            <div className="w-1 h-6 bg-gradient-to-b from-blue-600 to-indigo-600 rounded-full"></div>
+            <span>Client Information</span>
+          </h3>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-sm mb-4">
             <div>
               <span className="text-gray-600">Email:</span>
@@ -513,10 +524,12 @@ export default function ClientDetailsModal({ client, onClose, onSuccess }: Props
         </div>
 
         {/* Payment Section */}
-        <div className="mb-6">
+        <div className="mb-6 p-5 bg-gradient-to-br from-green-50/50 to-white rounded-xl border border-gray-200 shadow-sm">
           <div className="flex justify-between items-center mb-4">
-            <h3 className="text-lg font-semibold text-gray-900 flex items-center space-x-2">
-              <DollarSign className="w-5 h-5" />
+            <h3 className="text-lg font-bold text-gray-900 flex items-center space-x-2">
+              <div className="p-2 bg-green-100 rounded-lg">
+                <DollarSign className="w-5 h-5 text-green-700" />
+              </div>
               <span>Payments</span>
             </h3>
             <button
@@ -628,10 +641,12 @@ export default function ClientDetailsModal({ client, onClose, onSuccess }: Props
         </div>
 
         {/* Notes Section */}
-        <div className="mb-6">
+        <div className="mb-6 p-5 bg-gradient-to-br from-blue-50/50 to-white rounded-xl border border-gray-200 shadow-sm">
           <div className="flex justify-between items-center mb-4">
-            <h3 className="text-lg font-semibold text-gray-900 flex items-center space-x-2">
-              <StickyNote className="w-5 h-5" />
+            <h3 className="text-lg font-bold text-gray-900 flex items-center space-x-2">
+              <div className="p-2 bg-blue-100 rounded-lg">
+                <StickyNote className="w-5 h-5 text-blue-700" />
+              </div>
               <span>Important Notes</span>
             </h3>
             <button
@@ -652,10 +667,13 @@ export default function ClientDetailsModal({ client, onClose, onSuccess }: Props
         </div>
 
         {/* Required Documents */}
-        <div className="mb-6">
+        <div className="mb-6 p-5 bg-gradient-to-br from-amber-50/50 to-white rounded-xl border border-gray-200 shadow-sm">
           <div className="flex justify-between items-center mb-4">
             <div>
-              <h3 className="text-lg font-semibold text-gray-900 mb-1">Required Documents</h3>
+              <h3 className="text-lg font-bold text-gray-900 mb-1 flex items-center space-x-2">
+                <div className="w-1 h-6 bg-gradient-to-b from-amber-600 to-orange-600 rounded-full"></div>
+                <span>Required Documents</span>
+              </h3>
               {clientData.required_documents && clientData.required_documents.length > 0 && (
                 <div className="flex items-center space-x-3 text-sm">
                   <span className="text-slate-600">
@@ -704,10 +722,10 @@ export default function ClientDetailsModal({ client, onClose, onSuccess }: Props
               {clientData.required_documents.map((doc: RequiredDocument, index) => (
                 <div
                   key={doc.code || index}
-                  className={`border-2 rounded-xl p-5 transition-all ${
+                  className={`border-2 rounded-xl p-5 transition-all shadow-sm hover:shadow-md ${
                     doc.submitted
-                      ? 'border-emerald-200 bg-emerald-50/50 shadow-sm'
-                      : 'border-red-200 bg-red-50/50 shadow-sm'
+                      ? 'border-emerald-300 bg-gradient-to-br from-emerald-50 to-white'
+                      : 'border-red-300 bg-gradient-to-br from-red-50 to-white'
                   }`}
                 >
                   <div className="flex items-start justify-between">
@@ -843,9 +861,12 @@ export default function ClientDetailsModal({ client, onClose, onSuccess }: Props
         </div>
 
         {/* Additional Documents */}
-        <div className="mb-6">
+        <div className="mb-6 p-5 bg-gradient-to-br from-purple-50/50 to-white rounded-xl border border-gray-200 shadow-sm">
           <div className="flex justify-between items-center mb-4">
-            <h3 className="text-lg font-semibold text-gray-900">Additional Documents</h3>
+            <h3 className="text-lg font-bold text-gray-900 flex items-center space-x-2">
+              <div className="w-1 h-6 bg-gradient-to-b from-purple-600 to-pink-600 rounded-full"></div>
+              <span>Additional Documents</span>
+            </h3>
             <button
               onClick={() => setShowAdditionalDocForm(!showAdditionalDocForm)}
               className="px-4 py-2 bg-purple-600 text-white text-sm rounded-lg hover:bg-purple-700 transition-colors flex items-center space-x-2"
@@ -926,7 +947,7 @@ export default function ClientDetailsModal({ client, onClose, onSuccess }: Props
               {clientData.additional_documents.map((doc: AdditionalDocument) => (
                 <div
                   key={doc.id}
-                  className="border-2 border-purple-200 bg-purple-50 rounded-lg p-4"
+                  className="border-2 border-purple-300 bg-gradient-to-br from-purple-50 to-white rounded-xl p-4 shadow-sm hover:shadow-md transition-all"
                 >
                   <div className="flex items-start justify-between">
                     <div className="flex-1">
@@ -974,11 +995,15 @@ export default function ClientDetailsModal({ client, onClose, onSuccess }: Props
           )}
         </div>
 
-        <div className="flex justify-between items-center mt-6 pt-4 border-t">
+          </div>
+        </div>
+        
+        {/* Fixed Footer */}
+        <div className="flex-shrink-0 flex justify-between items-center p-6 border-t border-gray-200 bg-gradient-to-r from-gray-50 to-white rounded-b-2xl">
           <button
             onClick={handleDeleteClient}
             disabled={deleting}
-            className="px-6 py-3 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors font-medium disabled:opacity-50 disabled:cursor-not-allowed flex items-center space-x-2"
+            className="px-6 py-3 bg-red-600 text-white rounded-xl hover:bg-red-700 transition-all duration-200 font-semibold disabled:opacity-50 disabled:cursor-not-allowed flex items-center space-x-2 shadow-lg shadow-red-600/20 hover:shadow-xl hover:shadow-red-600/30"
           >
             {deleting ? (
               <>
@@ -994,7 +1019,7 @@ export default function ClientDetailsModal({ client, onClose, onSuccess }: Props
           </button>
           <button
             onClick={onClose}
-            className="px-6 py-3 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors font-medium"
+            className="px-6 py-3 bg-gray-100 text-gray-700 rounded-xl hover:bg-gray-200 transition-all duration-200 font-semibold shadow-sm hover:shadow-md"
           >
             Close
           </button>
