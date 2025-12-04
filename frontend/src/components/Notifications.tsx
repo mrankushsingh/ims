@@ -70,42 +70,65 @@ export default function Notifications({ onClientClick }: Props) {
           const pendingDocs = client.required_documents?.filter((d: any) => !d.submitted).length || 0;
           
           if (pendingDocs > 0) {
-            // Find the most recent document upload date
+            // Find the most recent activity date (document upload or client creation)
             const submittedDocs = client.required_documents?.filter((d: any) => d.submitted && d.uploadedAt) || [];
-            let lastDocumentDate: Date;
+            let lastActivityDate: Date;
             
             if (submittedDocs.length > 0) {
               // Use the most recent document upload date
               const uploadDates = submittedDocs
                 .map((d: any) => new Date(d.uploadedAt))
                 .sort((a: Date, b: Date) => b.getTime() - a.getTime());
-              lastDocumentDate = uploadDates[0];
+              lastActivityDate = uploadDates[0];
             } else {
               // If no documents uploaded yet, use client creation date
-              lastDocumentDate = new Date(client.created_at);
+              lastActivityDate = new Date(client.created_at);
             }
 
             const reminderDays = client.reminder_interval_days || 10;
-            const nextReminderDate = new Date(lastDocumentDate);
+            const nextReminderDate = new Date(lastActivityDate);
             nextReminderDate.setDate(nextReminderDate.getDate() + reminderDays);
             
             const today = new Date();
             today.setHours(0, 0, 0, 0);
             nextReminderDate.setHours(0, 0, 0, 0);
+            lastActivityDate.setHours(0, 0, 0, 0);
             
-            const daysSinceReminder = Math.floor((today.getTime() - nextReminderDate.getTime()) / (1000 * 60 * 60 * 24));
+            // Calculate days until reminder (negative means overdue)
+            const daysUntilReminder = Math.ceil((nextReminderDate.getTime() - today.getTime()) / (1000 * 60 * 60 * 24));
+            
+            // Calculate days since last activity
+            const daysSinceLastActivity = Math.floor((today.getTime() - lastActivityDate.getTime()) / (1000 * 60 * 60 * 24));
 
-            // Show reminder if the interval has passed
-            if (daysSinceReminder >= 0) {
+            // Show reminder if:
+            // 1. Reminder date has passed (overdue), OR
+            // 2. Reminder is approaching (within 2 days)
+            if (daysUntilReminder <= 2) {
               const submittedCount = client.required_documents?.filter((d: any) => d.submitted).length || 0;
               const totalCount = client.required_documents?.length || 0;
+              
+              // Determine priority based on how overdue or approaching
+              let priority: 'high' | 'medium' | 'low';
+              if (daysUntilReminder < 0) {
+                // Overdue
+                priority = daysUntilReminder <= -7 ? 'high' : daysUntilReminder <= -3 ? 'medium' : 'low';
+              } else {
+                // Approaching
+                priority = daysUntilReminder === 0 ? 'medium' : 'low';
+              }
+              
+              const message = daysUntilReminder < 0
+                ? `${pendingDocs} document(s) pending for ${client.first_name} ${client.last_name}. Reminder overdue by ${Math.abs(daysUntilReminder)} day(s). Last activity: ${daysSinceLastActivity} day(s) ago.`
+                : daysUntilReminder === 0
+                ? `${pendingDocs} document(s) pending for ${client.first_name} ${client.last_name}. Reminder due today. Last activity: ${daysSinceLastActivity} day(s) ago.`
+                : `${pendingDocs} document(s) pending for ${client.first_name} ${client.last_name}. Reminder in ${daysUntilReminder} day(s). Last activity: ${daysSinceLastActivity} day(s) ago.`;
               
               newReminders.push({
                 client,
                 type: 'reminder',
-                message: `${pendingDocs} document(s) still pending for ${client.first_name} ${client.last_name}. Last activity: ${submittedCount}/${totalCount} documents submitted.`,
-                priority: daysSinceReminder >= 7 ? 'high' : daysSinceReminder >= 3 ? 'medium' : 'low',
-                daysRemaining: -daysSinceReminder, // Negative means overdue
+                message,
+                priority,
+                daysRemaining: daysUntilReminder, // Negative means overdue, positive means days until
               });
             }
           }
@@ -242,10 +265,10 @@ export default function Notifications({ onClientClick }: Props) {
                                   : 'text-blue-600'
                               }`}>
                                 {reminder.daysRemaining < 0
-                                  ? `⚠️ Reminder overdue by ${Math.abs(reminder.daysRemaining)} day(s)`
+                                  ? `⚠️ Overdue by ${Math.abs(reminder.daysRemaining)} day(s)`
                                   : reminder.daysRemaining === 0
-                                  ? '⏰ Reminder due today'
-                                  : `${reminder.daysRemaining} day(s) until reminder`}
+                                  ? '⏰ Due today'
+                                  : `⏳ Due in ${reminder.daysRemaining} day(s)`}
                               </p>
                             )}
                             {reminder.daysRemaining !== undefined && reminder.type !== 'reminder' && (
@@ -307,11 +330,17 @@ export default function Notifications({ onClientClick }: Props) {
                     <p className="text-xs text-slate-700">{reminder.message}</p>
                     {reminder.type === 'reminder' && reminder.daysRemaining !== undefined && (
                       <p className={`text-xs font-semibold mt-1 ${
-                        reminder.daysRemaining < 0 ? 'text-red-600' : 'text-orange-600'
+                        reminder.daysRemaining < 0 
+                          ? 'text-red-600' 
+                          : reminder.daysRemaining === 0
+                          ? 'text-orange-600'
+                          : 'text-blue-600'
                       }`}>
                         {reminder.daysRemaining < 0
                           ? `⚠️ ${Math.abs(reminder.daysRemaining)} day(s) overdue`
-                          : '⏰ Due today'}
+                          : reminder.daysRemaining === 0
+                          ? '⏰ Due today'
+                          : `⏳ Due in ${reminder.daysRemaining} day(s)`}
                       </p>
                     )}
                     <button
