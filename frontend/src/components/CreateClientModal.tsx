@@ -67,7 +67,19 @@ export default function CreateClientModal({ onClose, onSuccess }: Props) {
   };
 
   return (
-    <div className="fixed inset-0 bg-gradient-to-br from-slate-900/40 via-gray-900/30 to-slate-800/40 backdrop-blur-md flex items-center justify-center z-[100] p-2 sm:p-4 animate-fade-in overflow-y-auto">
+    <div 
+      className="fixed inset-0 z-[100] flex items-center justify-center p-2 sm:p-4 animate-fade-in overflow-y-auto"
+      onClick={(e) => {
+        if (e.target === e.currentTarget) {
+          onClose();
+        }
+      }}
+      style={{
+        backgroundColor: 'rgba(15, 23, 42, 0.75)',
+        backdropFilter: 'blur(8px)',
+        WebkitBackdropFilter: 'blur(8px)',
+      }}
+    >
       <div className="bg-white rounded-2xl shadow-2xl max-w-2xl w-full max-h-[98vh] flex flex-col animate-scale-in my-2 sm:my-4 border border-gray-200/50">
         {/* Fixed Header */}
         <div className="flex-shrink-0 flex justify-between items-center p-6 border-b border-gray-200 bg-gradient-to-r from-blue-50 to-indigo-50">

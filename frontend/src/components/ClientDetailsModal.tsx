@@ -382,12 +382,17 @@ export default function ClientDetailsModal({ client, onClose, onSuccess }: Props
 
   return (
     <div 
-      className="fixed inset-0 bg-gradient-to-br from-slate-900/50 via-gray-900/45 to-slate-800/50 backdrop-blur-lg flex items-center justify-center z-[100] p-2 sm:p-4 animate-fade-in overflow-y-auto"
+      className="fixed inset-0 z-[100] flex items-center justify-center p-2 sm:p-4 animate-fade-in overflow-y-auto"
       onClick={(e) => {
         // Close modal when clicking on backdrop
         if (e.target === e.currentTarget) {
           onClose();
         }
+      }}
+      style={{
+        backgroundColor: 'rgba(15, 23, 42, 0.75)',
+        backdropFilter: 'blur(8px)',
+        WebkitBackdropFilter: 'blur(8px)',
       }}
     >
       <div 
@@ -1164,7 +1169,19 @@ export default function ClientDetailsModal({ client, onClose, onSuccess }: Props
 
       {/* Document Viewer Modal */}
       {viewingDocument && (
-        <div className="fixed inset-0 bg-gradient-to-br from-slate-900/50 via-gray-900/40 to-slate-800/50 backdrop-blur-md flex items-center justify-center z-[60] p-4 animate-fade-in">
+        <div 
+          className="fixed inset-0 z-[110] flex items-center justify-center p-4 animate-fade-in"
+          onClick={(e) => {
+            if (e.target === e.currentTarget) {
+              setViewingDocument(null);
+            }
+          }}
+          style={{
+            backgroundColor: 'rgba(15, 23, 42, 0.85)',
+            backdropFilter: 'blur(8px)',
+            WebkitBackdropFilter: 'blur(8px)',
+          }}
+        >
           <div className="bg-white rounded-xl max-w-6xl w-full max-h-[95vh] flex flex-col shadow-2xl animate-scale-in">
             <div className="flex justify-between items-center p-4 border-b">
               <h3 className="text-lg font-semibold text-gray-900 truncate flex-1 mr-4">
@@ -1223,8 +1240,23 @@ export default function ClientDetailsModal({ client, onClose, onSuccess }: Props
 
       {/* Reminder Calendar Modal */}
       {showReminderCalendar && (
-        <div className="fixed inset-0 z-[60] flex items-center justify-center bg-gradient-to-br from-slate-900/40 via-gray-900/30 to-slate-800/40 backdrop-blur-md p-4">
-          <div className="bg-white rounded-xl shadow-2xl max-w-md w-full max-h-[90vh] overflow-hidden flex flex-col">
+        <div 
+          className="fixed inset-0 z-[110] flex items-center justify-center p-4"
+          onClick={(e) => {
+            if (e.target === e.currentTarget) {
+              setShowReminderCalendar(false);
+            }
+          }}
+          style={{
+            backgroundColor: 'rgba(15, 23, 42, 0.75)',
+            backdropFilter: 'blur(8px)',
+            WebkitBackdropFilter: 'blur(8px)',
+          }}
+        >
+          <div 
+            className="bg-white rounded-xl shadow-2xl max-w-md w-full max-h-[90vh] overflow-hidden flex flex-col"
+            onClick={(e) => e.stopPropagation()}
+          >
             <div className="p-5 border-b border-gray-200 bg-gradient-to-r from-purple-50 to-indigo-50">
               <div className="flex items-center justify-between">
                 <div className="flex items-center space-x-3">
