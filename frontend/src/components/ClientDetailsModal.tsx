@@ -390,9 +390,10 @@ export default function ClientDetailsModal({ client, onClose, onSuccess }: Props
         }
       }}
       style={{
-        backgroundColor: 'rgba(15, 23, 42, 0.75)',
-        backdropFilter: 'blur(8px)',
-        WebkitBackdropFilter: 'blur(8px)',
+        background: 'linear-gradient(135deg, rgba(15, 23, 42, 0.8) 0%, rgba(30, 41, 59, 0.85) 50%, rgba(15, 23, 42, 0.8) 100%)',
+        backdropFilter: 'blur(20px) saturate(180%)',
+        WebkitBackdropFilter: 'blur(20px) saturate(180%)',
+        boxShadow: 'inset 0 0 0 1px rgba(255, 255, 255, 0.1)',
       }}
     >
       <div 
@@ -1177,9 +1178,10 @@ export default function ClientDetailsModal({ client, onClose, onSuccess }: Props
             }
           }}
           style={{
-            backgroundColor: 'rgba(15, 23, 42, 0.85)',
-            backdropFilter: 'blur(8px)',
-            WebkitBackdropFilter: 'blur(8px)',
+            background: 'linear-gradient(135deg, rgba(15, 23, 42, 0.85) 0%, rgba(30, 41, 59, 0.9) 50%, rgba(15, 23, 42, 0.85) 100%)',
+            backdropFilter: 'blur(20px) saturate(180%)',
+            WebkitBackdropFilter: 'blur(20px) saturate(180%)',
+            boxShadow: 'inset 0 0 0 1px rgba(255, 255, 255, 0.1)',
           }}
         >
           <div className="bg-white rounded-xl max-w-6xl w-full max-h-[95vh] flex flex-col shadow-2xl animate-scale-in">
@@ -1248,9 +1250,10 @@ export default function ClientDetailsModal({ client, onClose, onSuccess }: Props
             }
           }}
           style={{
-            backgroundColor: 'rgba(15, 23, 42, 0.75)',
-            backdropFilter: 'blur(8px)',
-            WebkitBackdropFilter: 'blur(8px)',
+            background: 'linear-gradient(135deg, rgba(15, 23, 42, 0.8) 0%, rgba(30, 41, 59, 0.85) 50%, rgba(15, 23, 42, 0.8) 100%)',
+            backdropFilter: 'blur(20px) saturate(180%)',
+            WebkitBackdropFilter: 'blur(20px) saturate(180%)',
+            boxShadow: 'inset 0 0 0 1px rgba(255, 255, 255, 0.1)',
           }}
         >
           <div 

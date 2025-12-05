@@ -75,9 +75,10 @@ export default function CreateClientModal({ onClose, onSuccess }: Props) {
         }
       }}
       style={{
-        backgroundColor: 'rgba(15, 23, 42, 0.75)',
-        backdropFilter: 'blur(8px)',
-        WebkitBackdropFilter: 'blur(8px)',
+        background: 'linear-gradient(135deg, rgba(15, 23, 42, 0.8) 0%, rgba(30, 41, 59, 0.85) 50%, rgba(15, 23, 42, 0.8) 100%)',
+        backdropFilter: 'blur(20px) saturate(180%)',
+        WebkitBackdropFilter: 'blur(20px) saturate(180%)',
+        boxShadow: 'inset 0 0 0 1px rgba(255, 255, 255, 0.1)',
       }}
     >
       <div className="bg-white rounded-2xl shadow-2xl max-w-2xl w-full max-h-[98vh] flex flex-col animate-scale-in my-2 sm:my-4 border border-gray-200/50">
