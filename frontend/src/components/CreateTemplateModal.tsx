@@ -19,6 +19,9 @@ export default function CreateTemplateModal({ onClose, onSuccess, template }: Pr
   const [requiredDocuments, setRequiredDocuments] = useState<RequiredDocument[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+  const [allDocumentNames, setAllDocumentNames] = useState<string[]>([]);
+  const [suggestions, setSuggestions] = useState<{ name: string; index: number }[]>([]);
+  const [activeSuggestionIndex, setActiveSuggestionIndex] = useState<number | null>(null);
 
   useEffect(() => {
     if (template) {
@@ -30,6 +33,26 @@ export default function CreateTemplateModal({ onClose, onSuccess, template }: Pr
       });
       setRequiredDocuments(template.required_documents || []);
     }
+    
+    // Load all document names from existing templates
+    const loadDocumentNames = async () => {
+      try {
+        const templates = await api.getCaseTemplates();
+        const documentNames = new Set<string>();
+        templates.forEach((t: CaseTemplate) => {
+          t.required_documents?.forEach((doc: RequiredDocument) => {
+            if (doc.name && doc.name.trim()) {
+              documentNames.add(doc.name.trim());
+            }
+          });
+        });
+        setAllDocumentNames(Array.from(documentNames).sort());
+      } catch (error) {
+        console.error('Failed to load document names:', error);
+      }
+    };
+    
+    loadDocumentNames();
   }, [template]);
 
   const addDocument = () => {
@@ -51,6 +74,28 @@ export default function CreateTemplateModal({ onClose, onSuccess, template }: Pr
     const updated = [...requiredDocuments];
     updated[index] = { ...updated[index], [field]: value };
     setRequiredDocuments(updated);
+    
+    // Show suggestions when typing document name
+    if (field === 'name' && value.trim()) {
+      const query = value.toLowerCase().trim();
+      const filtered = allDocumentNames
+        .filter(name => name.toLowerCase().includes(query) && name.toLowerCase() !== query)
+        .slice(0, 5)
+        .map(name => ({ name, index }));
+      setSuggestions(filtered);
+      setActiveSuggestionIndex(filtered.length > 0 ? 0 : null);
+    } else if (field === 'name' && !value.trim()) {
+      setSuggestions([]);
+      setActiveSuggestionIndex(null);
+    }
+  };
+
+  const selectSuggestion = (index: number, suggestionName: string) => {
+    const updated = [...requiredDocuments];
+    updated[index] = { ...updated[index], name: suggestionName };
+    setRequiredDocuments(updated);
+    setSuggestions([]);
+    setActiveSuggestionIndex(null);
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -203,7 +248,7 @@ export default function CreateTemplateModal({ onClose, onSuccess, template }: Pr
                             placeholder="e.g., PASSPORT"
                           />
                         </div>
-                        <div>
+                        <div className="relative">
                           <label className="block text-xs font-medium text-gray-600 mb-1">
                             Document Name <span className="text-red-500">*</span>
                           </label>
@@ -212,9 +257,52 @@ export default function CreateTemplateModal({ onClose, onSuccess, template }: Pr
                             required
                             value={doc.name}
                             onChange={(e) => updateDocument(index, 'name', e.target.value)}
+                            onKeyDown={(e) => {
+                              if (e.key === 'ArrowDown' && suggestions.length > 0 && suggestions[0]?.index === index) {
+                                e.preventDefault();
+                                setActiveSuggestionIndex(prev => 
+                                  prev === null ? 0 : Math.min(prev + 1, suggestions.length - 1)
+                                );
+                              } else if (e.key === 'ArrowUp' && suggestions.length > 0 && suggestions[0]?.index === index) {
+                                e.preventDefault();
+                                setActiveSuggestionIndex(prev => 
+                                  prev === null ? suggestions.length - 1 : Math.max(prev - 1, 0)
+                                );
+                              } else if (e.key === 'Enter' && activeSuggestionIndex !== null && suggestions[activeSuggestionIndex] && suggestions[activeSuggestionIndex].index === index) {
+                                e.preventDefault();
+                                selectSuggestion(index, suggestions[activeSuggestionIndex].name);
+                              } else if (e.key === 'Escape') {
+                                setSuggestions([]);
+                                setActiveSuggestionIndex(null);
+                              }
+                            }}
+                            onBlur={() => {
+                              // Delay hiding suggestions to allow click
+                              setTimeout(() => {
+                                setSuggestions([]);
+                                setActiveSuggestionIndex(null);
+                              }, 200);
+                            }}
                             className="w-full px-2 py-1.5 text-sm border border-gray-300 rounded focus:ring-2 focus:ring-blue-500 outline-none"
-                            placeholder="e.g., Valid Passport"
+                            placeholder="e.g., Valid Passport (type to see suggestions)"
                           />
+                          {suggestions.length > 0 && suggestions[0]?.index === index && (
+                            <div className="absolute z-10 w-full mt-1 bg-white border border-gray-200 rounded-lg shadow-lg max-h-48 overflow-y-auto">
+                              {suggestions.map((suggestion, sugIndex) => (
+                                <button
+                                  key={sugIndex}
+                                  type="button"
+                                  onClick={() => selectSuggestion(index, suggestion.name)}
+                                  onMouseEnter={() => setActiveSuggestionIndex(sugIndex)}
+                                  className={`w-full text-left px-3 py-2 text-sm hover:bg-blue-50 transition-colors ${
+                                    activeSuggestionIndex === sugIndex ? 'bg-blue-50 border-l-2 border-blue-500' : ''
+                                  }`}
+                                >
+                                  {suggestion.name}
+                                </button>
+                              ))}
+                            </div>
+                          )}
                         </div>
                       </div>
                       <button
