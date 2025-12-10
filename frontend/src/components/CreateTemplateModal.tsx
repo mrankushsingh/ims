@@ -9,6 +9,62 @@ interface Props {
   template?: CaseTemplate;
 }
 
+// Predefined document names for autocomplete suggestions
+const PREDEFINED_DOCUMENT_NAMES = [
+  'Pasaporte en vigor',
+  'Copia completa del pasaporte',
+  'Pasaporte anterior',
+  'Tarjeta de residencia TIE',
+  'Certificado histórico de empadronamiento',
+  'Certificado de convivencia',
+  'Certificado histórico de convivencia',
+  'Certificación de haber superado estudios',
+  'Acreditación de capacitación profesional',
+  'Titulación homologada',
+  'Certificado de antecedentes penales',
+  'Certificado de antecedentes penales del país de origen',
+  'Certificado médico',
+  'Documentación acreditativa de permanencia en España',
+  'Seguro de salud público',
+  'Seguro médico privado',
+  'Informe de vida laboral',
+  'Medios económicos del solicitante',
+  'Extractos bancarios',
+  'Contrato de trabajo',
+  'Últimas seis nóminas',
+  'Declaración IRPF',
+  'Copia del DNI del ciudadano español',
+  'Copia del pasaporte o DNI del ciudadano UE',
+  'Certificado de registro de ciudadano UE (NIE verde)',
+  'Fe de vida y estado',
+  'Sentencia firme de divorcio',
+  'Escritura de constitución de pareja estable',
+  'Inscripción en el Registro de Parejas Estables de Cataluña',
+  'Certificado de matrimonio',
+  'Certificado de nacimiento del hijo',
+  'Certificado de nacimiento (ascendientes o descendientes)',
+  'Autorización del otro progenitor',
+  'Libro de familia',
+  'Documentación acreditativa de parentesco',
+  'Documentación acreditativa de estar a cargo',
+  'Documentación acreditativa de grado de dependencia',
+  'Volante de empadronamiento del solicitante y pareja',
+  'Contrato de trabajo firmado por ambas partes',
+  'Copia del DNI o TIE del empleador',
+  'Certificado de convivencia del empleador',
+  'Acreditación de solvencia económica del empleador',
+  'Declaración IRPF del empleador',
+  'Declaración trimestral del IVA del empleador',
+  'Certificado de estar al corriente en Seguridad Social',
+  'Certificado de estar al corriente en Agencia Tributaria',
+  'Certificado bancario de saldo',
+  'Alta de autónomos (Seguridad Social y AEAT)',
+  'Declaraciones IVA',
+  'Tres últimas nóminas',
+  'Memoria descriptiva de la ocupación',
+  'Otra documentación del despacho',
+];
+
 export default function CreateTemplateModal({ onClose, onSuccess, template }: Props) {
   const [formData, setFormData] = useState({
     name: '',
@@ -34,11 +90,13 @@ export default function CreateTemplateModal({ onClose, onSuccess, template }: Pr
       setRequiredDocuments(template.required_documents || []);
     }
     
-    // Load all document names from existing templates
+    // Load all document names from existing templates and merge with predefined names
     const loadDocumentNames = async () => {
       try {
         const templates = await api.getCaseTemplates();
-        const documentNames = new Set<string>();
+        const documentNames = new Set<string>(PREDEFINED_DOCUMENT_NAMES);
+        
+        // Add document names from existing templates
         templates.forEach((t: CaseTemplate) => {
           t.required_documents?.forEach((doc: RequiredDocument) => {
             if (doc.name && doc.name.trim()) {
@@ -46,9 +104,12 @@ export default function CreateTemplateModal({ onClose, onSuccess, template }: Pr
             }
           });
         });
+        
         setAllDocumentNames(Array.from(documentNames).sort());
       } catch (error) {
         console.error('Failed to load document names:', error);
+        // Fallback to predefined names only
+        setAllDocumentNames([...PREDEFINED_DOCUMENT_NAMES].sort());
       }
     };
     
