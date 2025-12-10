@@ -225,18 +225,18 @@ export default function Dashboard() {
                       setSelectedClient(client);
                       setShowAwaitingModal(false);
                     }}
-                    className="flex items-center justify-between p-5 bg-amber-50 rounded-xl hover:bg-amber-100 border-2 border-amber-200 transition-all duration-200 group cursor-pointer hover:border-amber-300 hover:shadow-md"
+                    className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 p-4 sm:p-5 bg-amber-50 rounded-xl hover:bg-amber-100 border-2 border-amber-200 transition-all duration-200 group cursor-pointer hover:border-amber-300 hover:shadow-md"
                   >
                     <div className="flex items-center space-x-4 flex-1">
-                      <div className="bg-amber-200 group-hover:bg-amber-300 p-2.5 rounded-lg transition-colors">
+                      <div className="bg-amber-200 group-hover:bg-amber-300 p-2.5 rounded-lg transition-colors flex-shrink-0">
                         <AlertCircle className="w-5 h-5 text-amber-700" />
                       </div>
-                      <div className="flex-1">
-                        <p className="font-semibold text-slate-900 text-lg group-hover:text-slate-700 transition-colors">
+                      <div className="flex-1 min-w-0">
+                        <p className="font-semibold text-slate-900 text-base sm:text-lg group-hover:text-slate-700 transition-colors truncate">
                           {client.first_name} {client.last_name}
                         </p>
-                        <div className="flex items-center space-x-4 mt-1">
-                          <p className="text-sm text-slate-600">{client.case_type || 'No template assigned'}</p>
+                        <div className="flex flex-col sm:flex-row sm:items-center sm:space-x-4 mt-1 gap-1 sm:gap-0">
+                          <p className="text-xs sm:text-sm text-slate-600 truncate">{client.case_type || 'No template assigned'}</p>
                           <div className="flex items-center space-x-1">
                             <Clock className="w-3.5 h-3.5 text-amber-600" />
                             <p className="text-xs text-amber-700 font-medium">
@@ -246,13 +246,13 @@ export default function Dashboard() {
                         </div>
                       </div>
                     </div>
-                    <div className="text-right">
-                      <div className="inline-flex items-center space-x-2 bg-white px-4 py-2 rounded-lg border border-amber-200">
-                        <span className="text-lg font-bold text-slate-900">
+                    <div className="text-left sm:text-right flex-shrink-0">
+                      <div className="inline-flex items-center space-x-2 bg-white px-3 sm:px-4 py-2 rounded-lg border border-amber-200">
+                        <span className="text-base sm:text-lg font-bold text-slate-900">
                           {client.required_documents?.filter((d: any) => d.submitted).length || 0}
                         </span>
                         <span className="text-slate-400">/</span>
-                        <span className="text-lg font-semibold text-slate-600">
+                        <span className="text-base sm:text-lg font-semibold text-slate-600">
                           {client.required_documents?.length || 0}
                         </span>
                       </div>
@@ -319,7 +319,7 @@ export default function Dashboard() {
                         setSelectedClient(client);
                         setShowSubmittedModal(false);
                       }}
-                      className={`flex items-center justify-between p-5 rounded-xl border-2 transition-all duration-200 group cursor-pointer hover:shadow-md ${
+                      className={`flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 p-4 sm:p-5 rounded-xl border-2 transition-all duration-200 group cursor-pointer hover:shadow-md ${
                         silenceInfo?.isExpired
                           ? 'bg-red-50 border-red-200 hover:border-red-300'
                           : silenceInfo?.isExpiringSoon
@@ -327,8 +327,8 @@ export default function Dashboard() {
                           : 'bg-emerald-50 border-emerald-200 hover:border-emerald-300'
                       }`}
                     >
-                      <div className="flex items-center space-x-4 flex-1">
-                        <div className={`p-2.5 rounded-lg transition-colors ${
+                      <div className="flex items-center space-x-4 flex-1 min-w-0">
+                        <div className={`p-2 sm:p-2.5 rounded-lg transition-colors flex-shrink-0 ${
                           silenceInfo?.isExpired
                             ? 'bg-red-200 group-hover:bg-red-300'
                             : silenceInfo?.isExpiringSoon
@@ -343,12 +343,12 @@ export default function Dashboard() {
                               : 'text-emerald-700'
                           }`} />
                         </div>
-                        <div className="flex-1">
-                          <p className="font-semibold text-slate-900 text-lg group-hover:text-slate-700 transition-colors">
+                        <div className="flex-1 min-w-0">
+                          <p className="font-semibold text-slate-900 text-base sm:text-lg group-hover:text-slate-700 transition-colors truncate">
                             {client.first_name} {client.last_name}
                           </p>
-                          <div className="flex items-center space-x-4 mt-1">
-                            <p className="text-sm text-slate-600">{client.case_type || 'No template assigned'}</p>
+                          <div className="flex flex-col sm:flex-row sm:items-center sm:space-x-4 mt-1 gap-1 sm:gap-0">
+                            <p className="text-xs sm:text-sm text-slate-600 truncate">{client.case_type || 'No template assigned'}</p>
                             {client.application_date && (
                               <div className="flex items-center space-x-1">
                                 <Clock className={`w-3.5 h-3.5 ${
@@ -381,19 +381,19 @@ export default function Dashboard() {
                           )}
                         </div>
                       </div>
-                      <div className="text-right">
-                        <div className={`inline-flex items-center space-x-2 bg-white px-4 py-2 rounded-lg border ${
+                      <div className="text-left sm:text-right flex-shrink-0">
+                        <div className={`inline-flex items-center space-x-2 bg-white px-3 sm:px-4 py-2 rounded-lg border ${
                           silenceInfo?.isExpired
                             ? 'border-red-200'
                             : silenceInfo?.isExpiringSoon
                             ? 'border-orange-200'
                             : 'border-emerald-200'
                         }`}>
-                          <span className="text-lg font-bold text-slate-900">
+                          <span className="text-base sm:text-lg font-bold text-slate-900">
                             {client.required_documents?.filter((d: any) => d.submitted).length || 0}
                           </span>
                           <span className="text-slate-400">/</span>
-                          <span className="text-lg font-semibold text-slate-600">
+                          <span className="text-base sm:text-lg font-semibold text-slate-600">
                             {client.required_documents?.length || 0}
                           </span>
                         </div>

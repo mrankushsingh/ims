@@ -431,23 +431,23 @@ export default function ClientDetailsModal({ client, onClose, onSuccess }: Props
 
         {/* Administrative Submission Status */}
         {!clientData.submitted_to_immigration ? (
-          <div className="mb-6 p-5 bg-gradient-to-br from-amber-50 to-amber-100/50 border-2 border-amber-300 rounded-xl shadow-md">
-            <div className="flex items-center justify-between">
+          <div className="mb-6 p-4 sm:p-5 bg-gradient-to-br from-amber-50 to-amber-100/50 border-2 border-amber-300 rounded-xl shadow-md">
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
               <div className="flex items-center space-x-3">
-                <div className="bg-amber-100 p-3 rounded-lg">
-                  <AlertCircle className="w-6 h-6 text-amber-600" />
+                <div className="bg-amber-100 p-2 sm:p-3 rounded-lg flex-shrink-0">
+                  <AlertCircle className="w-5 h-5 sm:w-6 sm:h-6 text-amber-600" />
                 </div>
                 <div>
-                  <h3 className="font-semibold text-amber-900 text-lg">Not Submitted to Administrative Authority</h3>
-                  <p className="text-sm text-amber-700 mt-1">Submit the case to start the administrative silence timer</p>
+                  <h3 className="font-semibold text-amber-900 text-base sm:text-lg">Not Submitted to Administrative Authority</h3>
+                  <p className="text-xs sm:text-sm text-amber-700 mt-1">Submit the case to start the administrative silence timer</p>
                 </div>
               </div>
               <button
                 onClick={handleSubmitToAdministrative}
-                className="px-6 py-3 bg-amber-600 text-white font-semibold rounded-lg hover:bg-amber-700 transition-colors shadow-md hover:shadow-lg flex items-center space-x-2"
+                className="px-4 sm:px-6 py-2.5 sm:py-3 bg-amber-600 text-white font-semibold rounded-lg hover:bg-amber-700 transition-colors shadow-md hover:shadow-lg flex items-center justify-center space-x-2 w-full sm:w-auto"
               >
-                <Send className="w-5 h-5" />
-                <span>Submit to Administrative</span>
+                <Send className="w-4 h-4 sm:w-5 sm:h-5" />
+                <span className="text-sm sm:text-base">Submit to Administrative</span>
               </button>
             </div>
           </div>

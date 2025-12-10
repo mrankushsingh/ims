@@ -201,8 +201,16 @@ export default function CreateTemplateModal({ onClose, onSuccess, template }: Pr
   };
 
   return (
-    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4 animate-fade-in">
-      <div className="bg-white rounded-2xl p-6 max-w-2xl w-full max-h-[90vh] overflow-y-auto shadow-2xl animate-scale-in">
+    <div 
+      className="fixed inset-0 z-[100] flex items-center justify-center p-2 sm:p-4 animate-fade-in overflow-y-auto"
+      style={{
+        background: 'linear-gradient(135deg, rgba(15, 23, 42, 0.8) 0%, rgba(30, 41, 59, 0.85) 50%, rgba(15, 23, 42, 0.8) 100%)',
+        backdropFilter: 'blur(20px) saturate(180%)',
+        WebkitBackdropFilter: 'blur(20px) saturate(180%)',
+        boxShadow: 'inset 0 0 0 1px rgba(255, 255, 255, 0.1)',
+      }}
+    >
+      <div className="bg-white rounded-xl sm:rounded-2xl p-4 sm:p-6 max-w-2xl w-full max-h-[98vh] overflow-y-auto shadow-2xl animate-scale-in my-2 sm:my-4">
         <div className="flex justify-between items-center mb-6">
           <h2 className="text-2xl font-bold text-gray-900">{template ? 'Edit Template' : 'New Template'}</h2>
           <button
@@ -245,7 +253,7 @@ export default function CreateTemplateModal({ onClose, onSuccess, template }: Pr
             />
           </div>
 
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
                 Reminder Interval (days)
@@ -295,8 +303,8 @@ export default function CreateTemplateModal({ onClose, onSuccess, template }: Pr
               <div className="space-y-3">
                 {requiredDocuments.map((doc, index) => (
                   <div key={index} className="p-4 border border-gray-200 rounded-lg space-y-3">
-                    <div className="flex justify-between items-start gap-3">
-                      <div className="flex-1 grid grid-cols-2 gap-3">
+                    <div className="flex flex-col sm:flex-row justify-between items-start gap-3">
+                      <div className="flex-1 grid grid-cols-1 sm:grid-cols-2 gap-3 w-full">
                         <div>
                           <label className="block text-xs font-medium text-gray-600 mb-1">
                             Document Code
