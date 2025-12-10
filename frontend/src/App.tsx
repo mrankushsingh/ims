@@ -1,18 +1,42 @@
-import { useState } from 'react';
-import { FileText, Users, LayoutDashboard, Menu, X } from 'lucide-react';
+import { useState, useEffect } from 'react';
+import { FileText, Users, LayoutDashboard, Menu, X, LogOut } from 'lucide-react';
 import Dashboard from './components/Dashboard';
 import Templates from './components/Templates';
 import Clients from './components/Clients';
 import Notifications from './components/Notifications';
 import ClientDetailsModal from './components/ClientDetailsModal';
+import Login from './components/Login';
 import { Client } from './types';
 
 type View = 'dashboard' | 'templates' | 'clients';
 
 function App() {
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [currentView, setCurrentView] = useState<View>('dashboard');
   const [selectedClient, setSelectedClient] = useState<Client | null>(null);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+
+  useEffect(() => {
+    // Check if user is authenticated
+    const authStatus = localStorage.getItem('isAuthenticated');
+    if (authStatus === 'true') {
+      setIsAuthenticated(true);
+    }
+  }, []);
+
+  const handleLoginSuccess = () => {
+    setIsAuthenticated(true);
+  };
+
+  const handleLogout = () => {
+    localStorage.removeItem('isAuthenticated');
+    localStorage.removeItem('userEmail');
+    setIsAuthenticated(false);
+  };
+
+  if (!isAuthenticated) {
+    return <Login onLoginSuccess={handleLoginSuccess} />;
+  }
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-gray-50 to-slate-100">
@@ -78,6 +102,14 @@ function App() {
                 </button>
               </nav>
               <Notifications onClientClick={setSelectedClient} />
+              {/* Logout Button */}
+              <button
+                onClick={handleLogout}
+                className="p-2 text-slate-700 hover:bg-red-50 hover:text-red-600 rounded-lg transition-colors"
+                title="Sign Out"
+              >
+                <LogOut className="w-5 h-5" />
+              </button>
             </div>
 
             {/* Mobile Menu Button */}
@@ -149,6 +181,18 @@ function App() {
                     <span>Clients</span>
                   </div>
                 </button>
+                <div className="pt-2 border-t border-gray-200 mt-2">
+                  <button
+                    onClick={() => {
+                      handleLogout();
+                      setMobileMenuOpen(false);
+                    }}
+                    className="w-full px-4 py-3 rounded-lg font-semibold text-sm transition-all duration-200 text-left text-red-600 hover:bg-red-50 flex items-center space-x-3"
+                  >
+                    <LogOut className="w-5 h-5" />
+                    <span>Sign Out</span>
+                  </button>
+                </div>
               </nav>
             </div>
           )}
