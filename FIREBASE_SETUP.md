@@ -5,10 +5,28 @@ This application uses Firebase Authentication for secure user login. The setup i
 
 ## Backend Setup
 
-The Firebase service account JSON file has been created at:
+### Local Development
+
+The Firebase service account JSON file should be placed at:
 - `backend/firebase-service-account.json`
 
 **⚠️ IMPORTANT:** This file contains sensitive credentials and is already added to `.gitignore`. Do NOT commit it to version control.
+
+### Production/Railway Deployment
+
+For Railway or other production environments, you need to set the `FIREBASE_SERVICE_ACCOUNT` environment variable:
+
+1. Go to your Railway project settings
+2. Add a new environment variable:
+   - **Name:** `FIREBASE_SERVICE_ACCOUNT`
+   - **Value:** The entire JSON content of your service account file (as a single-line JSON string)
+
+**Example:**
+```json
+{"type":"service_account","project_id":"anisa-28059",...}
+```
+
+**Note:** The application will work without Firebase (authentication will be disabled), but for full functionality, you must set this environment variable.
 
 ## Frontend Setup
 

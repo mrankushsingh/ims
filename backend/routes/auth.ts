@@ -1,11 +1,18 @@
 import express from 'express';
-import { auth } from '../utils/firebase.js';
+import { auth, isFirebaseInitialized } from '../utils/firebase.js';
 
 const router = express.Router();
 
 // Verify ID token and return user info
 router.post('/verify', async (req, res) => {
   try {
+    if (!isFirebaseInitialized() || !auth) {
+      return res.status(503).json({ 
+        error: 'Authentication service is not available',
+        message: 'Firebase is not configured. Please set FIREBASE_SERVICE_ACCOUNT environment variable.'
+      });
+    }
+
     const { idToken } = req.body;
 
     if (!idToken) {
@@ -34,6 +41,13 @@ router.post('/verify', async (req, res) => {
 // Middleware to verify token (for protecting routes)
 export const verifyToken = async (req: express.Request, res: express.Response, next: express.NextFunction) => {
   try {
+    if (!isFirebaseInitialized() || !auth) {
+      return res.status(503).json({ 
+        error: 'Authentication service is not available',
+        message: 'Firebase is not configured. Please set FIREBASE_SERVICE_ACCOUNT environment variable.'
+      });
+    }
+
     const authHeader = req.headers.authorization;
     
     if (!authHeader || !authHeader.startsWith('Bearer ')) {
