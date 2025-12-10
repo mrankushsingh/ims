@@ -1,42 +1,18 @@
 import { useState } from 'react';
-import { FileText, Users, LayoutDashboard, Menu, X, LogOut, User } from 'lucide-react';
+import { FileText, Users, LayoutDashboard, Menu, X } from 'lucide-react';
 import Dashboard from './components/Dashboard';
 import Templates from './components/Templates';
 import Clients from './components/Clients';
 import Notifications from './components/Notifications';
 import ClientDetailsModal from './components/ClientDetailsModal';
-import Login from './components/Login';
-import { useAuth } from './contexts/AuthContext';
 import { Client } from './types';
 
 type View = 'dashboard' | 'templates' | 'clients';
 
 function App() {
-  const { user, loading, signOut } = useAuth();
   const [currentView, setCurrentView] = useState<View>('dashboard');
   const [selectedClient, setSelectedClient] = useState<Client | null>(null);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-
-  const handleLoginSuccess = () => {
-    // Auth state will be updated automatically by AuthContext
-  };
-
-  if (loading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900">
-        <div className="text-center">
-          <div className="inline-flex items-center justify-center w-16 h-16 bg-gradient-to-br from-blue-600 to-indigo-600 rounded-2xl shadow-lg mb-4 animate-pulse">
-            <FileText className="w-8 h-8 text-white" />
-          </div>
-          <p className="text-white text-lg font-semibold">Loading...</p>
-        </div>
-      </div>
-    );
-  }
-
-  if (!user) {
-    return <Login onLoginSuccess={handleLoginSuccess} />;
-  }
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-gray-50 to-slate-100">
@@ -102,41 +78,11 @@ function App() {
                 </button>
               </nav>
               <Notifications onClientClick={setSelectedClient} />
-              {/* User Menu */}
-              <div className="flex items-center space-x-2 pl-3 border-l border-gray-200">
-                <div className="flex items-center space-x-2 px-3 py-2 rounded-lg bg-gray-50/80">
-                  {user.photoURL ? (
-                    <img src={user.photoURL} alt={user.displayName || 'User'} className="w-8 h-8 rounded-full" />
-                  ) : (
-                    <div className="w-8 h-8 rounded-full bg-gradient-to-br from-blue-600 to-indigo-600 flex items-center justify-center">
-                      <User className="w-4 h-4 text-white" />
-                    </div>
-                  )}
-                  <div className="hidden lg:block text-left">
-                    <p className="text-xs font-semibold text-slate-900">{user.displayName || 'User'}</p>
-                    <p className="text-xs text-slate-500">{user.email}</p>
-                  </div>
-                </div>
-                <button
-                  onClick={signOut}
-                  className="p-2 text-slate-700 hover:bg-red-50 hover:text-red-600 rounded-lg transition-colors"
-                  title="Sign Out"
-                >
-                  <LogOut className="w-5 h-5" />
-                </button>
-              </div>
             </div>
 
             {/* Mobile Menu Button */}
             <div className="md:hidden flex items-center space-x-2">
               <Notifications onClientClick={setSelectedClient} />
-              {user.photoURL ? (
-                <img src={user.photoURL} alt={user.displayName || 'User'} className="w-8 h-8 rounded-full mr-2" />
-              ) : (
-                <div className="w-8 h-8 rounded-full bg-gradient-to-br from-blue-600 to-indigo-600 flex items-center justify-center mr-2">
-                  <User className="w-4 h-4 text-white" />
-                </div>
-              )}
               <button
                 onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
                 className="p-2 text-slate-700 hover:bg-slate-100 rounded-lg transition-colors"
@@ -203,22 +149,6 @@ function App() {
                     <span>Clients</span>
                   </div>
                 </button>
-                <div className="pt-2 border-t border-gray-200 mt-2">
-                  <div className="px-4 py-2 mb-2">
-                    <p className="text-xs font-semibold text-slate-900">{user.displayName || 'User'}</p>
-                    <p className="text-xs text-slate-500">{user.email}</p>
-                  </div>
-                  <button
-                    onClick={() => {
-                      signOut();
-                      setMobileMenuOpen(false);
-                    }}
-                    className="w-full px-4 py-3 rounded-lg font-semibold text-sm transition-all duration-200 text-left text-red-600 hover:bg-red-50 flex items-center space-x-3"
-                  >
-                    <LogOut className="w-5 h-5" />
-                    <span>Sign Out</span>
-                  </button>
-                </div>
               </nav>
             </div>
           )}

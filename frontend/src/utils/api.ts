@@ -1,34 +1,7 @@
 // Use environment variable in production, relative path in development
 const API_URL = import.meta.env.VITE_API_URL || '/api';
 
-// Get auth token from localStorage (for future use in API calls)
-export const getAuthToken = () => {
-  return localStorage.getItem('authToken') || '';
-};
-
-// Set auth token in localStorage
-export const setAuthToken = (token: string) => {
-  localStorage.setItem('authToken', token);
-};
-
-// Remove auth token from localStorage
-export const removeAuthToken = () => {
-  localStorage.removeItem('authToken');
-};
-
 export const api = {
-  async verifyToken(idToken: string) {
-    const response = await fetch(`${API_URL}/auth/verify`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ idToken }),
-    });
-    if (!response.ok) {
-      const error = await response.json().catch(() => ({ error: 'Failed to verify token' }));
-      throw new Error(error.error || 'Failed to verify token');
-    }
-    return response.json();
-  },
   async getCaseTemplates() {
     const response = await fetch(`${API_URL}/case-templates`);
     if (!response.ok) throw new Error('Failed to fetch templates');
