@@ -39,3 +39,6 @@ Thumbs.db
 # Data directory - contains templates, clients, and uploaded files
 # IMPORTANT: Back up this directory separately! It contains all your application data.
 data/
+
+# Firebase service account (contains sensitive credentials)
+backend/firebase-service-account.json
