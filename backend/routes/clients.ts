@@ -2,8 +2,9 @@ import { Router } from 'express';
 import multer from 'multer';
 import { fileURLToPath } from 'url';
 import { dirname, join, extname } from 'path';
-import { unlinkSync, existsSync } from 'fs';
 import { db } from '../utils/database.js';
+import { uploadFile, deleteFile, isUsingBucketStorage } from '../utils/storage.js';
+
 const memoryDb = db; // For backward compatibility
 
 const __filename = fileURLToPath(import.meta.url);
@@ -12,18 +13,21 @@ const __dirname = dirname(__filename);
 const router = Router();
 
 // Configure multer for file uploads
-const storage = multer.diskStorage({
-  destination: (req, file, cb) => {
-    cb(null, memoryDb.getUploadsDir());
-  },
-  filename: (req, file, cb) => {
-    // Generate unique filename: clientId_documentCode_timestamp.ext
-    const uniqueSuffix = `${Date.now()}_${Math.round(Math.random() * 1E9)}`;
-    const ext = extname(file.originalname);
-    const name = file.originalname.replace(ext, '').replace(/[^a-zA-Z0-9]/g, '_');
-    cb(null, `${name}_${uniqueSuffix}${ext}`);
-  }
-});
+// Use memory storage if Railway bucket is configured, otherwise use disk storage
+const storage = isUsingBucketStorage()
+  ? multer.memoryStorage()
+  : multer.diskStorage({
+      destination: (req, file, cb) => {
+        cb(null, memoryDb.getUploadsDir());
+      },
+      filename: (req, file, cb) => {
+        // Generate unique filename: clientId_documentCode_timestamp.ext
+        const uniqueSuffix = `${Date.now()}_${Math.round(Math.random() * 1E9)}`;
+        const ext = extname(file.originalname);
+        const name = file.originalname.replace(ext, '').replace(/[^a-zA-Z0-9]/g, '_');
+        cb(null, `${name}_${uniqueSuffix}${ext}`);
+      }
+    });
 
 // Allowed file types for uploads
 const ALLOWED_MIME_TYPES = [
@@ -184,20 +188,32 @@ router.post('/:id/documents/:documentCode', upload.single('file'), async (req, r
       return res.status(404).json({ error: 'Client not found' });
     }
 
-    const fileUrl = `/uploads/${file.filename}`;
+    // Generate unique filename or use multer-generated filename
+    let fileName: string;
+    let fileUrl: string;
+    
+    if (isUsingBucketStorage() && file.buffer) {
+      // Railway bucket: generate filename and upload from buffer
+      const uniqueSuffix = `${Date.now()}_${Math.round(Math.random() * 1E9)}`;
+      const ext = extname(file.originalname);
+      const name = file.originalname.replace(ext, '').replace(/[^a-zA-Z0-9]/g, '_');
+      fileName = `${name}_${uniqueSuffix}${ext}`;
+      
+      // Upload to Railway bucket
+      fileUrl = await uploadFile(file.buffer, fileName, file.mimetype);
+    } else {
+      // Local filesystem: multer already saved the file, just use the filename
+      fileName = file.filename || file.originalname;
+      fileUrl = `/uploads/${fileName}`;
+    }
+
+    // Delete old file if exists
     const updatedDocuments = client.required_documents.map((doc: any) => {
       if (doc.code === req.params.documentCode) {
-        // Delete old file if exists
         if (doc.fileUrl && doc.fileUrl.startsWith('/uploads/')) {
-          const dataDir = join(__dirname, '../../data');
-          const oldFilePath = join(dataDir, doc.fileUrl);
-          try {
-            if (existsSync(oldFilePath)) {
-              unlinkSync(oldFilePath);
-            }
-          } catch (err) {
+          deleteFile(doc.fileUrl).catch(err => {
             console.error('Error deleting old file:', err);
-          }
+          });
         }
         return {
           ...doc,
@@ -241,7 +257,25 @@ router.post('/:id/additional-documents', upload.single('file'), async (req, res)
       return res.status(404).json({ error: 'Client not found' });
     }
 
-    const fileUrl = `/uploads/${file.filename}`;
+    // Generate unique filename or use multer-generated filename
+    let fileName: string;
+    let fileUrl: string;
+    
+    if (isUsingBucketStorage() && file.buffer) {
+      // Railway bucket: generate filename and upload from buffer
+      const uniqueSuffix = `${Date.now()}_${Math.round(Math.random() * 1E9)}`;
+      const ext = extname(file.originalname);
+      const name = file.originalname.replace(ext, '').replace(/[^a-zA-Z0-9]/g, '_');
+      fileName = `${name}_${uniqueSuffix}${ext}`;
+      
+      // Upload to Railway bucket
+      fileUrl = await uploadFile(file.buffer, fileName, file.mimetype);
+    } else {
+      // Local filesystem: multer already saved the file, just use the filename
+      fileName = file.filename || file.originalname;
+      fileUrl = `/uploads/${fileName}`;
+    }
+
     const newDocument = {
       id: `doc_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
       name: req.body.name || file.originalname,
@@ -280,17 +314,11 @@ router.delete('/:id/documents/:documentCode', async (req, res) => {
 
     const updatedDocuments = client.required_documents.map((doc: any) => {
       if (doc.code === req.params.documentCode) {
-        // Delete file if exists
+        // Delete file if exists (Railway bucket or local filesystem)
         if (doc.fileUrl && doc.fileUrl.startsWith('/uploads/')) {
-          const dataDir = join(__dirname, '../../data');
-          const filePath = join(dataDir, doc.fileUrl);
-          try {
-            if (existsSync(filePath)) {
-              unlinkSync(filePath);
-            }
-          } catch (err) {
+          deleteFile(doc.fileUrl).catch(err => {
             console.error('Error deleting file:', err);
-          }
+          });
         }
         return {
           ...doc,
@@ -324,16 +352,10 @@ router.delete('/:id/additional-documents/:documentId', async (req, res) => {
 
     const docToRemove = client.additional_documents?.find((doc: any) => doc.id === req.params.documentId);
     if (docToRemove && docToRemove.fileUrl && docToRemove.fileUrl.startsWith('/uploads/')) {
-      // Delete file
-      const dataDir = join(__dirname, '../../data');
-      const filePath = join(dataDir, docToRemove.fileUrl);
-      try {
-        if (existsSync(filePath)) {
-          unlinkSync(filePath);
-        }
-      } catch (err) {
+      // Delete file (Railway bucket or local filesystem)
+      deleteFile(docToRemove.fileUrl).catch(err => {
         console.error('Error deleting file:', err);
-      }
+      });
     }
 
     const updatedAdditionalDocs = (client.additional_documents || []).filter(

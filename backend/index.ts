@@ -5,6 +5,7 @@ import { dirname, join } from 'path';
 import caseTemplatesRoutes from './routes/caseTemplates.js';
 import clientsRoutes from './routes/clients.js';
 import { db } from './utils/database.js';
+import { isUsingBucketStorage, getFileUrl } from './utils/storage.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
@@ -25,9 +26,38 @@ app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 
 // Serve uploaded files
-// For Railway, use RAILWAY_VOLUME_MOUNT_PATH if set, otherwise use local data directory
-const uploadsDir = db.getUploadsDir();
-app.use('/uploads', express.static(uploadsDir));
+// For Railway bucket, files are served via signed URLs or proxy
+// For local storage, use express.static
+if (!isUsingBucketStorage()) {
+  const uploadsDir = db.getUploadsDir();
+  app.use('/uploads', express.static(uploadsDir));
+} else {
+  // Proxy files from Railway bucket
+  app.get('/uploads/:filename', async (req, res) => {
+    try {
+      const fileUrl = `/uploads/${req.params.filename}`;
+      const signedUrl = await getFileUrl(fileUrl, 3600); // 1 hour expiry
+      
+      if (signedUrl && signedUrl.startsWith('http')) {
+        // Redirect to signed URL for direct access
+        res.redirect(signedUrl);
+      } else {
+        // Fallback: try to fetch and proxy the file
+        const response = await fetch(signedUrl || fileUrl);
+        if (response.ok) {
+          const buffer = await response.arrayBuffer();
+          res.setHeader('Content-Type', response.headers.get('Content-Type') || 'application/octet-stream');
+          res.send(Buffer.from(buffer));
+        } else {
+          res.status(404).json({ error: 'File not found' });
+        }
+      }
+    } catch (error: any) {
+      console.error('Error serving file:', error);
+      res.status(500).json({ error: 'Failed to serve file' });
+    }
+  });
+}
 
 // API Routes
 app.get('/health', async (req, res) => {
