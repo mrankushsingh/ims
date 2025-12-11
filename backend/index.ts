@@ -6,7 +6,8 @@ import caseTemplatesRoutes from './routes/caseTemplates.js';
 import clientsRoutes from './routes/clients.js';
 import { db } from './utils/database.js';
 import { isUsingBucketStorage, getFileUrl } from './utils/storage.js';
-import { initializeFirebaseAdmin } from './utils/firebase.js';
+import { initializeFirebaseAdmin, getFirebaseAdmin } from './utils/firebase.js';
+import { authenticateToken } from './middleware/auth.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
