@@ -1,5 +1,5 @@
 import { Request, Response, NextFunction } from 'express';
-import { verifyIdToken } from '../utils/firebase.js';
+import { verifyIdToken, getFirebaseAdmin } from '../utils/firebase.js';
 
 export interface AuthenticatedRequest extends Request {
   user?: {
@@ -15,6 +15,15 @@ export async function authenticateToken(
   next: NextFunction
 ) {
   try {
+    // Check if Firebase is configured
+    const firebaseAdmin = getFirebaseAdmin();
+    if (!firebaseAdmin) {
+      return res.status(503).json({ 
+        error: 'Authentication service unavailable',
+        message: 'Firebase Authentication is not configured on the server. Please contact the administrator.'
+      });
+    }
+
     // Get token from Authorization header
     const authHeader = req.headers.authorization;
     const token = authHeader && authHeader.split(' ')[1]; // Bearer TOKEN
