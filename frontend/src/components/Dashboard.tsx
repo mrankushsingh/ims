@@ -156,12 +156,77 @@ export default function Dashboard() {
                     </p>
                     <div className="flex items-center space-x-4 mt-1">
                       <p className="text-sm text-slate-500">{client.case_type || 'No template assigned'}</p>
-                      <div className="flex items-center space-x-1">
-                        <Clock className="w-3.5 h-3.5 text-slate-400" />
-                        <p className="text-xs text-slate-500 font-medium">
-                          Reminder: {client.reminder_interval_days} days
-                        </p>
-                      </div>
+                          {(() => {
+                            // Calculate reminder status
+                            const calculateReminderStatus = () => {
+                              if (client.submitted_to_immigration) return null;
+                              
+                              const pendingRequiredDocs = client.required_documents?.filter((d: any) => !d.submitted && !d.isOptional).length || 0;
+                              if (pendingRequiredDocs === 0) return null;
+                              
+                              // Find last activity date
+                              const submittedDocs = client.required_documents?.filter((d: any) => d.submitted && d.uploadedAt) || [];
+                              let lastActivityDate: Date;
+                              
+                              if (submittedDocs.length > 0) {
+                                const uploadDates = submittedDocs
+                                  .map((d: any) => new Date(d.uploadedAt))
+                                  .sort((a: Date, b: Date) => b.getTime() - a.getTime());
+                                lastActivityDate = uploadDates[0];
+                              } else {
+                                lastActivityDate = new Date(client.created_at);
+                              }
+                              
+                              const reminderDays = client.reminder_interval_days || 10;
+                              const nextReminderDate = new Date(lastActivityDate);
+                              nextReminderDate.setDate(nextReminderDate.getDate() + reminderDays);
+                              
+                              const today = new Date();
+                              today.setHours(0, 0, 0, 0);
+                              nextReminderDate.setHours(0, 0, 0, 0);
+                              
+                              const daysUntilReminder = Math.ceil((nextReminderDate.getTime() - today.getTime()) / (1000 * 60 * 60 * 24));
+                              
+                              return {
+                                daysUntilReminder,
+                                isOverdue: daysUntilReminder < 0,
+                                isDueSoon: daysUntilReminder <= 2 && daysUntilReminder >= 0,
+                              };
+                            };
+                            
+                            const reminderStatus = calculateReminderStatus();
+                            
+                            if (!reminderStatus) {
+                              return (
+                                <div className="flex items-center space-x-1">
+                                  <Clock className="w-3.5 h-3.5 text-slate-400" />
+                                  <p className="text-xs text-slate-500 font-medium">
+                                    Interval: {client.reminder_interval_days} days
+                                  </p>
+                                </div>
+                              );
+                            }
+                            
+                            const { daysUntilReminder, isOverdue, isDueSoon } = reminderStatus;
+                            
+                            return (
+                              <div className="flex items-center space-x-1">
+                                <Clock className={`w-3.5 h-3.5 ${
+                                  isOverdue ? 'text-red-500' : isDueSoon ? 'text-amber-500' : 'text-slate-400'
+                                }`} />
+                                <p className={`text-xs font-medium ${
+                                  isOverdue ? 'text-red-600' : isDueSoon ? 'text-amber-600' : 'text-slate-500'
+                                }`}>
+                                  {isOverdue 
+                                    ? `Overdue ${Math.abs(daysUntilReminder)} days`
+                                    : daysUntilReminder === 0
+                                    ? 'Due today'
+                                    : `Due in ${daysUntilReminder} days`
+                                  }
+                                </p>
+                              </div>
+                            );
+                          })()}
                     </div>
                   </div>
                 </div>
@@ -237,12 +302,77 @@ export default function Dashboard() {
                         </p>
                         <div className="flex flex-col sm:flex-row sm:items-center sm:space-x-4 mt-1 gap-1 sm:gap-0">
                           <p className="text-xs sm:text-sm text-slate-600 truncate">{client.case_type || 'No template assigned'}</p>
-                          <div className="flex items-center space-x-1">
-                            <Clock className="w-3.5 h-3.5 text-amber-600" />
-                            <p className="text-xs text-amber-700 font-medium">
-                              Reminder: {client.reminder_interval_days} days
-                            </p>
-                          </div>
+                          {(() => {
+                            // Calculate reminder status
+                            const calculateReminderStatus = () => {
+                              const pendingRequiredDocs = client.required_documents?.filter((d: any) => !d.submitted && !d.isOptional).length || 0;
+                              if (pendingRequiredDocs === 0) return null;
+                              
+                              // Find last activity date
+                              const submittedDocs = client.required_documents?.filter((d: any) => d.submitted && d.uploadedAt) || [];
+                              let lastActivityDate: Date;
+                              
+                              if (submittedDocs.length > 0) {
+                                const uploadDates = submittedDocs
+                                  .map((d: any) => new Date(d.uploadedAt))
+                                  .sort((a: Date, b: Date) => b.getTime() - a.getTime());
+                                lastActivityDate = uploadDates[0];
+                              } else {
+                                lastActivityDate = new Date(client.created_at);
+                              }
+                              
+                              const reminderDays = client.reminder_interval_days || 10;
+                              const nextReminderDate = new Date(lastActivityDate);
+                              nextReminderDate.setDate(nextReminderDate.getDate() + reminderDays);
+                              
+                              const today = new Date();
+                              today.setHours(0, 0, 0, 0);
+                              nextReminderDate.setHours(0, 0, 0, 0);
+                              
+                              const daysUntilReminder = Math.ceil((nextReminderDate.getTime() - today.getTime()) / (1000 * 60 * 60 * 24));
+                              
+                              return {
+                                daysUntilReminder,
+                                isOverdue: daysUntilReminder < 0,
+                                isDueSoon: daysUntilReminder <= 2 && daysUntilReminder >= 0,
+                              };
+                            };
+                            
+                            const reminderStatus = calculateReminderStatus();
+                            
+                            if (!reminderStatus) {
+                              return (
+                                <div className="flex items-center space-x-1">
+                                  <Clock className="w-3.5 h-3.5 text-amber-600" />
+                                  <p className="text-xs text-amber-700 font-medium">
+                                    Interval: {client.reminder_interval_days} days
+                                  </p>
+                                </div>
+                              );
+                            }
+                            
+                            const { daysUntilReminder, isOverdue, isDueSoon } = reminderStatus;
+                            
+                            return (
+                              <div className="flex items-center space-x-1">
+                                <Clock className={`w-3.5 h-3.5 ${
+                                  isOverdue ? 'text-red-500' : isDueSoon ? 'text-amber-600' : 'text-amber-500'
+                                }`} />
+                                <p className={`text-xs font-medium ${
+                                  isOverdue ? 'text-red-700' : isDueSoon ? 'text-amber-700' : 'text-amber-600'
+                                }`}>
+                                  {isOverdue 
+                                    ? `⚠️ Overdue ${Math.abs(daysUntilReminder)} days`
+                                    : daysUntilReminder === 0
+                                    ? '⚠️ Due today'
+                                    : isDueSoon
+                                    ? `⚠️ Due in ${daysUntilReminder} days`
+                                    : `Due in ${daysUntilReminder} days`
+                                  }
+                                </p>
+                              </div>
+                            );
+                          })()}
                         </div>
                       </div>
                     </div>
