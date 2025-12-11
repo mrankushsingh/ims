@@ -2,10 +2,29 @@
 
 ## Environment Variables
 
-### Backend (Railway) ✅ Already Set
+### Backend (Railway) ⚠️ Needs to be Set
 **FIREBASE_SERVICE_ACCOUNT** - The entire Firebase service account JSON as a single string (minified JSON)
 
-You already have this set! The service account JSON should be minified (all on one line) and set as the value.
+**Important:** The JSON must be minified (all on one line, no line breaks) and set as a single string value.
+
+**How to format it:**
+1. Take your Firebase service account JSON
+2. Remove all line breaks and extra spaces
+3. It should look like this (all on one line):
+   ```json
+   {"type":"service_account","project_id":"anisa-28059","private_key_id":"...","private_key":"-----BEGIN PRIVATE KEY-----\n...\n-----END PRIVATE KEY-----\n","client_email":"firebase-adminsdk-xxxxx@anisa-28059.iam.gserviceaccount.com",...}
+   ```
+
+**Quick way to minify:**
+- Use an online JSON minifier: https://jsonformatter.org/json-minify
+- Or use this command: `node -e "console.log(JSON.stringify(require('./your-service-account.json')))"`
+- Or manually remove all line breaks and spaces
+
+**In Railway:**
+1. Go to your Railway service → Variables
+2. Add variable: `FIREBASE_SERVICE_ACCOUNT`
+3. Paste the minified JSON string as the value
+4. Save and redeploy
 
 ### Frontend (Railway/Vercel) ⚠️ NEEDS TO BE SET
 Add these environment variables to your frontend deployment:
