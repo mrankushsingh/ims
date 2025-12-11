@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { FileText, Mail, Lock, AlertCircle, Loader2 } from 'lucide-react';
+import { FileText, Mail, Lock, AlertCircle, Loader2, Eye, EyeOff } from 'lucide-react';
 
 interface LoginProps {
   onLoginSuccess: () => void;
@@ -113,10 +113,15 @@ export default function Login({ onLoginSuccess }: LoginProps) {
                 <button
                   type="button"
                   onClick={() => setShowPassword(!showPassword)}
-                  className="absolute inset-y-0 right-0 pr-4 flex items-center text-slate-400 hover:text-white transition-colors"
+                  className="absolute inset-y-0 right-0 pr-4 flex items-center text-slate-400 hover:text-slate-200 transition-colors focus:outline-none focus:text-white"
                   tabIndex={-1}
+                  aria-label={showPassword ? 'Hide password' : 'Show password'}
                 >
-                  {showPassword ? '👁️' : '👁️‍🗨️'}
+                  {showPassword ? (
+                    <EyeOff className="w-5 h-5" />
+                  ) : (
+                    <Eye className="w-5 h-5" />
+                  )}
                 </button>
               </div>
             </div>
