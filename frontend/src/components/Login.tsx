@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { FileText, Mail, Lock, AlertCircle, Loader2, Eye, EyeOff } from 'lucide-react';
-import { loginWithEmail } from '../utils/firebase';
+import { loginWithEmail, isFirebaseAvailable } from '../utils/firebase';
 
 interface LoginProps {
   onLoginSuccess: () => void;
@@ -17,6 +17,25 @@ export default function Login({ onLoginSuccess }: LoginProps) {
     e.preventDefault();
     setError('');
     setLoading(true);
+
+    // Fallback to simple auth if Firebase not configured
+    if (!isFirebaseAvailable()) {
+      // Simple fallback authentication
+      const VALID_EMAIL = 'AnisaBerlikuLawfirm@gmail.com';
+      const VALID_PASSWORD = 'BerlikuAnisaLaw';
+      
+      await new Promise(resolve => setTimeout(resolve, 500));
+      
+      if (email.trim() === VALID_EMAIL && password === VALID_PASSWORD) {
+        localStorage.setItem('isAuthenticated', 'true');
+        localStorage.setItem('userEmail', email);
+        onLoginSuccess();
+      } else {
+        setError('Invalid email or password. Please try again.');
+        setLoading(false);
+      }
+      return;
+    }
 
     try {
       // Sign in with Firebase

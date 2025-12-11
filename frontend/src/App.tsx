@@ -7,7 +7,7 @@ import Notifications from './components/Notifications';
 import ClientDetailsModal from './components/ClientDetailsModal';
 import Login from './components/Login';
 import { ToastContainer, subscribeToToasts, Toast } from './components/Toast';
-import { onAuthChange, getCurrentUser, logout as firebaseLogout } from './utils/firebase';
+import { onAuthChange, getCurrentUser, logout as firebaseLogout, isFirebaseAvailable } from './utils/firebase';
 import { Client } from './types';
 
 type View = 'dashboard' | 'templates' | 'clients';
@@ -20,18 +20,27 @@ function App() {
   const [toasts, setToasts] = useState<Toast[]>([]);
 
   useEffect(() => {
-    // Listen to Firebase auth state changes
-    const unsubscribe = onAuthChange((user) => {
-      setIsAuthenticated(!!user);
-    });
+    // Check if Firebase is available
+    if (isFirebaseAvailable()) {
+      // Listen to Firebase auth state changes
+      const unsubscribe = onAuthChange((user) => {
+        setIsAuthenticated(!!user);
+      });
 
-    // Check initial auth state
-    const user = getCurrentUser();
-    if (user) {
-      setIsAuthenticated(true);
+      // Check initial auth state
+      const user = getCurrentUser();
+      if (user) {
+        setIsAuthenticated(true);
+      }
+
+      return () => unsubscribe();
+    } else {
+      // Fallback to localStorage-based auth
+      const authStatus = localStorage.getItem('isAuthenticated');
+      if (authStatus === 'true') {
+        setIsAuthenticated(true);
+      }
     }
-
-    return () => unsubscribe();
   }, []);
 
   useEffect(() => {
@@ -53,14 +62,18 @@ function App() {
   };
 
   const handleLogout = async () => {
-    try {
-      await firebaseLogout();
-      setIsAuthenticated(false);
-    } catch (error: any) {
-      console.error('Logout error:', error);
-      // Still set authenticated to false even if logout fails
-      setIsAuthenticated(false);
+    if (isFirebaseAvailable()) {
+      try {
+        await firebaseLogout();
+      } catch (error: any) {
+        console.error('Logout error:', error);
+      }
+    } else {
+      // Fallback: clear localStorage
+      localStorage.removeItem('isAuthenticated');
+      localStorage.removeItem('userEmail');
     }
+    setIsAuthenticated(false);
   };
 
   if (!isAuthenticated) {
