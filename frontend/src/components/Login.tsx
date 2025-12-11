@@ -69,7 +69,7 @@ export default function Login({ onLoginSuccess }: LoginProps) {
               </div>
             </div>
             <h1 className="text-4xl font-bold mb-3 bg-gradient-to-r from-yellow-400 via-amber-300 to-yellow-500 bg-clip-text text-transparent tracking-tight">
-              Immigration Case Manager
+              Berliku Law Firm
             </h1>
             <p className="text-gray-400 text-sm font-medium">Sign in to access your dashboard</p>
           </div>

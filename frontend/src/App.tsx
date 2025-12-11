@@ -51,8 +51,8 @@ function App() {
               </div>
               <div>
                 <h1 className="text-lg sm:text-2xl font-bold text-slate-900 tracking-tight">
-                  <span className="hidden sm:inline">Immigration Case Manager</span>
-                  <span className="sm:hidden">Case Manager</span>
+                  <span className="hidden sm:inline">Berliku Law Firm</span>
+                  <span className="sm:hidden">Berliku Law</span>
                 </h1>
                 <p className="hidden sm:block text-xs text-slate-500 font-medium">Professional Case Management</p>
               </div>
