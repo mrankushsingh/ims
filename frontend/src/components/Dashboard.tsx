@@ -165,8 +165,11 @@ export default function Dashboard() {
                               if (pendingRequiredDocs === 0) return null;
                               
                               // Find last activity date
+                              // If no documents uploaded, reminder starts from client creation date
+                              // If documents uploaded, reminder starts from most recent upload date
                               const submittedDocs = client.required_documents?.filter((d: any) => d.submitted && d.uploadedAt) || [];
                               let lastActivityDate: Date;
+                              let hasNoUploads = false;
                               
                               if (submittedDocs.length > 0) {
                                 const uploadDates = submittedDocs
@@ -174,7 +177,9 @@ export default function Dashboard() {
                                   .sort((a: Date, b: Date) => b.getTime() - a.getTime());
                                 lastActivityDate = uploadDates[0];
                               } else {
+                                // No documents uploaded yet - reminder starts from client creation
                                 lastActivityDate = new Date(client.created_at);
+                                hasNoUploads = true;
                               }
                               
                               const reminderDays = client.reminder_interval_days || 10;
@@ -207,7 +212,7 @@ export default function Dashboard() {
                               );
                             }
                             
-                            const { daysUntilReminder, isOverdue, isDueSoon } = reminderStatus;
+                            const { daysUntilReminder, isOverdue, isDueSoon, hasNoUploads } = reminderStatus;
                             
                             return (
                               <div className="flex items-center space-x-1">
@@ -218,10 +223,10 @@ export default function Dashboard() {
                                   isOverdue ? 'text-red-600' : isDueSoon ? 'text-amber-600' : 'text-slate-500'
                                 }`}>
                                   {isOverdue 
-                                    ? `Overdue ${Math.abs(daysUntilReminder)} days`
+                                    ? `Overdue ${Math.abs(daysUntilReminder)} days${hasNoUploads ? ' (no docs)' : ''}`
                                     : daysUntilReminder === 0
                                     ? 'Due today'
-                                    : `Due in ${daysUntilReminder} days`
+                                    : `Due in ${daysUntilReminder} days${hasNoUploads ? ' (no docs)' : ''}`
                                   }
                                 </p>
                               </div>
@@ -309,8 +314,11 @@ export default function Dashboard() {
                               if (pendingRequiredDocs === 0) return null;
                               
                               // Find last activity date
+                              // If no documents uploaded, reminder starts from client creation date
+                              // If documents uploaded, reminder starts from most recent upload date
                               const submittedDocs = client.required_documents?.filter((d: any) => d.submitted && d.uploadedAt) || [];
                               let lastActivityDate: Date;
+                              let hasNoUploads = false;
                               
                               if (submittedDocs.length > 0) {
                                 const uploadDates = submittedDocs
@@ -318,7 +326,9 @@ export default function Dashboard() {
                                   .sort((a: Date, b: Date) => b.getTime() - a.getTime());
                                 lastActivityDate = uploadDates[0];
                               } else {
+                                // No documents uploaded yet - reminder starts from client creation
                                 lastActivityDate = new Date(client.created_at);
+                                hasNoUploads = true;
                               }
                               
                               const reminderDays = client.reminder_interval_days || 10;
@@ -335,6 +345,7 @@ export default function Dashboard() {
                                 daysUntilReminder,
                                 isOverdue: daysUntilReminder < 0,
                                 isDueSoon: daysUntilReminder <= 2 && daysUntilReminder >= 0,
+                                hasNoUploads, // Track if no documents uploaded yet
                               };
                             };
                             
@@ -351,7 +362,7 @@ export default function Dashboard() {
                               );
                             }
                             
-                            const { daysUntilReminder, isOverdue, isDueSoon } = reminderStatus;
+                            const { daysUntilReminder, isOverdue, isDueSoon, hasNoUploads } = reminderStatus;
                             
                             return (
                               <div className="flex items-center space-x-1">
@@ -362,12 +373,12 @@ export default function Dashboard() {
                                   isOverdue ? 'text-red-700' : isDueSoon ? 'text-amber-700' : 'text-amber-600'
                                 }`}>
                                   {isOverdue 
-                                    ? `⚠️ Overdue ${Math.abs(daysUntilReminder)} days`
+                                    ? `⚠️ Overdue ${Math.abs(daysUntilReminder)} days${hasNoUploads ? ' (no docs)' : ''}`
                                     : daysUntilReminder === 0
                                     ? '⚠️ Due today'
                                     : isDueSoon
-                                    ? `⚠️ Due in ${daysUntilReminder} days`
-                                    : `Due in ${daysUntilReminder} days`
+                                    ? `⚠️ Due in ${daysUntilReminder} days${hasNoUploads ? ' (no docs)' : ''}`
+                                    : `Due in ${daysUntilReminder} days${hasNoUploads ? ' (no docs)' : ''}`
                                   }
                                 </p>
                               </div>
