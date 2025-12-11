@@ -129,7 +129,14 @@ app.listen(PORT, '0.0.0.0', async () => {
     console.log(`   No DATABASE_URL found - using local file storage`);
   }
   
-  console.log(`📁 Uploads directory: ${uploadsDir}`);
+  if (isUsingBucketStorage()) {
+    console.log(`📁 File Storage: Railway Bucket`);
+    console.log(`   Bucket: ${process.env.RAILWAY_BUCKET_NAME || 'Not configured'}`);
+  } else {
+    const uploadsDir = db.getUploadsDir();
+    console.log(`📁 Uploads directory: ${uploadsDir}`);
+  }
+  
   console.log(`\n🔍 Check /health endpoint for database status`);
 });
 
