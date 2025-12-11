@@ -160,8 +160,14 @@ export async function deleteFile(fileUrl: string): Promise<void> {
       });
 
       await s3Client.send(command);
+      console.log(`✅ File deleted from Railway bucket: ${key}`);
     } catch (error: any) {
-      console.error('Error deleting from Railway bucket:', error);
+      console.error('❌ Error deleting from Railway bucket:', {
+        bucket: bucketName,
+        key: key,
+        errorCode: error.Code || error.name,
+        errorMessage: error.message,
+      });
       // Don't throw - file might not exist
     }
   } else {
@@ -172,9 +178,10 @@ export async function deleteFile(fileUrl: string): Promise<void> {
     try {
       if (existsSync(filePath)) {
         unlinkSync(filePath);
+        console.log(`✅ File deleted from local storage: ${fileName}`);
       }
     } catch (error: any) {
-      console.error('Error deleting local file:', error);
+      console.error('❌ Error deleting local file:', error);
       // Don't throw - file might not exist
     }
   }
