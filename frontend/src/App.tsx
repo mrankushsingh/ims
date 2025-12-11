@@ -21,26 +21,24 @@ function App() {
 
   useEffect(() => {
     // Check if Firebase is available
-    if (isFirebaseAvailable()) {
-      // Listen to Firebase auth state changes
-      const unsubscribe = onAuthChange((user) => {
-        setIsAuthenticated(!!user);
-      });
-
-      // Check initial auth state
-      const user = getCurrentUser();
-      if (user) {
-        setIsAuthenticated(true);
-      }
-
-      return () => unsubscribe();
-    } else {
-      // Fallback to localStorage-based auth
-      const authStatus = localStorage.getItem('isAuthenticated');
-      if (authStatus === 'true') {
-        setIsAuthenticated(true);
-      }
+    if (!isFirebaseAvailable()) {
+      console.error('Firebase Authentication is not configured. Please set Firebase environment variables.');
+      // Don't set authenticated - user must configure Firebase
+      return;
     }
+
+    // Listen to Firebase auth state changes
+    const unsubscribe = onAuthChange((user) => {
+      setIsAuthenticated(!!user);
+    });
+
+    // Check initial auth state
+    const user = getCurrentUser();
+    if (user) {
+      setIsAuthenticated(true);
+    }
+
+    return () => unsubscribe();
   }, []);
 
   useEffect(() => {
@@ -62,18 +60,20 @@ function App() {
   };
 
   const handleLogout = async () => {
-    if (isFirebaseAvailable()) {
-      try {
-        await firebaseLogout();
-      } catch (error: any) {
-        console.error('Logout error:', error);
-      }
-    } else {
-      // Fallback: clear localStorage
-      localStorage.removeItem('isAuthenticated');
-      localStorage.removeItem('userEmail');
+    if (!isFirebaseAvailable()) {
+      console.error('Firebase is not configured');
+      setIsAuthenticated(false);
+      return;
     }
-    setIsAuthenticated(false);
+
+    try {
+      await firebaseLogout();
+      setIsAuthenticated(false);
+    } catch (error: any) {
+      console.error('Logout error:', error);
+      // Still set authenticated to false even if logout fails
+      setIsAuthenticated(false);
+    }
   };
 
   if (!isAuthenticated) {

@@ -18,22 +18,10 @@ export default function Login({ onLoginSuccess }: LoginProps) {
     setError('');
     setLoading(true);
 
-    // Fallback to simple auth if Firebase not configured
+    // Check if Firebase is configured
     if (!isFirebaseAvailable()) {
-      // Simple fallback authentication
-      const VALID_EMAIL = 'AnisaBerlikuLawfirm@gmail.com';
-      const VALID_PASSWORD = 'BerlikuAnisaLaw';
-      
-      await new Promise(resolve => setTimeout(resolve, 500));
-      
-      if (email.trim() === VALID_EMAIL && password === VALID_PASSWORD) {
-        localStorage.setItem('isAuthenticated', 'true');
-        localStorage.setItem('userEmail', email);
-        onLoginSuccess();
-      } else {
-        setError('Invalid email or password. Please try again.');
-        setLoading(false);
-      }
+      setError('Firebase Authentication is not configured. Please contact the administrator.');
+      setLoading(false);
       return;
     }
 
@@ -54,6 +42,8 @@ export default function Login({ onLoginSuccess }: LoginProps) {
         errorMessage = 'Invalid email address.';
       } else if (err.message.includes('auth/too-many-requests')) {
         errorMessage = 'Too many failed attempts. Please try again later.';
+      } else if (err.message.includes('Firebase is not configured')) {
+        errorMessage = 'Firebase Authentication is not configured. Please contact the administrator.';
       } else if (err.message) {
         errorMessage = err.message;
       }
