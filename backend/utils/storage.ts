@@ -21,15 +21,24 @@ const isRailwayBucketConfigured = () => {
 // Initialize S3 client if Railway bucket is configured
 let s3Client: S3Client | null = null;
 if (isRailwayBucketConfigured()) {
-  s3Client = new S3Client({
-    endpoint: process.env.RAILWAY_BUCKET_ENDPOINT,
-    region: process.env.RAILWAY_BUCKET_REGION || 'auto',
-    credentials: {
-      accessKeyId: process.env.RAILWAY_BUCKET_ACCESS_KEY!,
-      secretAccessKey: process.env.RAILWAY_BUCKET_SECRET_KEY!,
-    },
-    forcePathStyle: true, // Required for S3-compatible services
-  });
+  try {
+    s3Client = new S3Client({
+      endpoint: process.env.RAILWAY_BUCKET_ENDPOINT,
+      region: process.env.RAILWAY_BUCKET_REGION || 'auto',
+      credentials: {
+        accessKeyId: process.env.RAILWAY_BUCKET_ACCESS_KEY!,
+        secretAccessKey: process.env.RAILWAY_BUCKET_SECRET_KEY!,
+      },
+      forcePathStyle: true, // Required for S3-compatible services
+    });
+    console.log(`✅ Railway bucket client initialized`);
+    console.log(`   Endpoint: ${process.env.RAILWAY_BUCKET_ENDPOINT}`);
+    console.log(`   Bucket: ${process.env.RAILWAY_BUCKET_NAME}`);
+    console.log(`   Region: ${process.env.RAILWAY_BUCKET_REGION || 'auto'}`);
+  } catch (error: any) {
+    console.error('❌ Failed to initialize Railway bucket client:', error.message);
+    s3Client = null;
+  }
 }
 
 /**
@@ -51,6 +60,7 @@ export async function uploadFile(
         Key: key,
         Body: fileBuffer,
         ContentType: contentType,
+        ACL: 'private', // Make files private by default
       });
 
       await s3Client.send(command);
@@ -58,7 +68,23 @@ export async function uploadFile(
       // Return the file URL path (will be served through /uploads route)
       return `/uploads/${fileName}`;
     } catch (error: any) {
-      console.error('Error uploading to Railway bucket:', error);
+      console.error('❌ Error uploading to Railway bucket:', {
+        bucket: bucketName,
+        key: key,
+        errorCode: error.Code || error.name,
+        errorMessage: error.message,
+        httpStatusCode: error.$metadata?.httpStatusCode,
+      });
+      
+      // Provide more helpful error message
+      if (error.Code === 'AccessDenied' || error.name === 'AccessDenied') {
+        throw new Error(`Access denied to Railway bucket. Please verify:
+1. RAILWAY_BUCKET_NAME is correct (current: ${bucketName})
+2. RAILWAY_BUCKET_ACCESS_KEY and RAILWAY_BUCKET_SECRET_KEY are correct
+3. The bucket exists and has proper permissions
+4. RAILWAY_BUCKET_ENDPOINT is correct`);
+      }
+      
       throw new Error(`Failed to upload file to bucket: ${error.message}`);
     }
   } else {

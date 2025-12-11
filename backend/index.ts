@@ -132,6 +132,8 @@ app.listen(PORT, '0.0.0.0', async () => {
   if (isUsingBucketStorage()) {
     console.log(`📁 File Storage: Railway Bucket`);
     console.log(`   Bucket: ${process.env.RAILWAY_BUCKET_NAME || 'Not configured'}`);
+    console.log(`   Endpoint: ${process.env.RAILWAY_BUCKET_ENDPOINT || 'Not configured'}`);
+    console.log(`   Region: ${process.env.RAILWAY_BUCKET_REGION || 'auto'}`);
   } else {
     const uploadsDir = db.getUploadsDir();
     console.log(`📁 Uploads directory: ${uploadsDir}`);
