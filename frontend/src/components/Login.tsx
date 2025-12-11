@@ -89,15 +89,23 @@ export default function Login({ onLoginSuccess }: LoginProps) {
                 Email Address
               </label>
               <div className="relative group">
-                <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
-                  <Mail className="w-5 h-5 text-yellow-500/70 group-focus-within:text-yellow-400 transition-colors" />
+                <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none z-10">
+                  <div className="relative">
+                    {/* Icon glow effect */}
+                    <div className="absolute inset-0 bg-yellow-500/20 rounded-lg blur-md group-focus-within:bg-yellow-500/30 transition-all"></div>
+                    {/* Icon container */}
+                    <div className="relative bg-gradient-to-br from-yellow-500/20 to-amber-600/20 border border-yellow-500/30 rounded-lg p-2.5 group-focus-within:border-yellow-500/50 group-focus-within:bg-gradient-to-br group-focus-within:from-yellow-500/30 group-focus-within:to-amber-600/30 transition-all backdrop-blur-sm"
+                         style={{ boxShadow: '0 2px 8px rgba(255, 215, 0, 0.15), inset 0 1px 0 rgba(255, 255, 255, 0.1)' }}>
+                      <Mail className="w-5 h-5 text-yellow-400 group-focus-within:text-yellow-300 transition-colors" strokeWidth={2.5} />
+                    </div>
+                  </div>
                 </div>
                 <input
                   type="email"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   required
-                  className="w-full pl-12 pr-4 py-3.5 bg-black/40 border border-yellow-500/20 rounded-xl text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-yellow-500/50 focus:border-yellow-500/50 transition-all backdrop-blur-sm font-medium"
+                  className="w-full pl-16 pr-4 py-3.5 bg-black/40 border border-yellow-500/20 rounded-xl text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-yellow-500/50 focus:border-yellow-500/50 transition-all backdrop-blur-sm font-medium"
                   style={{ boxShadow: 'inset 0 2px 4px rgba(0, 0, 0, 0.3)' }}
                   placeholder="Enter your email"
                   disabled={loading}
@@ -111,15 +119,23 @@ export default function Login({ onLoginSuccess }: LoginProps) {
                 Password
               </label>
               <div className="relative group">
-                <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
-                  <Lock className="w-5 h-5 text-yellow-500/70 group-focus-within:text-yellow-400 transition-colors" />
+                <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none z-10">
+                  <div className="relative">
+                    {/* Icon glow effect */}
+                    <div className="absolute inset-0 bg-yellow-500/20 rounded-lg blur-md group-focus-within:bg-yellow-500/30 transition-all"></div>
+                    {/* Icon container */}
+                    <div className="relative bg-gradient-to-br from-yellow-500/20 to-amber-600/20 border border-yellow-500/30 rounded-lg p-2.5 group-focus-within:border-yellow-500/50 group-focus-within:bg-gradient-to-br group-focus-within:from-yellow-500/30 group-focus-within:to-amber-600/30 transition-all backdrop-blur-sm"
+                         style={{ boxShadow: '0 2px 8px rgba(255, 215, 0, 0.15), inset 0 1px 0 rgba(255, 255, 255, 0.1)' }}>
+                      <Lock className="w-5 h-5 text-yellow-400 group-focus-within:text-yellow-300 transition-colors" strokeWidth={2.5} />
+                    </div>
+                  </div>
                 </div>
                 <input
                   type={showPassword ? 'text' : 'password'}
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   required
-                  className="w-full pl-12 pr-12 py-3.5 bg-black/40 border border-yellow-500/20 rounded-xl text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-yellow-500/50 focus:border-yellow-500/50 transition-all backdrop-blur-sm font-medium"
+                  className="w-full pl-16 pr-12 py-3.5 bg-black/40 border border-yellow-500/20 rounded-xl text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-yellow-500/50 focus:border-yellow-500/50 transition-all backdrop-blur-sm font-medium"
                   style={{ boxShadow: 'inset 0 2px 4px rgba(0, 0, 0, 0.3)' }}
                   placeholder="Enter your password"
                   disabled={loading}
