@@ -48,7 +48,7 @@ export default function CreateClientModal({ onClose, onSuccess }: Props) {
 
     setLoading(true);
     try {
-      const newClient = await api.createClient({
+      await api.createClient({
         firstName: formData.firstName.trim(),
         lastName: formData.lastName.trim(),
         parentName: formData.parentName.trim() || undefined,

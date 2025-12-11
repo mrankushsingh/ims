@@ -31,7 +31,9 @@ function App() {
     const unsubscribe = subscribeToToasts((toast) => {
       setToasts((prev) => [...prev, toast]);
     });
-    return unsubscribe;
+    return () => {
+      unsubscribe();
+    };
   }, []);
 
   const handleCloseToast = (id: string) => {
