@@ -97,22 +97,7 @@ app.get('/health', async (req, res) => {
   }
 });
 
-// Protect all API routes with Firebase authentication
-// Only /health endpoint is public
-// Always apply authentication middleware - it will check Firebase internally
-app.use('/api/case-templates', authenticateToken);
-app.use('/api/clients', authenticateToken);
-
-const isFirebaseConfigured = () => {
-  return !!getFirebaseAdmin();
-};
-
-if (isFirebaseConfigured()) {
-  console.log('✅ API routes protected with Firebase authentication');
-} else {
-  console.warn('⚠️  Firebase not configured - API routes will reject all requests');
-}
-
+// API routes (authentication removed - publicly accessible)
 app.use('/api/case-templates', caseTemplatesRoutes);
 app.use('/api/clients', clientsRoutes);
 
