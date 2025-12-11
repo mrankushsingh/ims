@@ -196,6 +196,7 @@ export default function Dashboard() {
                                 daysUntilReminder,
                                 isOverdue: daysUntilReminder < 0,
                                 isDueSoon: daysUntilReminder <= 2 && daysUntilReminder >= 0,
+                                hasNoUploads, // Track if no documents uploaded yet
                               };
                             };
                             
