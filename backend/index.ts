@@ -6,6 +6,7 @@ import caseTemplatesRoutes from './routes/caseTemplates.js';
 import clientsRoutes from './routes/clients.js';
 import { db } from './utils/database.js';
 import { isUsingBucketStorage, getFileUrl } from './utils/storage.js';
+import { initializeFirebaseAdmin } from './utils/firebase.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
@@ -24,6 +25,9 @@ app.use(cors(corsOptions));
 // Body parsing with size limits
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true, limit: '10mb' }));
+
+// Initialize Firebase Admin SDK
+initializeFirebaseAdmin();
 
 // Serve uploaded files
 // For Railway bucket, files are served via signed URLs or proxy

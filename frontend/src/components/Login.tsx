@@ -1,12 +1,10 @@
 import { useState } from 'react';
 import { FileText, Mail, Lock, AlertCircle, Loader2, Eye, EyeOff } from 'lucide-react';
+import { loginWithEmail } from '../utils/firebase';
 
 interface LoginProps {
   onLoginSuccess: () => void;
 }
-
-const VALID_EMAIL = 'AnisaBerlikuLawfirm@gmail.com';
-const VALID_PASSWORD = 'BerlikuAnisaLaw';
 
 export default function Login({ onLoginSuccess }: LoginProps) {
   const [email, setEmail] = useState('');
@@ -20,17 +18,28 @@ export default function Login({ onLoginSuccess }: LoginProps) {
     setError('');
     setLoading(true);
 
-    // Simulate a small delay for better UX
-    await new Promise(resolve => setTimeout(resolve, 500));
-
-    // Validate credentials
-    if (email.trim() === VALID_EMAIL && password === VALID_PASSWORD) {
-      // Store login state
-      localStorage.setItem('isAuthenticated', 'true');
-      localStorage.setItem('userEmail', email);
+    try {
+      // Sign in with Firebase
+      await loginWithEmail(email.trim(), password);
+      // Success - Firebase auth state will be handled by App.tsx
       onLoginSuccess();
-    } else {
-      setError('Invalid email or password. Please try again.');
+    } catch (err: any) {
+      // Handle Firebase auth errors
+      let errorMessage = 'Invalid email or password. Please try again.';
+      
+      if (err.message.includes('auth/user-not-found')) {
+        errorMessage = 'No account found with this email.';
+      } else if (err.message.includes('auth/wrong-password')) {
+        errorMessage = 'Incorrect password. Please try again.';
+      } else if (err.message.includes('auth/invalid-email')) {
+        errorMessage = 'Invalid email address.';
+      } else if (err.message.includes('auth/too-many-requests')) {
+        errorMessage = 'Too many failed attempts. Please try again later.';
+      } else if (err.message) {
+        errorMessage = err.message;
+      }
+      
+      setError(errorMessage);
       setLoading(false);
     }
   };

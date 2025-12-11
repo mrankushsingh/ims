@@ -19,11 +19,18 @@ function App() {
   const [toasts, setToasts] = useState<Toast[]>([]);
 
   useEffect(() => {
-    // Check if user is authenticated
-    const authStatus = localStorage.getItem('isAuthenticated');
-    if (authStatus === 'true') {
+    // Listen to Firebase auth state changes
+    const unsubscribe = onAuthChange((user) => {
+      setIsAuthenticated(!!user);
+    });
+
+    // Check initial auth state
+    const user = getCurrentUser();
+    if (user) {
       setIsAuthenticated(true);
     }
+
+    return () => unsubscribe();
   }, []);
 
   useEffect(() => {
@@ -44,10 +51,15 @@ function App() {
     setIsAuthenticated(true);
   };
 
-  const handleLogout = () => {
-    localStorage.removeItem('isAuthenticated');
-    localStorage.removeItem('userEmail');
-    setIsAuthenticated(false);
+  const handleLogout = async () => {
+    try {
+      await firebaseLogout();
+      setIsAuthenticated(false);
+    } catch (error: any) {
+      console.error('Logout error:', error);
+      // Still set authenticated to false even if logout fails
+      setIsAuthenticated(false);
+    }
   };
 
   if (!isAuthenticated) {

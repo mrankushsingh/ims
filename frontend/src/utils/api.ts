@@ -1,6 +1,24 @@
 // Use environment variable in production, relative path in development
 const API_URL = import.meta.env.VITE_API_URL || '/api';
 
+// Helper function to get auth headers
+async function getAuthHeaders(): Promise<HeadersInit> {
+  const headers: HeadersInit = { 'Content-Type': 'application/json' };
+  
+  // Try to get Firebase ID token
+  try {
+    const { getIdToken } = await import('./firebase.js');
+    const token = await getIdToken();
+    if (token) {
+      headers['Authorization'] = `Bearer ${token}`;
+    }
+  } catch (error) {
+    // Firebase not configured or user not logged in
+  }
+  
+  return headers;
+}
+
 export const api = {
   async getCaseTemplates() {
     const response = await fetch(`${API_URL}/case-templates`);
@@ -9,9 +27,10 @@ export const api = {
   },
 
   async createCaseTemplate(data: any) {
+    const headers = await getAuthHeaders();
     const response = await fetch(`${API_URL}/case-templates`, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers,
       body: JSON.stringify(data),
     });
     if (!response.ok) {
@@ -22,9 +41,10 @@ export const api = {
   },
 
   async updateCaseTemplate(id: string, data: any) {
+    const headers = await getAuthHeaders();
     const response = await fetch(`${API_URL}/case-templates/${id}`, {
       method: 'PUT',
-      headers: { 'Content-Type': 'application/json' },
+      headers,
       body: JSON.stringify(data),
     });
     if (!response.ok) throw new Error('Failed to update template');
@@ -32,8 +52,10 @@ export const api = {
   },
 
   async deleteCaseTemplate(id: string) {
+    const headers = await getAuthHeaders();
     const response = await fetch(`${API_URL}/case-templates/${id}`, {
       method: 'DELETE',
+      headers,
     });
     if (!response.ok) throw new Error('Failed to delete template');
     return response.json();
@@ -52,9 +74,10 @@ export const api = {
   },
 
   async createClient(data: any) {
+    const headers = await getAuthHeaders();
     const response = await fetch(`${API_URL}/clients`, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers,
       body: JSON.stringify(data),
     });
     if (!response.ok) throw new Error('Failed to create client');
@@ -62,9 +85,10 @@ export const api = {
   },
 
   async updateClient(id: string, data: any) {
+    const headers = await getAuthHeaders();
     const response = await fetch(`${API_URL}/clients/${id}`, {
       method: 'PUT',
-      headers: { 'Content-Type': 'application/json' },
+      headers,
       body: JSON.stringify(data),
     });
     if (!response.ok) throw new Error('Failed to update client');
@@ -75,8 +99,15 @@ export const api = {
     const formData = new FormData();
     formData.append('file', file);
 
+    const token = await (await import('./firebase.js')).getIdToken();
+    const headers: HeadersInit = {};
+    if (token) {
+      headers['Authorization'] = `Bearer ${token}`;
+    }
+
     const response = await fetch(`${API_URL}/clients/${clientId}/documents/${documentCode}`, {
       method: 'POST',
+      headers,
       body: formData,
     });
 
@@ -121,8 +152,15 @@ export const api = {
       formData.append('description', description);
     }
 
+    const token = await (await import('./firebase.js')).getIdToken();
+    const headers: HeadersInit = {};
+    if (token) {
+      headers['Authorization'] = `Bearer ${token}`;
+    }
+
     const response = await fetch(`${API_URL}/clients/${clientId}/additional-documents`, {
       method: 'POST',
+      headers,
       body: formData,
     });
 
@@ -135,8 +173,10 @@ export const api = {
   },
 
   async removeDocument(clientId: string, documentCode: string) {
+    const headers = await getAuthHeaders();
     const response = await fetch(`${API_URL}/clients/${clientId}/documents/${documentCode}`, {
       method: 'DELETE',
+      headers,
     });
 
     if (!response.ok) {
@@ -148,8 +188,10 @@ export const api = {
   },
 
   async removeAdditionalDocument(clientId: string, documentId: string) {
+    const headers = await getAuthHeaders();
     const response = await fetch(`${API_URL}/clients/${clientId}/additional-documents/${documentId}`, {
       method: 'DELETE',
+      headers,
     });
 
     if (!response.ok) {
@@ -168,8 +210,10 @@ export const api = {
   },
 
   async deleteClient(id: string) {
+    const headers = await getAuthHeaders();
     const response = await fetch(`${API_URL}/clients/${id}`, {
       method: 'DELETE',
+      headers,
     });
     if (!response.ok) throw new Error('Failed to delete client');
     return response.json();
