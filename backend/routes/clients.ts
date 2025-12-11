@@ -25,12 +25,29 @@ const storage = multer.diskStorage({
   }
 });
 
+// Allowed file types for uploads
+const ALLOWED_MIME_TYPES = [
+  'application/pdf',
+  'image/jpeg',
+  'image/jpg',
+  'image/png',
+  'image/gif',
+  'application/msword',
+  'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+  'application/vnd.ms-excel',
+  'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+];
+
 const upload = multer({ 
   storage,
   limits: { fileSize: 50 * 1024 * 1024 }, // 50MB limit
   fileFilter: (req, file, cb) => {
-    // Accept all file types
-    cb(null, true);
+    // Validate file type
+    if (ALLOWED_MIME_TYPES.includes(file.mimetype)) {
+      cb(null, true);
+    } else {
+      cb(new Error(`File type ${file.mimetype} is not allowed. Allowed types: PDF, images, Word, Excel`));
+    }
   }
 });
 
@@ -38,8 +55,26 @@ router.post('/', async (req, res) => {
   try {
     const { firstName, lastName, parentName, email, phone, caseTemplateId, totalFee, details } = req.body;
     
-    if (!firstName || !lastName) {
-      return res.status(400).json({ error: 'First name and last name are required' });
+    // Validation
+    if (!firstName || typeof firstName !== 'string' || !firstName.trim()) {
+      return res.status(400).json({ error: 'First name is required and must be a non-empty string' });
+    }
+    
+    if (!lastName || typeof lastName !== 'string' || !lastName.trim()) {
+      return res.status(400).json({ error: 'Last name is required and must be a non-empty string' });
+    }
+    
+    // Validate email format if provided
+    if (email && typeof email === 'string') {
+      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+      if (!emailRegex.test(email)) {
+        return res.status(400).json({ error: 'Invalid email format' });
+      }
+    }
+    
+    // Validate totalFee if provided
+    if (totalFee !== undefined && (isNaN(Number(totalFee)) || Number(totalFee) < 0)) {
+      return res.status(400).json({ error: 'Total fee must be a non-negative number' });
     }
 
     let requiredDocs: any[] = [];
@@ -140,7 +175,7 @@ router.delete('/:id', async (req, res) => {
 router.post('/:id/documents/:documentCode', upload.single('file'), async (req, res) => {
   try {
     if (!req.file) {
-      return res.status(400).json({ error: 'No file uploaded' });
+      return res.status(400).json({ error: 'No file uploaded or file upload failed' });
     }
 
     const file = req.file; // Store in const for TypeScript narrowing
@@ -182,6 +217,13 @@ router.post('/:id/documents/:documentCode', upload.single('file'), async (req, r
 
     res.json(updated);
   } catch (error: any) {
+    // Handle multer errors (file size, file type, etc.)
+    if (error.message && error.message.includes('File type')) {
+      return res.status(400).json({ error: error.message });
+    }
+    if (error.message && error.message.includes('File too large')) {
+      return res.status(400).json({ error: 'File size exceeds 50MB limit' });
+    }
     res.status(500).json({ error: error.message || 'Failed to upload document' });
   }
 });
@@ -190,7 +232,7 @@ router.post('/:id/documents/:documentCode', upload.single('file'), async (req, r
 router.post('/:id/additional-documents', upload.single('file'), async (req, res) => {
   try {
     if (!req.file) {
-      return res.status(400).json({ error: 'No file uploaded' });
+      return res.status(400).json({ error: 'No file uploaded or file upload failed' });
     }
 
     const file = req.file; // Store in const for TypeScript narrowing
@@ -217,6 +259,13 @@ router.post('/:id/additional-documents', upload.single('file'), async (req, res)
 
     res.json(updated);
   } catch (error: any) {
+    // Handle multer errors (file size, file type, etc.)
+    if (error.message && error.message.includes('File type')) {
+      return res.status(400).json({ error: error.message });
+    }
+    if (error.message && error.message.includes('File too large')) {
+      return res.status(400).json({ error: 'File size exceeds 50MB limit' });
+    }
     res.status(500).json({ error: error.message || 'Failed to upload additional document' });
   }
 });

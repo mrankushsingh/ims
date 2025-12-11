@@ -12,8 +12,17 @@ const __dirname = dirname(__filename);
 const app = express();
 const PORT = Number(process.env.PORT) || 4000;
 
-app.use(cors());
-app.use(express.json());
+// Configure CORS
+const corsOptions = {
+  origin: process.env.CORS_ORIGIN || '*',
+  credentials: true,
+  optionsSuccessStatus: 200,
+};
+app.use(cors(corsOptions));
+
+// Body parsing with size limits
+app.use(express.json({ limit: '10mb' }));
+app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 
 // Serve uploaded files
 // For Railway, use RAILWAY_VOLUME_MOUNT_PATH if set, otherwise use local data directory

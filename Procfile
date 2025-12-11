@@ -1,2 +1,2 @@
-web: npm run build:backend && cd backend && node dist/index.js
+web: npm run build:all && npm run start
 

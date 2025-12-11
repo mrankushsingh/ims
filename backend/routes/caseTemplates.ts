@@ -8,8 +8,30 @@ router.post('/', async (req, res) => {
   try {
     const { name, description, requiredDocuments, reminderIntervalDays, administrativeSilenceDays } = req.body;
     
-    if (!name || !name.trim()) {
-      return res.status(400).json({ error: 'Name is required' });
+    // Validation
+    if (!name || typeof name !== 'string' || !name.trim()) {
+      return res.status(400).json({ error: 'Name is required and must be a non-empty string' });
+    }
+    
+    // Validate reminder interval
+    if (reminderIntervalDays !== undefined) {
+      const interval = Number(reminderIntervalDays);
+      if (isNaN(interval) || interval < 1 || interval > 365) {
+        return res.status(400).json({ error: 'Reminder interval must be between 1 and 365 days' });
+      }
+    }
+    
+    // Validate administrative silence days
+    if (administrativeSilenceDays !== undefined) {
+      const days = Number(administrativeSilenceDays);
+      if (isNaN(days) || days < 1 || days > 3650) {
+        return res.status(400).json({ error: 'Administrative silence days must be between 1 and 3650 days' });
+      }
+    }
+    
+    // Validate required documents array
+    if (requiredDocuments !== undefined && !Array.isArray(requiredDocuments)) {
+      return res.status(400).json({ error: 'Required documents must be an array' });
     }
 
     const template = await memoryDb.insertTemplate({
