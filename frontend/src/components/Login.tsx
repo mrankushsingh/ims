@@ -105,11 +105,21 @@ export default function Login({ onLoginSuccess }: LoginProps) {
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   required
-                  className="w-full pl-16 pr-4 py-3.5 bg-black/40 border border-yellow-500/20 rounded-xl text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-yellow-500/50 focus:border-yellow-500/50 transition-all backdrop-blur-sm font-medium"
-                  style={{ boxShadow: 'inset 0 2px 4px rgba(0, 0, 0, 0.3)' }}
+                  className="w-full pl-16 pr-4 py-3.5 bg-black/40 border border-yellow-500/20 rounded-xl text-white placeholder-gray-500 focus:outline-none focus:ring-0 focus:border-yellow-500/70 focus:bg-black/50 transition-all duration-200 backdrop-blur-sm font-medium"
+                  style={{ 
+                    boxShadow: 'inset 0 2px 4px rgba(0, 0, 0, 0.3)',
+                    WebkitTapHighlightColor: 'transparent'
+                  }}
                   placeholder="Enter your email"
                   disabled={loading}
                   autoComplete="email"
+                  onFocus={(e) => {
+                    e.target.style.outline = 'none';
+                    e.target.style.boxShadow = 'inset 0 2px 4px rgba(0, 0, 0, 0.3), 0 0 0 3px rgba(255, 215, 0, 0.2)';
+                  }}
+                  onBlur={(e) => {
+                    e.target.style.boxShadow = 'inset 0 2px 4px rgba(0, 0, 0, 0.3)';
+                  }}
                 />
               </div>
             </div>
@@ -135,11 +145,21 @@ export default function Login({ onLoginSuccess }: LoginProps) {
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   required
-                  className="w-full pl-16 pr-12 py-3.5 bg-black/40 border border-yellow-500/20 rounded-xl text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-yellow-500/50 focus:border-yellow-500/50 transition-all backdrop-blur-sm font-medium"
-                  style={{ boxShadow: 'inset 0 2px 4px rgba(0, 0, 0, 0.3)' }}
+                  className="w-full pl-16 pr-12 py-3.5 bg-black/40 border border-yellow-500/20 rounded-xl text-white placeholder-gray-500 focus:outline-none focus:ring-0 focus:border-yellow-500/70 focus:bg-black/50 transition-all duration-200 backdrop-blur-sm font-medium"
+                  style={{ 
+                    boxShadow: 'inset 0 2px 4px rgba(0, 0, 0, 0.3)',
+                    WebkitTapHighlightColor: 'transparent'
+                  }}
                   placeholder="Enter your password"
                   disabled={loading}
                   autoComplete="current-password"
+                  onFocus={(e) => {
+                    e.target.style.outline = 'none';
+                    e.target.style.boxShadow = 'inset 0 2px 4px rgba(0, 0, 0, 0.3), 0 0 0 3px rgba(255, 215, 0, 0.2)';
+                  }}
+                  onBlur={(e) => {
+                    e.target.style.boxShadow = 'inset 0 2px 4px rgba(0, 0, 0, 0.3)';
+                  }}
                 />
                 <button
                   type="button"
