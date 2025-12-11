@@ -36,55 +36,69 @@ export default function Login({ onLoginSuccess }: LoginProps) {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 p-4">
-      {/* Animated background elements */}
+    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-black via-gray-900 to-black p-4 relative overflow-hidden">
+      {/* Animated gold background elements */}
       <div className="absolute inset-0 overflow-hidden">
-        <div className="absolute -top-40 -right-40 w-80 h-80 bg-blue-500/20 rounded-full blur-3xl animate-pulse"></div>
-        <div className="absolute -bottom-40 -left-40 w-80 h-80 bg-indigo-500/20 rounded-full blur-3xl animate-pulse delay-1000"></div>
+        <div className="absolute top-0 right-0 w-96 h-96 bg-gradient-to-br from-yellow-400/20 via-amber-500/15 to-yellow-600/10 rounded-full blur-3xl animate-pulse"></div>
+        <div className="absolute bottom-0 left-0 w-96 h-96 bg-gradient-to-tr from-yellow-500/15 via-amber-600/10 to-yellow-400/20 rounded-full blur-3xl animate-pulse" style={{ animationDelay: '1s' }}></div>
+        <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-gradient-to-r from-yellow-400/5 via-amber-500/5 to-yellow-600/5 rounded-full blur-3xl"></div>
       </div>
 
+      {/* Subtle grid pattern overlay */}
+      <div className="absolute inset-0 bg-[linear-gradient(rgba(255,215,0,0.03)_1px,transparent_1px),linear-gradient(90deg,rgba(255,215,0,0.03)_1px,transparent_1px)] bg-[size:50px_50px]"></div>
+
       <div className="relative z-10 w-full max-w-md">
-        {/* Login Card */}
+        {/* Premium Glass Card */}
         <div 
-          className="bg-white/10 backdrop-blur-xl rounded-2xl shadow-2xl border border-white/20 p-8 sm:p-10"
+          className="relative rounded-3xl p-8 sm:p-10 backdrop-blur-2xl border border-yellow-500/20 shadow-2xl"
           style={{
-            background: 'linear-gradient(135deg, rgba(255, 255, 255, 0.1) 0%, rgba(255, 255, 255, 0.05) 100%)',
-            boxShadow: '0 8px 32px 0 rgba(31, 38, 135, 0.37)',
+            background: 'linear-gradient(135deg, rgba(0, 0, 0, 0.7) 0%, rgba(20, 20, 20, 0.8) 50%, rgba(0, 0, 0, 0.7) 100%)',
+            boxShadow: '0 8px 32px 0 rgba(0, 0, 0, 0.6), 0 0 0 1px rgba(255, 215, 0, 0.1), inset 0 1px 0 rgba(255, 255, 255, 0.05)',
           }}
         >
+          {/* Gold accent border glow */}
+          <div className="absolute inset-0 rounded-3xl bg-gradient-to-r from-yellow-500/0 via-yellow-500/20 to-yellow-500/0 opacity-50 blur-xl"></div>
+          
           {/* Logo and Header */}
-          <div className="text-center mb-8">
-            <div className="inline-flex items-center justify-center w-16 h-16 bg-gradient-to-br from-blue-600 to-indigo-600 rounded-2xl shadow-lg mb-4">
-              <FileText className="w-8 h-8 text-white" />
+          <div className="text-center mb-8 relative z-10">
+            <div className="inline-flex items-center justify-center w-20 h-20 mb-5 relative">
+              {/* Gold glow effect */}
+              <div className="absolute inset-0 bg-gradient-to-br from-yellow-400 via-amber-500 to-yellow-600 rounded-2xl blur-lg opacity-60"></div>
+              <div className="relative bg-gradient-to-br from-yellow-500 via-amber-600 to-yellow-700 rounded-2xl shadow-2xl p-4 border border-yellow-400/30">
+                <FileText className="w-10 h-10 text-black" />
+              </div>
             </div>
-            <h1 className="text-3xl font-bold text-white mb-2">Immigration Case Manager</h1>
-            <p className="text-slate-300 text-sm">Sign in to access your dashboard</p>
+            <h1 className="text-4xl font-bold mb-3 bg-gradient-to-r from-yellow-400 via-amber-300 to-yellow-500 bg-clip-text text-transparent tracking-tight">
+              Immigration Case Manager
+            </h1>
+            <p className="text-gray-400 text-sm font-medium">Sign in to access your dashboard</p>
           </div>
 
           {/* Error Message */}
           {error && (
-            <div className="mb-6 p-4 bg-red-500/20 border border-red-500/50 rounded-xl flex items-start space-x-3 animate-slide-down">
+            <div className="mb-6 p-4 bg-red-900/30 border border-red-500/30 rounded-xl flex items-start space-x-3 backdrop-blur-sm" style={{ boxShadow: '0 4px 16px rgba(239, 68, 68, 0.2)' }}>
               <AlertCircle className="w-5 h-5 text-red-400 flex-shrink-0 mt-0.5" />
-              <p className="text-red-200 text-sm flex-1">{error}</p>
+              <p className="text-red-300 text-sm flex-1 font-medium">{error}</p>
             </div>
           )}
 
           {/* Login Form */}
-          <form onSubmit={handleSubmit} className="space-y-5">
+          <form onSubmit={handleSubmit} className="space-y-6 relative z-10">
             <div>
-              <label className="block text-sm font-medium text-slate-300 mb-2">
+              <label className="block text-sm font-semibold text-gray-300 mb-2.5 tracking-wide">
                 Email Address
               </label>
-              <div className="relative">
+              <div className="relative group">
                 <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
-                  <Mail className="w-5 h-5 text-slate-400" />
+                  <Mail className="w-5 h-5 text-yellow-500/70 group-focus-within:text-yellow-400 transition-colors" />
                 </div>
                 <input
                   type="email"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   required
-                  className="w-full pl-12 pr-4 py-3 bg-white/10 border border-white/20 rounded-xl text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all backdrop-blur-sm"
+                  className="w-full pl-12 pr-4 py-3.5 bg-black/40 border border-yellow-500/20 rounded-xl text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-yellow-500/50 focus:border-yellow-500/50 transition-all backdrop-blur-sm font-medium"
+                  style={{ boxShadow: 'inset 0 2px 4px rgba(0, 0, 0, 0.3)' }}
                   placeholder="Enter your email"
                   disabled={loading}
                   autoComplete="email"
@@ -93,19 +107,20 @@ export default function Login({ onLoginSuccess }: LoginProps) {
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-slate-300 mb-2">
+              <label className="block text-sm font-semibold text-gray-300 mb-2.5 tracking-wide">
                 Password
               </label>
-              <div className="relative">
+              <div className="relative group">
                 <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
-                  <Lock className="w-5 h-5 text-slate-400" />
+                  <Lock className="w-5 h-5 text-yellow-500/70 group-focus-within:text-yellow-400 transition-colors" />
                 </div>
                 <input
                   type={showPassword ? 'text' : 'password'}
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   required
-                  className="w-full pl-12 pr-12 py-3 bg-white/10 border border-white/20 rounded-xl text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all backdrop-blur-sm"
+                  className="w-full pl-12 pr-12 py-3.5 bg-black/40 border border-yellow-500/20 rounded-xl text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-yellow-500/50 focus:border-yellow-500/50 transition-all backdrop-blur-sm font-medium"
+                  style={{ boxShadow: 'inset 0 2px 4px rgba(0, 0, 0, 0.3)' }}
                   placeholder="Enter your password"
                   disabled={loading}
                   autoComplete="current-password"
@@ -113,7 +128,7 @@ export default function Login({ onLoginSuccess }: LoginProps) {
                 <button
                   type="button"
                   onClick={() => setShowPassword(!showPassword)}
-                  className="absolute inset-y-0 right-0 pr-4 flex items-center text-slate-400 hover:text-slate-200 transition-colors focus:outline-none focus:text-white"
+                  className="absolute inset-y-0 right-0 pr-4 flex items-center text-yellow-500/70 hover:text-yellow-400 transition-colors focus:outline-none"
                   tabIndex={-1}
                   aria-label={showPassword ? 'Hide password' : 'Show password'}
                 >
@@ -129,21 +144,24 @@ export default function Login({ onLoginSuccess }: LoginProps) {
             <button
               type="submit"
               disabled={loading}
-              className="w-full py-3.5 bg-gradient-to-r from-blue-600 to-indigo-600 text-white font-semibold rounded-xl shadow-lg hover:shadow-xl transform hover:scale-[1.02] transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none flex items-center justify-center space-x-2"
+              className="w-full py-4 bg-gradient-to-r from-yellow-500 via-amber-500 to-yellow-600 text-black font-bold rounded-xl shadow-2xl hover:shadow-yellow-500/50 transform hover:scale-[1.02] transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none flex items-center justify-center space-x-2 relative overflow-hidden group"
+              style={{ boxShadow: '0 4px 20px rgba(255, 215, 0, 0.4)' }}
             >
+              {/* Button shine effect */}
+              <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent transform -skew-x-12 -translate-x-full group-hover:translate-x-full transition-transform duration-1000"></div>
               {loading ? (
                 <>
-                  <Loader2 className="w-5 h-5 animate-spin" />
-                  <span>Signing in...</span>
+                  <Loader2 className="w-5 h-5 animate-spin relative z-10" />
+                  <span className="relative z-10">Signing in...</span>
                 </>
               ) : (
-                <span>Sign In</span>
+                <span className="relative z-10 tracking-wide">Sign In</span>
               )}
             </button>
           </form>
 
           {/* Footer */}
-          <p className="mt-6 text-center text-xs text-slate-400">
+          <p className="mt-8 text-center text-xs text-gray-500 font-medium relative z-10">
             Anisa Berliku Law Firm - Secure Access
           </p>
         </div>
