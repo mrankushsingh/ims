@@ -7,6 +7,7 @@ import Notifications from './components/Notifications';
 import ClientDetailsModal from './components/ClientDetailsModal';
 import Login from './components/Login';
 import { ToastContainer, subscribeToToasts, Toast } from './components/Toast';
+import { onAuthChange, getCurrentUser, logout as firebaseLogout } from './utils/firebase';
 import { Client } from './types';
 
 type View = 'dashboard' | 'templates' | 'clients';
