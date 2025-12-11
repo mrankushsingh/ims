@@ -10,31 +10,52 @@ const __dirname = dirname(__filename);
 
 // Check if Railway bucket is configured
 const isRailwayBucketConfigured = () => {
-  return !!(
-    process.env.RAILWAY_BUCKET_ENDPOINT &&
-    process.env.RAILWAY_BUCKET_NAME &&
-    process.env.RAILWAY_BUCKET_ACCESS_KEY &&
-    process.env.RAILWAY_BUCKET_SECRET_KEY
-  );
+  const hasEndpoint = !!process.env.RAILWAY_BUCKET_ENDPOINT;
+  const hasBucketName = !!process.env.RAILWAY_BUCKET_NAME;
+  const hasAccessKey = !!process.env.RAILWAY_BUCKET_ACCESS_KEY;
+  const hasSecretKey = !!process.env.RAILWAY_BUCKET_SECRET_KEY;
+  
+  if (hasEndpoint || hasBucketName || hasAccessKey || hasSecretKey) {
+    // Log which variables are missing
+    if (!hasEndpoint) console.warn('⚠️  RAILWAY_BUCKET_ENDPOINT is not set');
+    if (!hasBucketName) console.warn('⚠️  RAILWAY_BUCKET_NAME is not set');
+    if (!hasAccessKey) console.warn('⚠️  RAILWAY_BUCKET_ACCESS_KEY is not set');
+    if (!hasSecretKey) console.warn('⚠️  RAILWAY_BUCKET_SECRET_KEY is not set');
+  }
+  
+  return hasEndpoint && hasBucketName && hasAccessKey && hasSecretKey;
 };
 
 // Initialize S3 client if Railway bucket is configured
 let s3Client: S3Client | null = null;
 if (isRailwayBucketConfigured()) {
   try {
-    s3Client = new S3Client({
-      endpoint: process.env.RAILWAY_BUCKET_ENDPOINT,
-      region: process.env.RAILWAY_BUCKET_REGION || 'auto',
-      credentials: {
-        accessKeyId: process.env.RAILWAY_BUCKET_ACCESS_KEY!,
-        secretAccessKey: process.env.RAILWAY_BUCKET_SECRET_KEY!,
-      },
-      forcePathStyle: true, // Required for S3-compatible services
-    });
-    console.log(`✅ Railway bucket client initialized`);
-    console.log(`   Endpoint: ${process.env.RAILWAY_BUCKET_ENDPOINT}`);
-    console.log(`   Bucket: ${process.env.RAILWAY_BUCKET_NAME}`);
-    console.log(`   Region: ${process.env.RAILWAY_BUCKET_REGION || 'auto'}`);
+    const endpoint = process.env.RAILWAY_BUCKET_ENDPOINT!;
+    const bucketName = process.env.RAILWAY_BUCKET_NAME!;
+    const region = process.env.RAILWAY_BUCKET_REGION || 'auto';
+    const accessKey = process.env.RAILWAY_BUCKET_ACCESS_KEY!;
+    const secretKey = process.env.RAILWAY_BUCKET_SECRET_KEY!;
+    
+    // Validate that values are not placeholder text
+    if (accessKey.includes('YOUR_ACCESS_KEY_ID_HERE') || secretKey.includes('YOUR_SECRET_ACCESS_KEY_HERE')) {
+      console.error('❌ Railway bucket credentials appear to be placeholders. Please set actual values.');
+      s3Client = null;
+    } else {
+      s3Client = new S3Client({
+        endpoint: endpoint,
+        region: region,
+        credentials: {
+          accessKeyId: accessKey,
+          secretAccessKey: secretKey,
+        },
+        forcePathStyle: true, // Required for S3-compatible services
+      });
+      console.log(`✅ Railway bucket client initialized`);
+      console.log(`   Endpoint: ${endpoint}`);
+      console.log(`   Bucket: ${bucketName}`);
+      console.log(`   Region: ${region}`);
+      console.log(`   Access Key: ${accessKey.substring(0, 8)}...${accessKey.substring(accessKey.length - 4)}`);
+    }
   } catch (error: any) {
     console.error('❌ Failed to initialize Railway bucket client:', error.message);
     s3Client = null;
@@ -55,12 +76,12 @@ export async function uploadFile(
     const key = `uploads/${fileName}`;
 
     try {
+      // Try without ACL first (some S3-compatible services don't support ACL)
       const command = new PutObjectCommand({
         Bucket: bucketName,
         Key: key,
         Body: fileBuffer,
         ContentType: contentType,
-        ACL: 'private', // Make files private by default
       });
 
       await s3Client.send(command);
@@ -78,11 +99,22 @@ export async function uploadFile(
       
       // Provide more helpful error message
       if (error.Code === 'AccessDenied' || error.name === 'AccessDenied') {
-        throw new Error(`Access denied to Railway bucket. Please verify:
-1. RAILWAY_BUCKET_NAME is correct (current: ${bucketName})
-2. RAILWAY_BUCKET_ACCESS_KEY and RAILWAY_BUCKET_SECRET_KEY are correct
-3. The bucket exists and has proper permissions
-4. RAILWAY_BUCKET_ENDPOINT is correct`);
+        const endpoint = process.env.RAILWAY_BUCKET_ENDPOINT || 'Not set';
+        const accessKeyPreview = process.env.RAILWAY_BUCKET_ACCESS_KEY 
+          ? `${process.env.RAILWAY_BUCKET_ACCESS_KEY.substring(0, 8)}...` 
+          : 'Not set';
+        
+        throw new Error(`Access denied to Railway bucket. Configuration:
+- RAILWAY_BUCKET_NAME: ${bucketName}
+- RAILWAY_BUCKET_ENDPOINT: ${endpoint}
+- RAILWAY_BUCKET_ACCESS_KEY: ${accessKeyPreview}
+
+Please verify:
+1. All environment variables are set correctly in Railway
+2. The bucket name matches exactly (case-sensitive)
+3. The access key and secret key are valid and not expired
+4. The bucket has proper read/write permissions
+5. The endpoint URL is correct for your Railway region`);
       }
       
       throw new Error(`Failed to upload file to bucket: ${error.message}`);
