@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { FileText, Mail, Lock, AlertCircle, Loader2, Eye, EyeOff } from 'lucide-react';
 import { loginWithEmail, isFirebaseAvailable } from '../utils/firebase';
 
@@ -12,6 +12,13 @@ export default function Login({ onLoginSuccess }: LoginProps) {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [showPassword, setShowPassword] = useState(false);
+
+  // Check if Firebase is configured on mount
+  useEffect(() => {
+    if (!isFirebaseAvailable()) {
+      setError('Firebase Authentication is not configured. Please set the required environment variables.');
+    }
+  }, []);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
