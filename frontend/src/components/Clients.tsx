@@ -4,12 +4,15 @@ import { api } from '../utils/api';
 import { Client } from '../types';
 import CreateClientModal from './CreateClientModal';
 import ClientDetailsModal from './ClientDetailsModal';
+import ConfirmDialog from './ConfirmDialog';
+import { showToast } from './Toast';
 
 export default function Clients() {
   const [clients, setClients] = useState<Client[]>([]);
   const [loading, setLoading] = useState(true);
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [selectedClient, setSelectedClient] = useState<Client | null>(null);
+  const [deleteConfirm, setDeleteConfirm] = useState<{ client: Client | null; isOpen: boolean }>({ client: null, isOpen: false });
 
   useEffect(() => {
     loadClients();
@@ -27,20 +30,22 @@ export default function Clients() {
     }
   };
 
-  const handleDeleteClient = async (client: Client, e: React.MouseEvent) => {
+  const handleDeleteClient = (client: Client, e: React.MouseEvent) => {
     e.stopPropagation(); // Prevent opening client details when clicking delete
-    
-    const confirmMessage = `Are you sure you want to delete ${client.first_name} ${client.last_name}? This action cannot be undone and will permanently remove all client data, documents, and records.`;
-    
-    if (!confirm(confirmMessage)) {
-      return;
-    }
+    setDeleteConfirm({ client, isOpen: true });
+  };
 
+  const confirmDelete = async () => {
+    if (!deleteConfirm.client) return;
+    
     try {
-      await api.deleteClient(client.id);
+      await api.deleteClient(deleteConfirm.client.id);
       await loadClients();
+      showToast(`Client ${deleteConfirm.client.first_name} ${deleteConfirm.client.last_name} deleted successfully`, 'success');
+      setDeleteConfirm({ client: null, isOpen: false });
     } catch (error: any) {
-      alert(error.message || 'Failed to delete client');
+      showToast(error.message || 'Failed to delete client', 'error');
+      setDeleteConfirm({ client: null, isOpen: false });
     }
   };
 
@@ -160,6 +165,18 @@ export default function Clients() {
           }}
         />
       )}
+
+      {/* Delete Confirmation Dialog */}
+      <ConfirmDialog
+        isOpen={deleteConfirm.isOpen}
+        title="Delete Client"
+        message={deleteConfirm.client ? `Are you sure you want to delete ${deleteConfirm.client.first_name} ${deleteConfirm.client.last_name}? This action cannot be undone and will permanently remove all client data, documents, and records.` : ''}
+        confirmText="Delete"
+        cancelText="Cancel"
+        type="danger"
+        onConfirm={confirmDelete}
+        onCancel={() => setDeleteConfirm({ client: null, isOpen: false })}
+      />
     </div>
   );
 }

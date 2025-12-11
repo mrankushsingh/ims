@@ -6,6 +6,7 @@ import Clients from './components/Clients';
 import Notifications from './components/Notifications';
 import ClientDetailsModal from './components/ClientDetailsModal';
 import Login from './components/Login';
+import { ToastContainer, subscribeToToasts, Toast } from './components/Toast';
 import { Client } from './types';
 
 type View = 'dashboard' | 'templates' | 'clients';
@@ -15,6 +16,7 @@ function App() {
   const [currentView, setCurrentView] = useState<View>('dashboard');
   const [selectedClient, setSelectedClient] = useState<Client | null>(null);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [toasts, setToasts] = useState<Toast[]>([]);
 
   useEffect(() => {
     // Check if user is authenticated
@@ -23,6 +25,18 @@ function App() {
       setIsAuthenticated(true);
     }
   }, []);
+
+  useEffect(() => {
+    // Subscribe to toast notifications
+    const unsubscribe = subscribeToToasts((toast) => {
+      setToasts((prev) => [...prev, toast]);
+    });
+    return unsubscribe;
+  }, []);
+
+  const handleCloseToast = (id: string) => {
+    setToasts((prev) => prev.filter((toast) => toast.id !== id));
+  };
 
   const handleLoginSuccess = () => {
     setIsAuthenticated(true);
@@ -217,6 +231,9 @@ function App() {
           }}
         />
       )}
+
+      {/* Toast Notifications */}
+      <ToastContainer toasts={toasts} onClose={handleCloseToast} />
     </div>
   );
 }

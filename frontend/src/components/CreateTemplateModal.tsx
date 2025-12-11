@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { X, Plus, Trash2 } from 'lucide-react';
 import { api } from '../utils/api';
 import { RequiredDocument, CaseTemplate } from '../types';
+import { showToast } from './Toast';
 
 interface Props {
   onClose: () => void;
@@ -181,6 +182,7 @@ export default function CreateTemplateModal({ onClose, onSuccess, template }: Pr
           reminderIntervalDays: parseInt(formData.reminderIntervalDays) || 10,
           administrativeSilenceDays: parseInt(formData.administrativeSilenceDays) || 60,
         });
+        showToast(`Template "${formData.name.trim()}" updated successfully`, 'success');
       } else {
         // Create mode
         await api.createCaseTemplate({
@@ -190,11 +192,14 @@ export default function CreateTemplateModal({ onClose, onSuccess, template }: Pr
           reminderIntervalDays: parseInt(formData.reminderIntervalDays) || 10,
           administrativeSilenceDays: parseInt(formData.administrativeSilenceDays) || 60,
         });
+        showToast(`Template "${formData.name.trim()}" created successfully`, 'success');
       }
       onSuccess();
       onClose();
     } catch (error: any) {
-      setError(error.message || (template ? 'Failed to update template' : 'Failed to create template'));
+      const errorMessage = error.message || (template ? 'Failed to update template' : 'Failed to create template');
+      setError(errorMessage);
+      showToast(errorMessage, 'error');
     } finally {
       setLoading(false);
     }

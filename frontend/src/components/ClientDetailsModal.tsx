@@ -3,6 +3,8 @@ import { X, Upload, CheckCircle, FileText, Download, Trash2, Plus, DollarSign, S
 import JSZip from 'jszip';
 import { api } from '../utils/api';
 import { Client, RequiredDocument, AdditionalDocument } from '../types';
+import ConfirmDialog from './ConfirmDialog';
+import { showToast } from './Toast';
 
 interface Props {
   client: Client;
@@ -29,6 +31,19 @@ export default function ClientDetailsModal({ client, onClose, onSuccess }: Props
   const [savingReminder, setSavingReminder] = useState(false);
   const [showReminderCalendar, setShowReminderCalendar] = useState(false);
   const [tempReminderDate, setTempReminderDate] = useState('');
+  const [confirmDialog, setConfirmDialog] = useState<{
+    isOpen: boolean;
+    title: string;
+    message: string;
+    type: 'danger' | 'warning' | 'info';
+    onConfirm: () => void;
+  }>({
+    isOpen: false,
+    title: '',
+    message: '',
+    type: 'warning',
+    onConfirm: () => {},
+  });
 
   useEffect(() => {
     loadClient();
@@ -57,24 +72,37 @@ export default function ClientDetailsModal({ client, onClose, onSuccess }: Props
       await api.uploadDocument(client.id, documentCode, file);
       await loadClient();
       onSuccess();
+      showToast('Document uploaded successfully', 'success');
     } catch (error: any) {
-      setError(error.message || 'Failed to upload document');
+      const errorMessage = error.message || 'Failed to upload document';
+      setError(errorMessage);
+      showToast(errorMessage, 'error');
     } finally {
       setUploading(null);
     }
   };
 
   const handleRemoveDocument = async (documentCode: string) => {
-    if (!confirm('Are you sure you want to remove this document?')) return;
-
-    setError('');
-    try {
-      await api.removeDocument(client.id, documentCode);
-      await loadClient();
-      onSuccess();
-    } catch (error: any) {
-      setError(error.message || 'Failed to remove document');
-    }
+    setConfirmDialog({
+      isOpen: true,
+      title: 'Remove Document',
+      message: 'Are you sure you want to remove this document?',
+      type: 'warning',
+      onConfirm: async () => {
+        setError('');
+        try {
+          await api.removeDocument(client.id, documentCode);
+          await loadClient();
+          onSuccess();
+          showToast('Document removed successfully', 'success');
+          setConfirmDialog({ ...confirmDialog, isOpen: false });
+        } catch (error: any) {
+          setError(error.message || 'Failed to remove document');
+          showToast(error.message || 'Failed to remove document', 'error');
+          setConfirmDialog({ ...confirmDialog, isOpen: false });
+        }
+      },
+    });
   };
 
   const handleToggleOptional = async (documentCode: string, currentOptional: boolean) => {
@@ -127,8 +155,11 @@ export default function ClientDetailsModal({ client, onClose, onSuccess }: Props
       
       await loadClient();
       onSuccess();
+      showToast(`Payment of €${amount} added successfully`, 'success');
     } catch (error: any) {
-      setError(error.message || 'Failed to add payment');
+      const errorMessage = error.message || 'Failed to add payment';
+      setError(errorMessage);
+      showToast(errorMessage, 'error');
     }
   };
 
@@ -139,8 +170,11 @@ export default function ClientDetailsModal({ client, onClose, onSuccess }: Props
       await api.updateNotes(client.id, notes);
       await loadClient();
       onSuccess();
+      showToast('Notes saved successfully', 'success');
     } catch (error: any) {
-      setError(error.message || 'Failed to save notes');
+      const errorMessage = error.message || 'Failed to save notes';
+      setError(errorMessage);
+      showToast(errorMessage, 'error');
     } finally {
       setSavingNotes(false);
     }
@@ -153,8 +187,11 @@ export default function ClientDetailsModal({ client, onClose, onSuccess }: Props
       await api.updateClient(client.id, { details });
       await loadClient();
       onSuccess();
+      showToast('Details saved successfully', 'success');
     } catch (error: any) {
-      setError(error.message || 'Failed to save details');
+      const errorMessage = error.message || 'Failed to save details';
+      setError(errorMessage);
+      showToast(errorMessage, 'error');
     } finally {
       setSavingDetails(false);
     }
@@ -179,8 +216,11 @@ export default function ClientDetailsModal({ client, onClose, onSuccess }: Props
       setShowReminderCalendar(false);
       await loadClient();
       onSuccess();
+      showToast('Payment reminder saved successfully', 'success');
     } catch (error: any) {
-      setError(error.message || 'Failed to save reminder date');
+      const errorMessage = error.message || 'Failed to save reminder date';
+      setError(errorMessage);
+      showToast(errorMessage, 'error');
     } finally {
       setSavingReminder(false);
     }
@@ -212,24 +252,37 @@ export default function ClientDetailsModal({ client, onClose, onSuccess }: Props
       setShowAdditionalDocForm(false);
       await loadClient();
       onSuccess();
+      showToast('Additional document uploaded successfully', 'success');
     } catch (error: any) {
-      setError(error.message || 'Failed to upload document');
+      const errorMessage = error.message || 'Failed to upload document';
+      setError(errorMessage);
+      showToast(errorMessage, 'error');
     } finally {
       setUploading(null);
     }
   };
 
   const handleRemoveAdditionalDocument = async (documentId: string) => {
-    if (!confirm('Are you sure you want to remove this document?')) return;
-
-    setError('');
-    try {
-      await api.removeAdditionalDocument(client.id, documentId);
-      await loadClient();
-      onSuccess();
-    } catch (error: any) {
-      setError(error.message || 'Failed to remove document');
-    }
+    setConfirmDialog({
+      isOpen: true,
+      title: 'Remove Document',
+      message: 'Are you sure you want to remove this document?',
+      type: 'warning',
+      onConfirm: async () => {
+        setError('');
+        try {
+          await api.removeAdditionalDocument(client.id, documentId);
+          await loadClient();
+          onSuccess();
+          showToast('Document removed successfully', 'success');
+          setConfirmDialog({ ...confirmDialog, isOpen: false });
+        } catch (error: any) {
+          setError(error.message || 'Failed to remove document');
+          showToast(error.message || 'Failed to remove document', 'error');
+          setConfirmDialog({ ...confirmDialog, isOpen: false });
+        }
+      },
+    });
   };
 
   const handleDownload = (fileUrl: string, fileName: string) => {
@@ -316,37 +369,53 @@ export default function ClientDetailsModal({ client, onClose, onSuccess }: Props
   };
 
   const handleSubmitToAdministrative = async () => {
-    if (!confirm('Are you sure you want to submit this case to the administrative authority? This will start the administrative silence timer.')) {
-      return;
-    }
-
-    setError('');
-    try {
-      await api.submitToAdministrative(client.id);
-      await loadClient();
-      onSuccess();
-    } catch (error: any) {
-      setError(error.message || 'Failed to submit to administrative');
-    }
+    setConfirmDialog({
+      isOpen: true,
+      title: 'Submit to Administrative Authority',
+      message: 'Are you sure you want to submit this case to the administrative authority? This will start the administrative silence timer.',
+      type: 'info',
+      onConfirm: async () => {
+        setError('');
+        try {
+          await api.submitToAdministrative(client.id);
+          await loadClient();
+          onSuccess();
+          showToast('Case submitted to administrative authority successfully', 'success');
+          setConfirmDialog({ ...confirmDialog, isOpen: false });
+        } catch (error: any) {
+          setError(error.message || 'Failed to submit to administrative');
+          showToast(error.message || 'Failed to submit to administrative', 'error');
+          setConfirmDialog({ ...confirmDialog, isOpen: false });
+        }
+      },
+    });
   };
 
   const handleDeleteClient = async () => {
     const confirmMessage = `Are you sure you want to delete ${clientData.first_name} ${clientData.last_name}? This action cannot be undone and will permanently remove all client data, documents, and records.`;
     
-    if (!confirm(confirmMessage)) {
-      return;
-    }
-
-    setDeleting(true);
-    setError('');
-    try {
-      await api.deleteClient(client.id);
-      onSuccess();
-      onClose();
-    } catch (error: any) {
-      setError(error.message || 'Failed to delete client');
-      setDeleting(false);
-    }
+    setConfirmDialog({
+      isOpen: true,
+      title: 'Delete Client',
+      message: confirmMessage,
+      type: 'danger',
+      onConfirm: async () => {
+        setDeleting(true);
+        setError('');
+        try {
+          await api.deleteClient(client.id);
+          showToast(`Client ${clientData.first_name} ${clientData.last_name} deleted successfully`, 'success');
+          onSuccess();
+          onClose();
+          setConfirmDialog({ ...confirmDialog, isOpen: false });
+        } catch (error: any) {
+          setError(error.message || 'Failed to delete client');
+          showToast(error.message || 'Failed to delete client', 'error');
+          setConfirmDialog({ ...confirmDialog, isOpen: false });
+          setDeleting(false);
+        }
+      },
+    });
   };
   
   // Count total submitted documents (including optional)
@@ -1343,6 +1412,18 @@ export default function ClientDetailsModal({ client, onClose, onSuccess }: Props
           </div>
         </div>
       )}
+
+      {/* Confirmation Dialog */}
+      <ConfirmDialog
+        isOpen={confirmDialog.isOpen}
+        title={confirmDialog.title}
+        message={confirmDialog.message}
+        type={confirmDialog.type}
+        confirmText="Confirm"
+        cancelText="Cancel"
+        onConfirm={confirmDialog.onConfirm}
+        onCancel={() => setConfirmDialog({ ...confirmDialog, isOpen: false })}
+      />
     </div>
   );
 }

@@ -3,12 +3,15 @@ import { Plus, Trash2, Edit, FileText } from 'lucide-react';
 import { api } from '../utils/api';
 import { CaseTemplate } from '../types';
 import CreateTemplateModal from './CreateTemplateModal';
+import ConfirmDialog from './ConfirmDialog';
+import { showToast } from './Toast';
 
 export default function Templates() {
   const [templates, setTemplates] = useState<CaseTemplate[]>([]);
   const [loading, setLoading] = useState(true);
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [editingTemplate, setEditingTemplate] = useState<CaseTemplate | null>(null);
+  const [deleteConfirm, setDeleteConfirm] = useState<{ templateId: string | null; templateName: string; isOpen: boolean }>({ templateId: null, templateName: '', isOpen: false });
 
   useEffect(() => {
     loadTemplates();
@@ -26,13 +29,22 @@ export default function Templates() {
     }
   };
 
-  const handleDelete = async (id: string) => {
-    if (!confirm('Are you sure you want to delete this template?')) return;
+  const handleDelete = (id: string) => {
+    const template = templates.find(t => t.id === id);
+    setDeleteConfirm({ templateId: id, templateName: template?.name || '', isOpen: true });
+  };
+
+  const confirmDelete = async () => {
+    if (!deleteConfirm.templateId) return;
+    
     try {
-      await api.deleteCaseTemplate(id);
+      await api.deleteCaseTemplate(deleteConfirm.templateId);
       await loadTemplates();
+      showToast(`Template "${deleteConfirm.templateName}" deleted successfully`, 'success');
+      setDeleteConfirm({ templateId: null, templateName: '', isOpen: false });
     } catch (error) {
-      alert('Failed to delete template');
+      showToast('Failed to delete template', 'error');
+      setDeleteConfirm({ templateId: null, templateName: '', isOpen: false });
     }
   };
 
@@ -151,6 +163,18 @@ export default function Templates() {
           }}
         />
       )}
+
+      {/* Delete Confirmation Dialog */}
+      <ConfirmDialog
+        isOpen={deleteConfirm.isOpen}
+        title="Delete Template"
+        message={deleteConfirm.templateName ? `Are you sure you want to delete the template "${deleteConfirm.templateName}"? This action cannot be undone.` : 'Are you sure you want to delete this template?'}
+        confirmText="Delete"
+        cancelText="Cancel"
+        type="danger"
+        onConfirm={confirmDelete}
+        onCancel={() => setDeleteConfirm({ templateId: null, templateName: '', isOpen: false })}
+      />
     </div>
   );
 }

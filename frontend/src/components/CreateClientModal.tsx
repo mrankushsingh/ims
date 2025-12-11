@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { X, UserPlus, AlertCircle } from 'lucide-react';
 import { api } from '../utils/api';
 import { CaseTemplate } from '../types';
+import { showToast } from './Toast';
 
 interface Props {
   onClose: () => void;
@@ -47,7 +48,7 @@ export default function CreateClientModal({ onClose, onSuccess }: Props) {
 
     setLoading(true);
     try {
-      await api.createClient({
+      const newClient = await api.createClient({
         firstName: formData.firstName.trim(),
         lastName: formData.lastName.trim(),
         parentName: formData.parentName.trim() || undefined,
@@ -57,10 +58,13 @@ export default function CreateClientModal({ onClose, onSuccess }: Props) {
         totalFee: formData.totalFee ? parseFloat(formData.totalFee) : undefined,
         details: formData.details.trim() || undefined,
       });
+      showToast(`Client ${formData.firstName} ${formData.lastName} created successfully`, 'success');
       onSuccess();
       onClose();
     } catch (error: any) {
-      setError(error.message || 'Failed to create client');
+      const errorMessage = error.message || 'Failed to create client';
+      setError(errorMessage);
+      showToast(errorMessage, 'error');
     } finally {
       setLoading(false);
     }
