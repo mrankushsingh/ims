@@ -3,7 +3,7 @@
 <svg version="1.1" id="Layer_1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" x="0px" y="0px"
 	 viewBox="0 0 1000 676.2" style="enable-background:new 0 0 1000 676.2;" xml:space="preserve">
 <style type="text/css">
-	.st0{fill:#1C1917;stroke:#92400E;stroke-width:0.5;stroke-miterlimit:10;}
+	.st0{fill:#FFFFFF;}
 	.st1{fill:url(#SVGID_1_);}
 	.st2{fill:url(#SVGID_00000144329721190833340390000017139181283927773846_);}
 	.st3{fill:url(#SVGID_00000106131502073630655330000000566571775418878601_);}
@@ -170,7 +170,7 @@
 				<stop  offset="0.8708" style="stop-color:#B1945D"/>
 				<stop  offset="1" style="stop-color:#DEAF5F"/>
 			</linearGradient>
-			<path style="fill:url(#SVGID_00000048490095554215563580000015491539295614021301_);" d="M912.5,255.7l-23.7,25.5l25.6,26.9v0.6
+			<path style="fill:url(#SVGID_00000048490095554215563580000013380256807233742997_);" d="M912.5,255.7l-23.7,25.5l25.6,26.9v0.6
 				h-12.4L879.8,285v23.6h-10v-53.2h10v22.5l20.2-22.5h12.5V255.7z"/>
 			
 				<linearGradient id="SVGID_00000105428671780230822360000014072239261649057420_" gradientUnits="userSpaceOnUse" x1="-37.7982" y1="282.6132" x2="1067.4189" y2="282.6132">
@@ -224,4 +224,3 @@
 	</g>
 </g>
 </svg>
-
