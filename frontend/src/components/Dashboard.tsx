@@ -239,16 +239,16 @@ export default function Dashboard() {
                   </div>
                 </div>
                 <div className="text-left sm:text-right w-full sm:w-auto">
-                  <div className="inline-flex items-center space-x-2 bg-white px-3 sm:px-4 py-2 rounded-lg border border-slate-200">
-                    <span className="text-base sm:text-lg font-bold text-slate-900">
+                  <div className="inline-flex items-center space-x-2 bg-white px-3 sm:px-4 py-2 rounded-lg border border-amber-200 shadow-md">
+                    <span className="text-base sm:text-lg font-bold text-amber-800">
                       {client.required_documents?.filter((d: any) => d.submitted).length || 0}
                     </span>
-                    <span className="text-slate-400">/</span>
-                    <span className="text-base sm:text-lg font-semibold text-slate-600">
+                    <span className="text-amber-400">/</span>
+                    <span className="text-base sm:text-lg font-semibold text-amber-700">
                       {client.required_documents?.length || 0}
                     </span>
                   </div>
-                  <p className="text-xs text-slate-400 mt-1">documents</p>
+                  <p className="text-xs text-amber-600/70 mt-1 font-medium">documents</p>
                 </div>
               </div>
             ))}
