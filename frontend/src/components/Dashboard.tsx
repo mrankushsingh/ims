@@ -58,7 +58,7 @@ export default function Dashboard() {
 
       {/* Stats Cards */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-4 sm:gap-6">
-        <div className="bg-gradient-to-br from-white to-amber-50/30 rounded-xl sm:rounded-2xl p-4 sm:p-6 shadow-xl border border-amber-200/50 card-hover animate-slide-up hover:shadow-2xl hover:border-amber-300 transition-all">
+        <div className="glass-gold rounded-xl sm:rounded-2xl p-4 sm:p-6 glass-hover animate-slide-up">
           <div className="flex items-center justify-between mb-4">
             <div className="bg-gradient-to-br from-amber-100 to-amber-200 p-3 rounded-xl shadow-lg">
               <FileText className="w-6 h-6 text-amber-800" />
@@ -69,7 +69,7 @@ export default function Dashboard() {
           <p className="text-sm text-amber-700/70 font-medium">Active case templates</p>
         </div>
 
-        <div className="bg-gradient-to-br from-white to-amber-50/30 rounded-2xl p-6 shadow-xl border border-amber-200/50 card-hover animate-slide-up hover:shadow-2xl hover:border-amber-300 transition-all" style={{ animationDelay: '0.1s' }}>
+        <div className="glass-gold rounded-2xl p-6 glass-hover animate-slide-up" style={{ animationDelay: '0.1s' }}>
           <div className="flex items-center justify-between mb-4">
             <div className="bg-gradient-to-br from-yellow-100 to-amber-200 p-3 rounded-xl shadow-lg">
               <Users className="w-6 h-6 text-amber-800" />
@@ -80,7 +80,7 @@ export default function Dashboard() {
           <p className="text-sm text-amber-700/70 font-medium">Total active clients</p>
         </div>
 
-        <div className="bg-gradient-to-br from-white to-amber-50/30 rounded-2xl p-6 shadow-xl border border-amber-200/50 card-hover animate-slide-up hover:shadow-2xl hover:border-amber-300 transition-all" style={{ animationDelay: '0.2s' }}>
+        <div className="glass-gold rounded-2xl p-6 glass-hover animate-slide-up" style={{ animationDelay: '0.2s' }}>
           <div className="flex items-center justify-between mb-4">
             <div className="bg-gradient-to-br from-green-100 to-emerald-200 p-3 rounded-xl shadow-lg">
               <CheckCircle className="w-6 h-6 text-emerald-700" />
@@ -93,7 +93,7 @@ export default function Dashboard() {
 
         <div 
           onClick={() => setShowAwaitingModal(true)}
-          className="bg-gradient-to-br from-white to-amber-50/30 rounded-2xl p-6 shadow-xl border border-amber-200/50 card-hover animate-slide-up cursor-pointer hover:border-amber-400 hover:shadow-2xl transition-all"
+          className="glass-gold rounded-2xl p-6 glass-hover animate-slide-up cursor-pointer"
           style={{ animationDelay: '0.3s' }}
         >
           <div className="flex items-center justify-between mb-4">
@@ -109,7 +109,7 @@ export default function Dashboard() {
 
         <div 
           onClick={() => setShowSubmittedModal(true)}
-          className="bg-gradient-to-br from-white to-amber-50/30 rounded-2xl p-6 shadow-xl border border-amber-200/50 card-hover animate-slide-up cursor-pointer hover:border-amber-400 hover:shadow-2xl transition-all"
+          className="glass-gold rounded-2xl p-6 glass-hover animate-slide-up cursor-pointer"
           style={{ animationDelay: '0.4s' }}
         >
           <div className="flex items-center justify-between mb-4">
@@ -127,7 +127,7 @@ export default function Dashboard() {
       </div>
 
       {/* Recent Clients */}
-      <div className="bg-gradient-to-br from-white to-amber-50/20 rounded-xl sm:rounded-2xl shadow-xl border border-amber-200/50 p-4 sm:p-6 lg:p-8 animate-slide-up" style={{ animationDelay: '0.5s' }}>
+      <div className="glass-gold rounded-xl sm:rounded-2xl p-4 sm:p-6 lg:p-8 animate-slide-up" style={{ animationDelay: '0.5s' }}>
         <div className="flex items-center justify-between mb-4 sm:mb-6">
           <div>
             <h3 className="text-xl sm:text-2xl font-bold bg-gradient-to-r from-amber-800 to-amber-700 bg-clip-text text-transparent">Recent Clients</h3>
@@ -146,7 +146,7 @@ export default function Dashboard() {
               <div
                 key={client.id}
                 onClick={() => setSelectedClient(client)}
-                className="flex flex-col sm:flex-row sm:items-center sm:justify-between p-4 sm:p-5 bg-gradient-to-r from-amber-50/50 to-yellow-50/30 rounded-xl hover:from-amber-100/50 hover:to-yellow-100/40 border border-amber-200/50 transition-all duration-200 group cursor-pointer hover:border-amber-300 hover:shadow-lg gap-3 sm:gap-0"
+                className="flex flex-col sm:flex-row sm:items-center sm:justify-between p-4 sm:p-5 glass rounded-xl glass-hover group cursor-pointer gap-3 sm:gap-0"
               >
                 <div className="flex items-center space-x-4 flex-1">
                   <div className="bg-gradient-to-br from-amber-200 to-amber-300 group-hover:from-amber-300 group-hover:to-amber-400 p-2.5 rounded-lg transition-colors shadow-md">

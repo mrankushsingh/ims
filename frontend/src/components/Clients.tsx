@@ -75,7 +75,7 @@ export default function Clients() {
       </div>
 
       {clients.length === 0 ? (
-        <div className="bg-gradient-to-br from-white to-amber-50/30 rounded-xl sm:rounded-2xl shadow-xl border border-amber-200/50 p-8 sm:p-16 text-center animate-scale-in">
+        <div className="glass-gold rounded-xl sm:rounded-2xl p-8 sm:p-16 text-center animate-scale-in">
           <div className="bg-gradient-to-br from-amber-100 to-amber-200 w-16 h-16 sm:w-20 sm:h-20 rounded-xl sm:rounded-2xl flex items-center justify-center mx-auto mb-4 sm:mb-6 shadow-lg">
             <Users className="w-8 h-8 sm:w-10 sm:h-10 text-amber-800" />
           </div>
@@ -94,7 +94,7 @@ export default function Clients() {
           {clients.map((client, index) => (
             <div
               key={client.id}
-              className="bg-gradient-to-br from-white to-amber-50/30 rounded-xl sm:rounded-2xl shadow-xl border border-amber-200/50 p-4 sm:p-6 card-hover animate-slide-up hover:shadow-2xl hover:border-amber-300 transition-all"
+              className="glass-gold rounded-xl sm:rounded-2xl p-4 sm:p-6 glass-hover animate-slide-up"
               style={{ animationDelay: `${index * 0.1}s` }}
             >
               <div className="flex items-start justify-between mb-4">

@@ -82,9 +82,18 @@ function App() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-amber-50/30 via-yellow-50/20 to-amber-50/30">
+    <div className="min-h-screen relative">
       {/* Header */}
-      <header className="bg-gradient-to-r from-amber-900/95 via-amber-800/95 to-amber-900/95 backdrop-blur-lg border-b border-amber-700/30 sticky top-0 z-50 shadow-xl" style={{ boxShadow: '0 4px 20px rgba(180, 83, 9, 0.3)' }}>
+      <header 
+        className="sticky top-0 z-50 border-b"
+        style={{
+          background: 'linear-gradient(135deg, rgba(180, 83, 9, 0.85) 0%, rgba(154, 52, 18, 0.9) 50%, rgba(180, 83, 9, 0.85) 100%)',
+          backdropFilter: 'blur(30px) saturate(180%)',
+          WebkitBackdropFilter: 'blur(30px) saturate(180%)',
+          borderColor: 'rgba(245, 158, 11, 0.3)',
+          boxShadow: '0 8px 32px 0 rgba(0, 0, 0, 0.2), inset 0 1px 0 rgba(255, 255, 255, 0.1)',
+        }}
+      >
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between h-16 sm:h-20">
             {/* Logo */}
