@@ -49,94 +49,96 @@ export default function Dashboard() {
 
   return (
     <div className="space-y-8 animate-fade-in">
-      <div className="border-b border-gray-200 pb-4 sm:pb-6">
-        <h2 className="text-2xl sm:text-3xl lg:text-4xl font-bold text-slate-900 mb-2 tracking-tight">Dashboard</h2>
-        <p className="text-slate-600 text-base sm:text-lg">Comprehensive overview of your immigration cases</p>
+      <div className="border-b border-amber-200/50 pb-4 sm:pb-6">
+        <h2 className="text-2xl sm:text-3xl lg:text-4xl font-bold bg-gradient-to-r from-amber-800 via-amber-700 to-amber-800 bg-clip-text text-transparent mb-2 tracking-tight">
+          Dashboard
+        </h2>
+        <p className="text-amber-700/80 text-base sm:text-lg font-medium">Comprehensive overview of your immigration cases</p>
       </div>
 
       {/* Stats Cards */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-4 sm:gap-6">
-        <div className="bg-white rounded-xl sm:rounded-2xl p-4 sm:p-6 professional-shadow-lg border border-gray-100 card-hover animate-slide-up">
+        <div className="bg-gradient-to-br from-white to-amber-50/30 rounded-xl sm:rounded-2xl p-4 sm:p-6 shadow-xl border border-amber-200/50 card-hover animate-slide-up hover:shadow-2xl hover:border-amber-300 transition-all">
           <div className="flex items-center justify-between mb-4">
-            <div className="bg-slate-100 p-3 rounded-xl">
-              <FileText className="w-6 h-6 text-slate-700" />
+            <div className="bg-gradient-to-br from-amber-100 to-amber-200 p-3 rounded-xl shadow-lg">
+              <FileText className="w-6 h-6 text-amber-800" />
             </div>
-            <span className="text-xs font-semibold text-slate-500 uppercase tracking-wider">Templates</span>
+            <span className="text-xs font-semibold text-amber-700/70 uppercase tracking-wider">Templates</span>
           </div>
-          <p className="text-4xl font-bold text-slate-900 mb-1">{templates.length}</p>
-          <p className="text-sm text-slate-500">Active case templates</p>
+          <p className="text-4xl font-bold bg-gradient-to-r from-amber-800 to-amber-600 bg-clip-text text-transparent mb-1">{templates.length}</p>
+          <p className="text-sm text-amber-700/70 font-medium">Active case templates</p>
         </div>
 
-        <div className="bg-white rounded-2xl p-6 professional-shadow-lg border border-gray-100 card-hover animate-slide-up" style={{ animationDelay: '0.1s' }}>
+        <div className="bg-gradient-to-br from-white to-amber-50/30 rounded-2xl p-6 shadow-xl border border-amber-200/50 card-hover animate-slide-up hover:shadow-2xl hover:border-amber-300 transition-all" style={{ animationDelay: '0.1s' }}>
           <div className="flex items-center justify-between mb-4">
-            <div className="bg-emerald-50 p-3 rounded-xl">
-              <Users className="w-6 h-6 text-emerald-600" />
+            <div className="bg-gradient-to-br from-yellow-100 to-amber-200 p-3 rounded-xl shadow-lg">
+              <Users className="w-6 h-6 text-amber-800" />
             </div>
-            <span className="text-xs font-semibold text-slate-500 uppercase tracking-wider">Clients</span>
+            <span className="text-xs font-semibold text-amber-700/70 uppercase tracking-wider">Clients</span>
           </div>
-          <p className="text-4xl font-bold text-slate-900 mb-1">{clients.length}</p>
-          <p className="text-sm text-slate-500">Total active clients</p>
+          <p className="text-4xl font-bold bg-gradient-to-r from-amber-800 to-amber-600 bg-clip-text text-transparent mb-1">{clients.length}</p>
+          <p className="text-sm text-amber-700/70 font-medium">Total active clients</p>
         </div>
 
-        <div className="bg-white rounded-2xl p-6 professional-shadow-lg border border-gray-100 card-hover animate-slide-up" style={{ animationDelay: '0.2s' }}>
+        <div className="bg-gradient-to-br from-white to-amber-50/30 rounded-2xl p-6 shadow-xl border border-amber-200/50 card-hover animate-slide-up hover:shadow-2xl hover:border-amber-300 transition-all" style={{ animationDelay: '0.2s' }}>
           <div className="flex items-center justify-between mb-4">
-            <div className="bg-blue-50 p-3 rounded-xl">
-              <CheckCircle className="w-6 h-6 text-blue-600" />
+            <div className="bg-gradient-to-br from-green-100 to-emerald-200 p-3 rounded-xl shadow-lg">
+              <CheckCircle className="w-6 h-6 text-emerald-700" />
             </div>
-            <span className="text-xs font-semibold text-slate-500 uppercase tracking-wider">Submitted</span>
+            <span className="text-xs font-semibold text-amber-700/70 uppercase tracking-wider">Submitted</span>
           </div>
-          <p className="text-4xl font-bold text-slate-900 mb-1">{submittedDocs}/{totalDocs}</p>
-          <p className="text-sm text-slate-500">Documents completed</p>
+          <p className="text-4xl font-bold bg-gradient-to-r from-amber-800 to-amber-600 bg-clip-text text-transparent mb-1">{submittedDocs}/{totalDocs}</p>
+          <p className="text-sm text-amber-700/70 font-medium">Documents completed</p>
         </div>
 
         <div 
           onClick={() => setShowAwaitingModal(true)}
-          className="bg-white rounded-2xl p-6 professional-shadow-lg border border-gray-100 card-hover animate-slide-up cursor-pointer hover:border-amber-300 hover:shadow-xl transition-all"
+          className="bg-gradient-to-br from-white to-amber-50/30 rounded-2xl p-6 shadow-xl border border-amber-200/50 card-hover animate-slide-up cursor-pointer hover:border-amber-400 hover:shadow-2xl transition-all"
           style={{ animationDelay: '0.3s' }}
         >
           <div className="flex items-center justify-between mb-4">
-            <div className="bg-amber-50 p-3 rounded-xl">
-              <Clock className="w-6 h-6 text-amber-600" />
+            <div className="bg-gradient-to-br from-amber-100 to-yellow-200 p-3 rounded-xl shadow-lg">
+              <Clock className="w-6 h-6 text-amber-700" />
             </div>
-            <span className="text-xs font-semibold text-slate-500 uppercase tracking-wider">Pending</span>
+            <span className="text-xs font-semibold text-amber-700/70 uppercase tracking-wider">Pending</span>
           </div>
-          <p className="text-4xl font-bold text-slate-900 mb-1">{awaitingSubmission.length}</p>
-          <p className="text-sm text-slate-500">Awaiting submission</p>
-          <p className="text-xs text-amber-600 mt-2 font-medium">Click to view →</p>
+          <p className="text-4xl font-bold bg-gradient-to-r from-amber-800 to-amber-600 bg-clip-text text-transparent mb-1">{awaitingSubmission.length}</p>
+          <p className="text-sm text-amber-700/70 font-medium">Awaiting submission</p>
+          <p className="text-xs text-amber-600 mt-2 font-semibold">Click to view →</p>
         </div>
 
         <div 
           onClick={() => setShowSubmittedModal(true)}
-          className="bg-white rounded-2xl p-6 professional-shadow-lg border border-gray-100 card-hover animate-slide-up cursor-pointer hover:border-indigo-300 hover:shadow-xl transition-all"
+          className="bg-gradient-to-br from-white to-amber-50/30 rounded-2xl p-6 shadow-xl border border-amber-200/50 card-hover animate-slide-up cursor-pointer hover:border-amber-400 hover:shadow-2xl transition-all"
           style={{ animationDelay: '0.4s' }}
         >
           <div className="flex items-center justify-between mb-4">
-            <div className="bg-indigo-50 p-3 rounded-xl">
-              <Send className="w-6 h-6 text-indigo-600" />
+            <div className="bg-gradient-to-br from-indigo-100 to-purple-200 p-3 rounded-xl shadow-lg">
+              <Send className="w-6 h-6 text-indigo-700" />
             </div>
-            <span className="text-xs font-semibold text-slate-500 uppercase tracking-wider">Administrative</span>
+            <span className="text-xs font-semibold text-amber-700/70 uppercase tracking-wider">Administrative</span>
           </div>
-          <p className="text-4xl font-bold text-slate-900 mb-1">{submittedToAdmin.length}</p>
-          <p className="text-sm text-slate-500">
+          <p className="text-4xl font-bold bg-gradient-to-r from-amber-800 to-amber-600 bg-clip-text text-transparent mb-1">{submittedToAdmin.length}</p>
+          <p className="text-sm text-amber-700/70 font-medium">
             {submittedToAdmin.length === 1 ? 'Case submitted' : 'Cases submitted'}
           </p>
-          <p className="text-xs text-indigo-600 mt-2 font-medium">Click to view →</p>
+          <p className="text-xs text-amber-600 mt-2 font-semibold">Click to view →</p>
         </div>
       </div>
 
       {/* Recent Clients */}
-      <div className="bg-white rounded-xl sm:rounded-2xl professional-shadow-lg border border-gray-100 p-4 sm:p-6 lg:p-8 animate-slide-up" style={{ animationDelay: '0.5s' }}>
+      <div className="bg-gradient-to-br from-white to-amber-50/20 rounded-xl sm:rounded-2xl shadow-xl border border-amber-200/50 p-4 sm:p-6 lg:p-8 animate-slide-up" style={{ animationDelay: '0.5s' }}>
         <div className="flex items-center justify-between mb-4 sm:mb-6">
           <div>
-            <h3 className="text-xl sm:text-2xl font-bold text-slate-900">Recent Clients</h3>
-            <p className="text-xs sm:text-sm text-slate-500 mt-1">Latest client activity</p>
+            <h3 className="text-xl sm:text-2xl font-bold bg-gradient-to-r from-amber-800 to-amber-700 bg-clip-text text-transparent">Recent Clients</h3>
+            <p className="text-xs sm:text-sm text-amber-700/70 mt-1 font-medium">Latest client activity</p>
           </div>
         </div>
         {clients.length === 0 ? (
           <div className="text-center py-12">
-            <Users className="w-16 h-16 text-slate-300 mx-auto mb-4" />
-            <p className="text-slate-500 font-medium">No clients yet</p>
-            <p className="text-sm text-slate-400 mt-1">Create your first client to get started</p>
+            <Users className="w-16 h-16 text-amber-300 mx-auto mb-4" />
+            <p className="text-amber-700/80 font-medium">No clients yet</p>
+            <p className="text-sm text-amber-600/70 mt-1">Create your first client to get started</p>
           </div>
         ) : (
           <div className="space-y-2">
@@ -144,18 +146,18 @@ export default function Dashboard() {
               <div
                 key={client.id}
                 onClick={() => setSelectedClient(client)}
-                className="flex flex-col sm:flex-row sm:items-center sm:justify-between p-4 sm:p-5 bg-slate-50 rounded-xl hover:bg-slate-100 border border-slate-200/50 transition-all duration-200 group cursor-pointer hover:border-slate-300 hover:shadow-md gap-3 sm:gap-0"
+                className="flex flex-col sm:flex-row sm:items-center sm:justify-between p-4 sm:p-5 bg-gradient-to-r from-amber-50/50 to-yellow-50/30 rounded-xl hover:from-amber-100/50 hover:to-yellow-100/40 border border-amber-200/50 transition-all duration-200 group cursor-pointer hover:border-amber-300 hover:shadow-lg gap-3 sm:gap-0"
               >
                 <div className="flex items-center space-x-4 flex-1">
-                  <div className="bg-slate-200 group-hover:bg-slate-300 p-2.5 rounded-lg transition-colors">
-                    <Users className="w-5 h-5 text-slate-600" />
+                  <div className="bg-gradient-to-br from-amber-200 to-amber-300 group-hover:from-amber-300 group-hover:to-amber-400 p-2.5 rounded-lg transition-colors shadow-md">
+                    <Users className="w-5 h-5 text-amber-800" />
                   </div>
                   <div className="flex-1">
-                    <p className="font-semibold text-slate-900 text-lg group-hover:text-slate-700 transition-colors">
+                    <p className="font-semibold text-amber-900 text-lg group-hover:text-amber-800 transition-colors">
                       {client.first_name} {client.last_name}
                     </p>
                     <div className="flex items-center space-x-4 mt-1">
-                      <p className="text-sm text-slate-500">{client.case_type || 'No template assigned'}</p>
+                      <p className="text-sm text-amber-700/80 font-medium">{client.case_type || 'No template assigned'}</p>
                           {(() => {
                             // Calculate reminder status
                             const calculateReminderStatus = () => {

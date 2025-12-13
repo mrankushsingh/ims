@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
-import { FileText, Mail, Lock, AlertCircle, Loader2, Eye, EyeOff } from 'lucide-react';
+import { Mail, Lock, AlertCircle, Loader2, Eye, EyeOff } from 'lucide-react';
 import { loginWithEmail, isFirebaseAvailable } from '../utils/firebase';
+import Logo from './Logo';
 
 interface LoginProps {
   onLoginSuccess: () => void;
@@ -86,16 +87,9 @@ export default function Login({ onLoginSuccess }: LoginProps) {
           
           {/* Logo and Header */}
           <div className="text-center mb-8 relative z-10">
-            <div className="inline-flex items-center justify-center w-20 h-20 mb-5 relative">
-              {/* Gold glow effect */}
-              <div className="absolute inset-0 bg-gradient-to-br from-yellow-400 via-amber-500 to-yellow-600 rounded-2xl blur-lg opacity-60"></div>
-              <div className="relative bg-gradient-to-br from-yellow-500 via-amber-600 to-yellow-700 rounded-2xl shadow-2xl p-4 border border-yellow-400/30">
-                <FileText className="w-10 h-10 text-black" />
-              </div>
+            <div className="flex justify-center mb-5">
+              <Logo size="lg" animated={true} />
             </div>
-            <h1 className="text-4xl font-bold mb-3 bg-gradient-to-r from-yellow-400 via-amber-300 to-yellow-500 bg-clip-text text-transparent tracking-tight">
-              Berliku Law Firm
-            </h1>
             <p className="text-gray-400 text-sm font-medium">Sign in to access your dashboard</p>
           </div>
 
