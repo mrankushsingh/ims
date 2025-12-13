@@ -1,0 +1,77 @@
+import en from '../locales/en.json';
+import es from '../locales/es.json';
+import fr from '../locales/fr.json';
+
+export type Language = 'en' | 'es' | 'fr';
+
+const translations: Record<Language, any> = {
+  en,
+  es,
+  fr,
+};
+
+let currentLanguage: Language = 'en';
+
+// Load language from localStorage
+if (typeof window !== 'undefined') {
+  const savedLanguage = localStorage.getItem('app_language') as Language;
+  if (savedLanguage && (savedLanguage === 'en' || savedLanguage === 'es' || savedLanguage === 'fr')) {
+    currentLanguage = savedLanguage;
+  }
+}
+
+export function setLanguage(lang: Language) {
+  currentLanguage = lang;
+  if (typeof window !== 'undefined') {
+    localStorage.setItem('app_language', lang);
+  }
+}
+
+export function getLanguage(): Language {
+  return currentLanguage;
+}
+
+export function t(key: string, params?: Record<string, string | number>): string {
+  const keys = key.split('.');
+  let value: any = translations[currentLanguage];
+  
+  for (const k of keys) {
+    if (value && typeof value === 'object' && k in value) {
+      value = value[k];
+    } else {
+      // Fallback to English if translation not found
+      value = translations.en;
+      for (const k2 of keys) {
+        if (value && typeof value === 'object' && k2 in value) {
+          value = value[k2];
+        } else {
+          return key; // Return key if translation not found
+        }
+      }
+      break;
+    }
+  }
+  
+  if (typeof value !== 'string') {
+    return key;
+  }
+  
+  // Replace parameters
+  if (params) {
+    return value.replace(/\{(\w+)\}/g, (match, paramKey) => {
+      return params[paramKey]?.toString() || match;
+    });
+  }
+  
+  return value;
+}
+
+// Language names for display
+export const languageNames: Record<Language, string> = {
+  en: 'English',
+  es: 'Español',
+  fr: 'Français',
+};
+
+export const availableLanguages: Language[] = ['en', 'es', 'fr'];
+

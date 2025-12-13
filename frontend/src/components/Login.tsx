@@ -2,6 +2,8 @@ import { useState, useEffect } from 'react';
 import { Mail, Lock, AlertCircle, Loader2, Eye, EyeOff } from 'lucide-react';
 import { loginWithEmail, isFirebaseAvailable } from '../utils/firebase';
 import Logo from './Logo';
+import LanguageSelector from './LanguageSelector';
+import { t } from '../utils/i18n';
 
 interface LoginProps {
   onLoginSuccess: () => void;
@@ -17,7 +19,7 @@ export default function Login({ onLoginSuccess }: LoginProps) {
   // Check if Firebase is configured on mount
   useEffect(() => {
     if (!isFirebaseAvailable()) {
-      setError('Firebase Authentication is not configured. Please set the required environment variables.');
+      setError(t('login.firebaseNotConfigured'));
     }
   }, []);
 
@@ -28,7 +30,7 @@ export default function Login({ onLoginSuccess }: LoginProps) {
 
     // Check if Firebase is configured
     if (!isFirebaseAvailable()) {
-      setError('Firebase Authentication is not configured. Please contact the administrator.');
+      setError(t('login.firebaseNotConfigured'));
       setLoading(false);
       return;
     }
@@ -40,18 +42,18 @@ export default function Login({ onLoginSuccess }: LoginProps) {
       onLoginSuccess();
     } catch (err: any) {
       // Handle Firebase auth errors
-      let errorMessage = 'Invalid email or password. Please try again.';
+      let errorMessage = t('login.invalidCredentials');
       
       if (err.message.includes('auth/user-not-found')) {
-        errorMessage = 'No account found with this email.';
+        errorMessage = t('login.noAccount');
       } else if (err.message.includes('auth/wrong-password')) {
-        errorMessage = 'Incorrect password. Please try again.';
+        errorMessage = t('login.wrongPassword');
       } else if (err.message.includes('auth/invalid-email')) {
-        errorMessage = 'Invalid email address.';
+        errorMessage = t('login.invalidEmail');
       } else if (err.message.includes('auth/too-many-requests')) {
-        errorMessage = 'Too many failed attempts. Please try again later.';
+        errorMessage = t('login.tooManyAttempts');
       } else if (err.message.includes('Firebase is not configured')) {
-        errorMessage = 'Firebase Authentication is not configured. Please contact the administrator.';
+        errorMessage = t('login.firebaseNotConfigured');
       } else if (err.message) {
         errorMessage = err.message;
       }
@@ -87,10 +89,13 @@ export default function Login({ onLoginSuccess }: LoginProps) {
           
           {/* Logo and Header */}
           <div className="text-center mb-8 relative z-10">
+            <div className="absolute top-4 right-4">
+              <LanguageSelector />
+            </div>
             <div className="flex justify-center mb-5">
               <Logo size="lg" animated={true} />
             </div>
-            <p className="text-gray-400 text-sm font-medium">Sign in to access your dashboard</p>
+            <p className="text-gray-400 text-sm font-medium">{t('login.subtitle')}</p>
           </div>
 
           {/* Error Message */}
@@ -102,11 +107,11 @@ export default function Login({ onLoginSuccess }: LoginProps) {
           )}
 
           {/* Login Form */}
-          <form onSubmit={handleSubmit} className="space-y-6 relative z-10">
-            <div>
-              <label className="block text-sm font-semibold text-gray-300 mb-2.5 tracking-wide">
-                Email Address
-              </label>
+                 <form onSubmit={handleSubmit} className="space-y-6 relative z-10">
+                   <div>
+                     <label className="block text-sm font-semibold text-gray-300 mb-2.5 tracking-wide">
+                       {t('login.email')}
+                     </label>
               <div className="relative group">
                 <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none z-10">
                   <div className="relative">
@@ -129,7 +134,7 @@ export default function Login({ onLoginSuccess }: LoginProps) {
                     boxShadow: 'inset 0 2px 4px rgba(0, 0, 0, 0.3)',
                     WebkitTapHighlightColor: 'transparent'
                   }}
-                  placeholder="Enter your email"
+                         placeholder={t('login.emailPlaceholder')}
                   disabled={loading}
                   autoComplete="email"
                   onFocus={(e) => {
@@ -143,10 +148,10 @@ export default function Login({ onLoginSuccess }: LoginProps) {
               </div>
             </div>
 
-            <div>
-              <label className="block text-sm font-semibold text-gray-300 mb-2.5 tracking-wide">
-                Password
-              </label>
+                   <div>
+                     <label className="block text-sm font-semibold text-gray-300 mb-2.5 tracking-wide">
+                       {t('login.password')}
+                     </label>
               <div className="relative group">
                 <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none z-10">
                   <div className="relative">
@@ -169,7 +174,7 @@ export default function Login({ onLoginSuccess }: LoginProps) {
                     boxShadow: 'inset 0 2px 4px rgba(0, 0, 0, 0.3)',
                     WebkitTapHighlightColor: 'transparent'
                   }}
-                  placeholder="Enter your password"
+                         placeholder={t('login.passwordPlaceholder')}
                   disabled={loading}
                   autoComplete="current-password"
                   onFocus={(e) => {
@@ -204,21 +209,21 @@ export default function Login({ onLoginSuccess }: LoginProps) {
             >
               {/* Button shine effect */}
               <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent transform -skew-x-12 -translate-x-full group-hover:translate-x-full transition-transform duration-1000"></div>
-              {loading ? (
-                <>
-                  <Loader2 className="w-5 h-5 animate-spin relative z-10" />
-                  <span className="relative z-10">Signing in...</span>
-                </>
-              ) : (
-                <span className="relative z-10 tracking-wide">Sign In</span>
-              )}
+                     {loading ? (
+                       <>
+                         <Loader2 className="w-5 h-5 animate-spin relative z-10" />
+                         <span className="relative z-10">{t('login.signingIn')}</span>
+                       </>
+                     ) : (
+                       <span className="relative z-10 tracking-wide">{t('login.signIn')}</span>
+                     )}
             </button>
           </form>
 
-          {/* Footer */}
-          <p className="mt-8 text-center text-xs text-gray-500 font-medium relative z-10">
-            Anisa Berliku Law Firm - Secure Access
-          </p>
+                 {/* Footer */}
+                 <p className="mt-8 text-center text-xs text-gray-500 font-medium relative z-10">
+                   {t('login.secureAccess')}
+                 </p>
         </div>
       </div>
     </div>

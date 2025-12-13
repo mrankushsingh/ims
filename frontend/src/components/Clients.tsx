@@ -6,6 +6,7 @@ import CreateClientModal from './CreateClientModal';
 import ClientDetailsModal from './ClientDetailsModal';
 import ConfirmDialog from './ConfirmDialog';
 import { showToast } from './Toast';
+import { t } from '../utils/i18n';
 
 export default function Clients() {
   const [clients, setClients] = useState<Client[]>([]);
@@ -61,7 +62,7 @@ export default function Clients() {
     <div className="space-y-6 sm:space-y-8 animate-fade-in">
       <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4 border-b border-amber-200/50 pb-4 sm:pb-6">
         <div>
-          <h2 className="text-2xl sm:text-3xl lg:text-4xl font-bold bg-gradient-to-r from-amber-800 via-amber-700 to-amber-800 bg-clip-text text-transparent mb-2 tracking-tight">Clients</h2>
+          <h2 className="text-2xl sm:text-3xl lg:text-4xl font-bold bg-gradient-to-r from-amber-800 via-amber-700 to-amber-800 bg-clip-text text-transparent mb-2 tracking-tight">{t('clients.title')}</h2>
           <p className="text-amber-700/80 text-base sm:text-lg font-medium">Manage your immigration clients and cases</p>
         </div>
         <button
@@ -102,7 +103,7 @@ export default function Clients() {
                   <h3 className="text-xl font-bold text-amber-900 mb-1">
                     {client.first_name} {client.last_name}
                   </h3>
-                  <p className="text-sm text-amber-700/70 font-medium">{client.case_type || 'No template assigned'}</p>
+                  <p className="text-sm text-amber-700/70 font-medium">{client.case_type || t('clients.noTemplate')}</p>
                 </div>
                 <div className="flex items-center space-x-2">
                   <div className="bg-gradient-to-br from-amber-100 to-amber-200 p-2 rounded-lg shadow-md">
@@ -119,7 +120,7 @@ export default function Clients() {
               </div>
               <div className="space-y-3 pt-4 border-t border-amber-200/50">
                 <div className="flex justify-between items-center">
-                  <span className="text-sm font-medium text-amber-700/80">Documents</span>
+                  <span className="text-sm font-medium text-amber-700/80">{t('clients.documents')}</span>
                   <div className="flex items-center space-x-2">
                     <span className="text-sm font-bold text-amber-900">
                       {client.required_documents?.filter((d: any) => d.submitted).length || 0}
@@ -131,7 +132,7 @@ export default function Clients() {
                   </div>
                 </div>
                 <div className="flex justify-between items-center">
-                  <span className="text-sm font-medium text-amber-700/80">Payment</span>
+                  <span className="text-sm font-medium text-amber-700/80">{t('clients.payment')}</span>
                   <div className="flex items-center space-x-1">
                     <span className="text-sm font-bold text-emerald-700">
                       €{client.payment?.paidAmount || 0}
@@ -172,7 +173,7 @@ export default function Clients() {
       <ConfirmDialog
         isOpen={deleteConfirm.isOpen}
         title="Delete Client"
-        message={deleteConfirm.client ? `Are you sure you want to delete ${deleteConfirm.client.first_name} ${deleteConfirm.client.last_name}? This action cannot be undone and will permanently remove all client data, documents, and records.` : ''}
+        message={deleteConfirm.client ? t('clients.deleteConfirm', { firstName: deleteConfirm.client.first_name, lastName: deleteConfirm.client.last_name }) : ''}
         confirmText="Delete"
         cancelText="Cancel"
         type="danger"

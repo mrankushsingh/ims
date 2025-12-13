@@ -7,9 +7,11 @@ import Notifications from './components/Notifications';
 import ClientDetailsModal from './components/ClientDetailsModal';
 import Login from './components/Login';
 import Logo from './components/Logo';
+import LanguageSelector from './components/LanguageSelector';
 import { ToastContainer, subscribeToToasts, Toast } from './components/Toast';
 import { onAuthChange, getCurrentUser, logout as firebaseLogout, isFirebaseAvailable } from './utils/firebase';
 import { Client } from './types';
+import { t } from './utils/i18n';
 
 type View = 'dashboard' | 'templates' | 'clients';
 
@@ -117,7 +119,7 @@ function App() {
                 >
                   <div className="flex items-center space-x-2">
                     <LayoutDashboard className="w-4 h-4" />
-                    <span>Dashboard</span>
+                    <span>{t('common.dashboard')}</span>
                   </div>
                 </button>
                 <button
@@ -130,7 +132,7 @@ function App() {
                 >
                   <div className="flex items-center space-x-2">
                     <FileText className="w-4 h-4" />
-                    <span>Templates</span>
+                    <span>{t('common.templates')}</span>
                   </div>
                 </button>
                 <button
@@ -143,16 +145,17 @@ function App() {
                 >
                   <div className="flex items-center space-x-2">
                     <Users className="w-4 h-4" />
-                    <span>Clients</span>
+                    <span>{t('common.clients')}</span>
                   </div>
                 </button>
               </nav>
+              <LanguageSelector />
               <Notifications onClientClick={setSelectedClient} />
               {/* Logout Button */}
               <button
                 onClick={handleLogout}
                 className="p-2 text-amber-100 hover:bg-amber-800/50 hover:text-white rounded-lg transition-colors"
-                title="Sign Out"
+                title={t('common.signOut')}
               >
                 <LogOut className="w-5 h-5" />
               </button>
@@ -160,6 +163,7 @@ function App() {
 
             {/* Mobile Menu Button */}
             <div className="md:hidden flex items-center space-x-2">
+              <LanguageSelector />
               <Notifications onClientClick={setSelectedClient} />
               <button
                 onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
@@ -192,7 +196,7 @@ function App() {
                       >
                         <div className="flex items-center space-x-3">
                           <LayoutDashboard className="w-5 h-5" />
-                          <span>Dashboard</span>
+                          <span>{t('common.dashboard')}</span>
                         </div>
                       </button>
                       <button
@@ -208,7 +212,7 @@ function App() {
                       >
                         <div className="flex items-center space-x-3">
                           <FileText className="w-5 h-5" />
-                          <span>Templates</span>
+                          <span>{t('common.templates')}</span>
                         </div>
                       </button>
                       <button
@@ -224,7 +228,7 @@ function App() {
                       >
                         <div className="flex items-center space-x-3">
                           <Users className="w-5 h-5" />
-                          <span>Clients</span>
+                          <span>{t('common.clients')}</span>
                         </div>
                       </button>
                       <div className="pt-2 border-t border-amber-700/30 mt-2">
@@ -236,7 +240,7 @@ function App() {
                           className="w-full px-4 py-3 rounded-lg font-semibold text-sm transition-all duration-200 text-left text-red-300 hover:bg-red-900/30 flex items-center space-x-3"
                         >
                           <LogOut className="w-5 h-5" />
-                          <span>Sign Out</span>
+                          <span>{t('common.signOut')}</span>
                         </button>
                       </div>
                     </nav>

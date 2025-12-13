@@ -3,6 +3,7 @@ import { FileText, Users, CheckCircle, Clock, Send, X, AlertCircle } from 'lucid
 import { api } from '../utils/api';
 import { CaseTemplate, Client } from '../types';
 import ClientDetailsModal from './ClientDetailsModal';
+import { t } from '../utils/i18n';
 
 export default function Dashboard() {
   const [templates, setTemplates] = useState<CaseTemplate[]>([]);
@@ -51,9 +52,9 @@ export default function Dashboard() {
     <div className="space-y-8 animate-fade-in">
       <div className="border-b border-amber-200/50 pb-4 sm:pb-6">
         <h2 className="text-2xl sm:text-3xl lg:text-4xl font-bold bg-gradient-to-r from-amber-800 via-amber-700 to-amber-800 bg-clip-text text-transparent mb-2 tracking-tight">
-          Dashboard
+          {t('dashboard.title')}
         </h2>
-        <p className="text-amber-700/80 text-base sm:text-lg font-medium">Comprehensive overview of your immigration cases</p>
+        <p className="text-amber-700/80 text-base sm:text-lg font-medium">{t('dashboard.subtitle')}</p>
       </div>
 
       {/* Stats Cards */}
@@ -63,10 +64,10 @@ export default function Dashboard() {
             <div className="bg-gradient-to-br from-amber-100 to-amber-200 p-3 rounded-xl shadow-lg">
               <FileText className="w-6 h-6 text-amber-800" />
             </div>
-            <span className="text-xs font-semibold text-amber-700/70 uppercase tracking-wider">Templates</span>
+            <span className="text-xs font-semibold text-amber-700/70 uppercase tracking-wider">{t('dashboard.templates')}</span>
           </div>
           <p className="text-4xl font-bold bg-gradient-to-r from-amber-800 to-amber-600 bg-clip-text text-transparent mb-1">{templates.length}</p>
-          <p className="text-sm text-amber-700/70 font-medium">Active case templates</p>
+          <p className="text-sm text-amber-700/70 font-medium">{t('dashboard.activeTemplates')}</p>
         </div>
 
         <div className="glass-gold rounded-2xl p-6 glass-hover animate-slide-up" style={{ animationDelay: '0.1s' }}>
@@ -74,10 +75,10 @@ export default function Dashboard() {
             <div className="bg-gradient-to-br from-yellow-100 to-amber-200 p-3 rounded-xl shadow-lg">
               <Users className="w-6 h-6 text-amber-800" />
             </div>
-            <span className="text-xs font-semibold text-amber-700/70 uppercase tracking-wider">Clients</span>
+            <span className="text-xs font-semibold text-amber-700/70 uppercase tracking-wider">{t('dashboard.clients')}</span>
           </div>
           <p className="text-4xl font-bold bg-gradient-to-r from-amber-800 to-amber-600 bg-clip-text text-transparent mb-1">{clients.length}</p>
-          <p className="text-sm text-amber-700/70 font-medium">Total active clients</p>
+          <p className="text-sm text-amber-700/70 font-medium">{t('dashboard.totalClients')}</p>
         </div>
 
         <div className="glass-gold rounded-2xl p-6 glass-hover animate-slide-up" style={{ animationDelay: '0.2s' }}>
@@ -85,10 +86,10 @@ export default function Dashboard() {
             <div className="bg-gradient-to-br from-green-100 to-emerald-200 p-3 rounded-xl shadow-lg">
               <CheckCircle className="w-6 h-6 text-emerald-700" />
             </div>
-            <span className="text-xs font-semibold text-amber-700/70 uppercase tracking-wider">Submitted</span>
+            <span className="text-xs font-semibold text-amber-700/70 uppercase tracking-wider">{t('dashboard.submitted')}</span>
           </div>
           <p className="text-4xl font-bold bg-gradient-to-r from-amber-800 to-amber-600 bg-clip-text text-transparent mb-1">{submittedDocs}/{totalDocs}</p>
-          <p className="text-sm text-amber-700/70 font-medium">Documents completed</p>
+          <p className="text-sm text-amber-700/70 font-medium">{t('dashboard.documentsCompleted')}</p>
         </div>
 
         <div 
@@ -100,11 +101,11 @@ export default function Dashboard() {
             <div className="bg-gradient-to-br from-amber-100 to-yellow-200 p-3 rounded-xl shadow-lg">
               <Clock className="w-6 h-6 text-amber-700" />
             </div>
-            <span className="text-xs font-semibold text-amber-700/70 uppercase tracking-wider">Pending</span>
+            <span className="text-xs font-semibold text-amber-700/70 uppercase tracking-wider">{t('dashboard.pending')}</span>
           </div>
           <p className="text-4xl font-bold bg-gradient-to-r from-amber-800 to-amber-600 bg-clip-text text-transparent mb-1">{awaitingSubmission.length}</p>
-          <p className="text-sm text-amber-700/70 font-medium">Awaiting submission</p>
-          <p className="text-xs text-amber-600 mt-2 font-semibold">Click to view →</p>
+          <p className="text-sm text-amber-700/70 font-medium">{t('dashboard.awaitingSubmission')}</p>
+          <p className="text-xs text-amber-600 mt-2 font-semibold">{t('dashboard.clickToView')}</p>
         </div>
 
         <div 
@@ -116,13 +117,13 @@ export default function Dashboard() {
             <div className="bg-gradient-to-br from-indigo-100 to-purple-200 p-3 rounded-xl shadow-lg">
               <Send className="w-6 h-6 text-indigo-700" />
             </div>
-            <span className="text-xs font-semibold text-amber-700/70 uppercase tracking-wider">Administrative</span>
+            <span className="text-xs font-semibold text-amber-700/70 uppercase tracking-wider">{t('dashboard.administrative')}</span>
           </div>
           <p className="text-4xl font-bold bg-gradient-to-r from-amber-800 to-amber-600 bg-clip-text text-transparent mb-1">{submittedToAdmin.length}</p>
           <p className="text-sm text-amber-700/70 font-medium">
-            {submittedToAdmin.length === 1 ? 'Case submitted' : 'Cases submitted'}
+            {submittedToAdmin.length === 1 ? t('dashboard.caseSubmitted') : t('dashboard.casesSubmitted')}
           </p>
-          <p className="text-xs text-amber-600 mt-2 font-semibold">Click to view →</p>
+          <p className="text-xs text-amber-600 mt-2 font-semibold">{t('dashboard.clickToView')}</p>
         </div>
       </div>
 
@@ -130,15 +131,15 @@ export default function Dashboard() {
       <div className="glass-gold rounded-xl sm:rounded-2xl p-4 sm:p-6 lg:p-8 animate-slide-up" style={{ animationDelay: '0.5s' }}>
         <div className="flex items-center justify-between mb-4 sm:mb-6">
           <div>
-            <h3 className="text-xl sm:text-2xl font-bold bg-gradient-to-r from-amber-800 to-amber-700 bg-clip-text text-transparent">Recent Clients</h3>
-            <p className="text-xs sm:text-sm text-amber-700/70 mt-1 font-medium">Latest client activity</p>
+            <h3 className="text-xl sm:text-2xl font-bold bg-gradient-to-r from-amber-800 to-amber-700 bg-clip-text text-transparent">{t('dashboard.recentClients')}</h3>
+            <p className="text-xs sm:text-sm text-amber-700/70 mt-1 font-medium">{t('dashboard.latestActivity')}</p>
           </div>
         </div>
         {clients.length === 0 ? (
           <div className="text-center py-12">
             <Users className="w-16 h-16 text-amber-300 mx-auto mb-4" />
-            <p className="text-amber-700/80 font-medium">No clients yet</p>
-            <p className="text-sm text-amber-600/70 mt-1">Create your first client to get started</p>
+            <p className="text-amber-700/80 font-medium">{t('dashboard.noClients')}</p>
+            <p className="text-sm text-amber-600/70 mt-1">{t('dashboard.createFirstClient')}</p>
           </div>
         ) : (
           <div className="space-y-2">
@@ -209,7 +210,7 @@ export default function Dashboard() {
                                 <div className="flex items-center space-x-1">
                                   <Clock className="w-3.5 h-3.5 text-slate-400" />
                                   <p className="text-xs text-slate-500 font-medium">
-                                    Interval: {client.reminder_interval_days} days
+                                    {t('dashboard.interval')}: {client.reminder_interval_days} {t('dashboard.days')}
                                   </p>
                                 </div>
                               );
@@ -226,10 +227,10 @@ export default function Dashboard() {
                                   isOverdue ? 'text-red-600' : isDueSoon ? 'text-amber-600' : 'text-slate-500'
                                 }`}>
                                   {isOverdue 
-                                    ? `Overdue ${Math.abs(daysUntilReminder)} days${hasNoUploads ? ' (no docs)' : ''}`
+                                    ? `${t('dashboard.overdue')} ${Math.abs(daysUntilReminder)} ${t('dashboard.days')}${hasNoUploads ? ` ${t('dashboard.noDocs')}` : ''}`
                                     : daysUntilReminder === 0
-                                    ? 'Due today'
-                                    : `Due in ${daysUntilReminder} days${hasNoUploads ? ' (no docs)' : ''}`
+                                    ? t('dashboard.dueToday')
+                                    : `${t('dashboard.dueIn')} ${daysUntilReminder} ${t('dashboard.days')}${hasNoUploads ? ` ${t('dashboard.noDocs')}` : ''}`
                                   }
                                 </p>
                               </div>
@@ -248,7 +249,7 @@ export default function Dashboard() {
                       {client.required_documents?.length || 0}
                     </span>
                   </div>
-                  <p className="text-xs text-amber-600/70 mt-1 font-medium">documents</p>
+                  <p className="text-xs text-amber-600/70 mt-1 font-medium">{t('dashboard.documents')}</p>
                 </div>
               </div>
             ))}
@@ -272,8 +273,8 @@ export default function Dashboard() {
           <div className="bg-white rounded-xl sm:rounded-2xl p-4 sm:p-6 max-w-4xl w-full max-h-[95vh] sm:max-h-[90vh] overflow-y-auto shadow-2xl animate-scale-in my-4 sm:my-8">
             <div className="flex justify-between items-center mb-6">
               <div>
-                <h2 className="text-2xl font-bold text-slate-900">Clients Awaiting Submission</h2>
-                <p className="text-slate-600 mt-1">Clients not yet submitted to administrative authority</p>
+                <h2 className="text-2xl font-bold text-slate-900">{t('dashboard.awaitingSubmissionTitle')}</h2>
+                <p className="text-slate-600 mt-1">{t('dashboard.awaitingSubmissionDesc')}</p>
               </div>
               <button
                 onClick={() => setShowAwaitingModal(false)}
@@ -286,8 +287,8 @@ export default function Dashboard() {
             {awaitingSubmission.length === 0 ? (
               <div className="text-center py-12">
                 <CheckCircle className="w-16 h-16 text-emerald-400 mx-auto mb-4" />
-                <p className="text-slate-500 font-medium text-lg">All clients have been submitted</p>
-                <p className="text-sm text-slate-400 mt-1">No clients awaiting submission</p>
+                <p className="text-slate-500 font-medium text-lg">{t('dashboard.allSubmitted')}</p>
+                <p className="text-sm text-slate-400 mt-1">{t('dashboard.noAwaiting')}</p>
               </div>
             ) : (
               <div className="space-y-3">
@@ -359,7 +360,7 @@ export default function Dashboard() {
                                 <div className="flex items-center space-x-1">
                                   <Clock className="w-3.5 h-3.5 text-amber-600" />
                                   <p className="text-xs text-amber-700 font-medium">
-                                    Interval: {client.reminder_interval_days} days
+                                    {t('dashboard.interval')}: {client.reminder_interval_days} {t('dashboard.days')}
                                   </p>
                                 </div>
                               );
@@ -376,12 +377,12 @@ export default function Dashboard() {
                                   isOverdue ? 'text-red-700' : isDueSoon ? 'text-amber-700' : 'text-amber-600'
                                 }`}>
                                   {isOverdue 
-                                    ? `⚠️ Overdue ${Math.abs(daysUntilReminder)} days${hasNoUploads ? ' (no docs)' : ''}`
+                                    ? `⚠️ ${t('dashboard.overdue')} ${Math.abs(daysUntilReminder)} ${t('dashboard.days')}${hasNoUploads ? ` ${t('dashboard.noDocs')}` : ''}`
                                     : daysUntilReminder === 0
-                                    ? '⚠️ Due today'
+                                    ? `⚠️ ${t('dashboard.dueToday')}`
                                     : isDueSoon
-                                    ? `⚠️ Due in ${daysUntilReminder} days${hasNoUploads ? ' (no docs)' : ''}`
-                                    : `Due in ${daysUntilReminder} days${hasNoUploads ? ' (no docs)' : ''}`
+                                    ? `⚠️ ${t('dashboard.dueIn')} ${daysUntilReminder} ${t('dashboard.days')}${hasNoUploads ? ` ${t('dashboard.noDocs')}` : ''}`
+                                    : `${t('dashboard.dueIn')} ${daysUntilReminder} ${t('dashboard.days')}${hasNoUploads ? ` ${t('dashboard.noDocs')}` : ''}`
                                   }
                                 </p>
                               </div>
@@ -400,7 +401,7 @@ export default function Dashboard() {
                           {client.required_documents?.length || 0}
                         </span>
                       </div>
-                      <p className="text-xs text-amber-600 mt-1 font-medium">documents</p>
+                      <p className="text-xs text-amber-600 mt-1 font-medium">{t('dashboard.documents')}</p>
                     </div>
                   </div>
                 ))}
@@ -416,8 +417,8 @@ export default function Dashboard() {
           <div className="bg-white rounded-xl sm:rounded-2xl p-4 sm:p-6 max-w-4xl w-full max-h-[95vh] sm:max-h-[90vh] overflow-y-auto shadow-2xl animate-scale-in my-4 sm:my-8">
             <div className="flex justify-between items-center mb-6">
               <div>
-                <h2 className="text-2xl font-bold text-slate-900">Cases Submitted to Administrative</h2>
-                <p className="text-slate-600 mt-1">Clients submitted to administrative authority</p>
+                <h2 className="text-2xl font-bold text-slate-900">{t('dashboard.submittedToAdminTitle')}</h2>
+                <p className="text-slate-600 mt-1">{t('dashboard.submittedToAdminDesc')}</p>
               </div>
               <button
                 onClick={() => setShowSubmittedModal(false)}
@@ -430,8 +431,8 @@ export default function Dashboard() {
             {submittedToAdmin.length === 0 ? (
               <div className="text-center py-12">
                 <Send className="w-16 h-16 text-slate-300 mx-auto mb-4" />
-                <p className="text-slate-500 font-medium text-lg">No cases submitted yet</p>
-                <p className="text-sm text-slate-400 mt-1">Submit cases to administrative authority to see them here</p>
+                <p className="text-slate-500 font-medium text-lg">{t('dashboard.noSubmitted')}</p>
+                <p className="text-sm text-slate-400 mt-1">{t('dashboard.submitCases')}</p>
               </div>
             ) : (
               <div className="space-y-3">
@@ -510,17 +511,17 @@ export default function Dashboard() {
                                     : 'text-emerald-700'
                                 }`}>
                                   {silenceInfo?.isExpired
-                                    ? `Expired ${Math.abs(silenceInfo.daysRemaining)} days ago`
+                                    ? `${t('dashboard.expired')} ${Math.abs(silenceInfo.daysRemaining)} ${t('dashboard.daysAgo')}`
                                     : silenceInfo?.isExpiringSoon
-                                    ? `⚠️ ${silenceInfo.daysRemaining} days left`
-                                    : `${silenceInfo?.daysRemaining || 0} days remaining`}
+                                    ? t('dashboard.expiringSoon', { days: silenceInfo.daysRemaining })
+                                    : `${silenceInfo?.daysRemaining || 0} ${t('dashboard.daysRemaining')}`}
                                 </p>
                               </div>
                             )}
                           </div>
                           {client.application_date && (
                             <p className="text-xs text-slate-500 mt-1">
-                              Submitted: {new Date(client.application_date).toLocaleDateString()}
+                              {t('dashboard.submitted')}: {new Date(client.application_date).toLocaleDateString()}
                             </p>
                           )}
                         </div>
@@ -548,7 +549,7 @@ export default function Dashboard() {
                             ? 'text-orange-600'
                             : 'text-emerald-600'
                         }`}>
-                          documents
+                          {t('dashboard.documents')}
                         </p>
                       </div>
                     </div>
