@@ -43,9 +43,9 @@ export default function Logo({ className = '', animated = true, size = 'md' }: L
           <img 
             src="/logo_AB.svg" 
             alt="Berliku Law Firm Logo" 
-            className="w-full h-full object-contain drop-shadow-2xl relative z-10"
+            className="w-full h-full object-contain relative z-10"
             style={{
-              filter: animated ? 'drop-shadow(0 0 15px rgba(255, 215, 0, 0.2))' : 'none',
+              filter: animated ? 'drop-shadow(0 0 15px rgba(255, 215, 0, 0.2)) drop-shadow(0 2px 4px rgba(0, 0, 0, 0.1))' : 'drop-shadow(0 2px 4px rgba(0, 0, 0, 0.1))',
               transition: 'filter 0.3s ease-in-out',
             }}
           />
