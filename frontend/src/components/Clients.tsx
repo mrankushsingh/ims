@@ -52,21 +52,22 @@ export default function Clients() {
   if (loading) {
     return (
       <div className="flex items-center justify-center h-64">
-        <div className="animate-spin rounded-full h-12 w-12 border-4 border-slate-200 border-t-slate-700"></div>
+        <div className="animate-spin rounded-full h-12 w-12 border-4 border-amber-200 border-t-amber-600"></div>
       </div>
     );
   }
 
   return (
     <div className="space-y-6 sm:space-y-8 animate-fade-in">
-      <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4 border-b border-gray-200 pb-4 sm:pb-6">
+      <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4 border-b border-amber-200/50 pb-4 sm:pb-6">
         <div>
-          <h2 className="text-2xl sm:text-3xl lg:text-4xl font-bold text-slate-900 mb-2 tracking-tight">Clients</h2>
-          <p className="text-slate-600 text-base sm:text-lg">Manage your immigration clients and cases</p>
+          <h2 className="text-2xl sm:text-3xl lg:text-4xl font-bold bg-gradient-to-r from-amber-800 via-amber-700 to-amber-800 bg-clip-text text-transparent mb-2 tracking-tight">Clients</h2>
+          <p className="text-amber-700/80 text-base sm:text-lg font-medium">Manage your immigration clients and cases</p>
         </div>
         <button
           onClick={() => setShowCreateModal(true)}
-          className="bg-slate-900 text-white px-4 sm:px-6 py-2.5 sm:py-3 rounded-xl font-semibold professional-shadow-lg hover:bg-slate-800 hover:shadow-xl transform hover:scale-105 transition-all duration-200 flex items-center justify-center space-x-2 w-full sm:w-auto"
+          className="bg-gradient-to-r from-yellow-500 via-amber-500 to-yellow-600 text-amber-900 px-4 sm:px-6 py-2.5 sm:py-3 rounded-xl font-semibold shadow-xl hover:shadow-2xl transform hover:scale-105 transition-all duration-200 flex items-center justify-center space-x-2 w-full sm:w-auto"
+          style={{ boxShadow: '0 4px 20px rgba(245, 158, 11, 0.4)' }}
         >
           <Plus className="w-5 h-5" />
           <span>New Client</span>
@@ -74,15 +75,16 @@ export default function Clients() {
       </div>
 
       {clients.length === 0 ? (
-        <div className="bg-white rounded-xl sm:rounded-2xl professional-shadow-lg border border-gray-100 p-8 sm:p-16 text-center animate-scale-in">
-          <div className="bg-slate-100 w-16 h-16 sm:w-20 sm:h-20 rounded-xl sm:rounded-2xl flex items-center justify-center mx-auto mb-4 sm:mb-6">
-            <Users className="w-8 h-8 sm:w-10 sm:h-10 text-slate-400" />
+        <div className="bg-gradient-to-br from-white to-amber-50/30 rounded-xl sm:rounded-2xl shadow-xl border border-amber-200/50 p-8 sm:p-16 text-center animate-scale-in">
+          <div className="bg-gradient-to-br from-amber-100 to-amber-200 w-16 h-16 sm:w-20 sm:h-20 rounded-xl sm:rounded-2xl flex items-center justify-center mx-auto mb-4 sm:mb-6 shadow-lg">
+            <Users className="w-8 h-8 sm:w-10 sm:h-10 text-amber-800" />
           </div>
-          <h3 className="text-xl sm:text-2xl font-bold text-slate-900 mb-2">No clients yet</h3>
-          <p className="text-slate-500 mb-6 sm:mb-8 text-base sm:text-lg">Create your first client to get started</p>
+          <h3 className="text-xl sm:text-2xl font-bold bg-gradient-to-r from-amber-800 to-amber-700 bg-clip-text text-transparent mb-2">No clients yet</h3>
+          <p className="text-amber-700/70 mb-6 sm:mb-8 text-base sm:text-lg font-medium">Create your first client to get started</p>
           <button
             onClick={() => setShowCreateModal(true)}
-            className="bg-slate-900 text-white px-6 sm:px-8 py-3 sm:py-3.5 rounded-xl font-semibold hover:bg-slate-800 transition-all professional-shadow-lg hover:shadow-xl"
+            className="bg-gradient-to-r from-yellow-500 via-amber-500 to-yellow-600 text-amber-900 px-6 sm:px-8 py-3 sm:py-3.5 rounded-xl font-semibold hover:shadow-2xl transition-all shadow-xl"
+            style={{ boxShadow: '0 4px 20px rgba(245, 158, 11, 0.4)' }}
           >
             Create Client
           </button>
@@ -92,19 +94,19 @@ export default function Clients() {
           {clients.map((client, index) => (
             <div
               key={client.id}
-              className="bg-white rounded-xl sm:rounded-2xl professional-shadow-lg border border-gray-100 p-4 sm:p-6 card-hover animate-slide-up"
+              className="bg-gradient-to-br from-white to-amber-50/30 rounded-xl sm:rounded-2xl shadow-xl border border-amber-200/50 p-4 sm:p-6 card-hover animate-slide-up hover:shadow-2xl hover:border-amber-300 transition-all"
               style={{ animationDelay: `${index * 0.1}s` }}
             >
               <div className="flex items-start justify-between mb-4">
                 <div className="flex-1">
-                  <h3 className="text-xl font-bold text-slate-900 mb-1">
+                  <h3 className="text-xl font-bold text-amber-900 mb-1">
                     {client.first_name} {client.last_name}
                   </h3>
-                  <p className="text-sm text-slate-500 font-medium">{client.case_type || 'No template assigned'}</p>
+                  <p className="text-sm text-amber-700/70 font-medium">{client.case_type || 'No template assigned'}</p>
                 </div>
                 <div className="flex items-center space-x-2">
-                  <div className="bg-emerald-50 p-2 rounded-lg">
-                    <Users className="w-5 h-5 text-emerald-600" />
+                  <div className="bg-gradient-to-br from-amber-100 to-amber-200 p-2 rounded-lg shadow-md">
+                    <Users className="w-5 h-5 text-amber-800" />
                   </div>
                   <button
                     onClick={(e) => handleDeleteClient(client, e)}
@@ -115,27 +117,27 @@ export default function Clients() {
                   </button>
                 </div>
               </div>
-              <div className="space-y-3 pt-4 border-t border-gray-100">
+              <div className="space-y-3 pt-4 border-t border-amber-200/50">
                 <div className="flex justify-between items-center">
-                  <span className="text-sm font-medium text-slate-600">Documents</span>
+                  <span className="text-sm font-medium text-amber-700/80">Documents</span>
                   <div className="flex items-center space-x-2">
-                    <span className="text-sm font-bold text-slate-900">
+                    <span className="text-sm font-bold text-amber-900">
                       {client.required_documents?.filter((d: any) => d.submitted).length || 0}
                     </span>
-                    <span className="text-slate-300">/</span>
-                    <span className="text-sm font-semibold text-slate-600">
+                    <span className="text-amber-400">/</span>
+                    <span className="text-sm font-semibold text-amber-700">
                       {client.required_documents?.length || 0}
                     </span>
                   </div>
                 </div>
                 <div className="flex justify-between items-center">
-                  <span className="text-sm font-medium text-slate-600">Payment</span>
+                  <span className="text-sm font-medium text-amber-700/80">Payment</span>
                   <div className="flex items-center space-x-1">
-                    <span className="text-sm font-bold text-emerald-600">
+                    <span className="text-sm font-bold text-emerald-700">
                       €{client.payment?.paidAmount || 0}
                     </span>
-                    <span className="text-slate-300">/</span>
-                    <span className="text-sm font-semibold text-slate-600">
+                    <span className="text-amber-400">/</span>
+                    <span className="text-sm font-semibold text-amber-700">
                       €{client.payment?.totalFee || 0}
                     </span>
                   </div>
