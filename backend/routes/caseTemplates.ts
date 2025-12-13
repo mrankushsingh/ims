@@ -79,6 +79,93 @@ router.put('/:id', async (req, res) => {
     
     const template = await memoryDb.updateTemplate(req.params.id, updateData);
     if (!template) return res.status(404).json({ error: 'Template not found' });
+    
+    // Automatically update all clients using this template that are NOT submitted to administrator
+    try {
+      const allClients = await memoryDb.getClients();
+      const clientsToUpdate = allClients.filter(
+        (client: any) => 
+          client.case_template_id === req.params.id && 
+          !client.submitted_to_immigration
+      );
+      
+      let updatedClientsCount = 0;
+      
+      for (const client of clientsToUpdate) {
+        const clientUpdateData: any = {};
+        
+        // Update case type if template name changed
+        if (name !== undefined) {
+          clientUpdateData.case_type = name;
+        }
+        
+        // Update reminder interval if changed
+        if (reminderIntervalDays !== undefined) {
+          clientUpdateData.reminder_interval_days = reminderIntervalDays;
+        }
+        
+        // Update administrative silence days if changed
+        if (administrativeSilenceDays !== undefined) {
+          clientUpdateData.administrative_silence_days = administrativeSilenceDays;
+        }
+        
+        // Update required documents - merge with existing submitted documents
+        if (requiredDocuments !== undefined && Array.isArray(requiredDocuments)) {
+          const existingDocs = client.required_documents || [];
+          const existingDocsMap = new Map();
+          
+          // Create a map of existing documents by code
+          existingDocs.forEach((doc: any) => {
+            existingDocsMap.set(doc.code, doc);
+          });
+          
+          // Merge template documents with existing submitted documents
+          const mergedDocs = requiredDocuments.map((templateDoc: any) => {
+            const existingDoc = existingDocsMap.get(templateDoc.code);
+            
+            if (existingDoc && existingDoc.submitted) {
+              // Preserve submitted document with its file and upload date
+              return {
+                code: templateDoc.code,
+                name: templateDoc.name,
+                description: templateDoc.description || '',
+                submitted: true,
+                fileUrl: existingDoc.fileUrl,
+                uploadedAt: existingDoc.uploadedAt,
+                fileName: existingDoc.fileName,
+                fileSize: existingDoc.fileSize,
+                isOptional: templateDoc.isOptional || false,
+              };
+            } else {
+              // New document or existing but not submitted - use template data
+              return {
+                code: templateDoc.code,
+                name: templateDoc.name,
+                description: templateDoc.description || '',
+                submitted: false,
+                fileUrl: null,
+                uploadedAt: null,
+                isOptional: templateDoc.isOptional || false,
+              };
+            }
+          });
+          
+          clientUpdateData.required_documents = mergedDocs;
+        }
+        
+        // Update the client
+        await memoryDb.updateClient(client.id, clientUpdateData);
+        updatedClientsCount++;
+      }
+      
+      if (updatedClientsCount > 0) {
+        console.log(`✅ Updated ${updatedClientsCount} client(s) using template "${template.name}"`);
+      }
+    } catch (clientUpdateError: any) {
+      // Log error but don't fail the template update
+      console.error('Error updating clients:', clientUpdateError);
+    }
+    
     res.json(template);
   } catch (error: any) {
     res.status(500).json({ error: error.message || 'Failed to update template' });
