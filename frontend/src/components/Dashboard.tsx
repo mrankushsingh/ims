@@ -209,26 +209,18 @@ export default function Dashboard() {
 
         <div 
           onClick={() => setShowAwaitingModal(true)}
-          className="rounded-2xl p-5 sm:p-6 animate-slide-up cursor-pointer transition-all duration-200 hover:shadow-xl border-2 border-green-400"
-          style={{ 
-            animationDelay: '0.3s',
-            background: 'linear-gradient(135deg, rgba(34, 197, 94, 0.15) 0%, rgba(22, 163, 74, 0.2) 50%, rgba(34, 197, 94, 0.15) 100%)',
-            backdropFilter: 'blur(20px) saturate(180%)',
-            WebkitBackdropFilter: 'blur(20px) saturate(180%)',
-            boxShadow: '0 8px 32px 0 rgba(34, 197, 94, 0.2), inset 0 1px 0 rgba(255, 255, 255, 0.2)',
-          }}
+          className="glass-gold rounded-2xl p-5 sm:p-6 glass-hover animate-slide-up cursor-pointer transition-all duration-200 hover:shadow-xl"
+          style={{ animationDelay: '0.3s' }}
         >
           <div className="flex items-center justify-between mb-4">
-            <div className="bg-gradient-to-br from-green-200 to-green-300 p-3 rounded-xl shadow-lg">
-              <Clock className="w-6 h-6 text-green-900" />
+            <div className="bg-gradient-to-br from-amber-100 to-amber-200 p-3 rounded-xl shadow-lg">
+              <Clock className="w-6 h-6 text-amber-800" />
             </div>
-            <span className="text-xs font-semibold text-green-800 uppercase tracking-wider">{t('dashboard.pending')}</span>
+            <span className="text-xs font-semibold text-amber-700/70 uppercase tracking-wider">{t('dashboard.pending')}</span>
           </div>
-          <p className="text-4xl font-bold bg-gradient-to-r from-green-900 to-green-700 bg-clip-text text-transparent mb-2">{awaitingSubmission.length}</p>
-          <p className="text-sm text-green-800 font-medium leading-relaxed mb-2">{t('dashboard.awaitingSubmission')}</p>
-          {awaitingSubmission.length > 0 && (
-            <p className="text-xs text-green-700 font-semibold">{t('dashboard.clickToView')}</p>
-          )}
+          <p className="text-4xl font-bold bg-gradient-to-r from-amber-800 to-amber-600 bg-clip-text text-transparent mb-2">{awaitingSubmission.length}</p>
+          <p className="text-sm text-amber-700/70 font-medium leading-relaxed mb-2">{t('dashboard.awaitingSubmission')}</p>
+          <p className="text-xs text-amber-600 font-semibold">{t('dashboard.clickToView')}</p>
         </div>
 
         <div 
