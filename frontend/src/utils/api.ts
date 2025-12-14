@@ -202,6 +202,79 @@ export const api = {
     return response.json();
   },
 
+  // Requested Documents (only for submitted clients)
+  async addRequestedDocument(clientId: string, data: { name: string; description?: string }) {
+    const headers = await getAuthHeaders();
+    const response = await fetch(`${API_URL}/clients/${clientId}/requested-documents`, {
+      method: 'POST',
+      headers,
+      body: JSON.stringify(data),
+    });
+    if (!response.ok) {
+      const error = await response.json().catch(() => ({ error: 'Failed to add requested document' }));
+      throw new Error(error.error || 'Failed to add requested document');
+    }
+    return response.json();
+  },
+
+  async uploadRequestedDocument(clientId: string, documentCode: string, file: File) {
+    const formData = new FormData();
+    formData.append('file', file);
+    const headers = await getAuthHeaders();
+    // Remove Content-Type header to let browser set it with boundary for FormData
+    delete (headers as any)['Content-Type'];
+    const response = await fetch(`${API_URL}/clients/${clientId}/requested-documents/${documentCode}/upload`, {
+      method: 'POST',
+      headers,
+      body: formData,
+    });
+    if (!response.ok) {
+      const error = await response.json().catch(() => ({ error: 'Failed to upload requested document' }));
+      throw new Error(error.error || 'Failed to upload requested document');
+    }
+    return response.json();
+  },
+
+  async removeRequestedDocument(clientId: string, documentCode: string) {
+    const headers = await getAuthHeaders();
+    const response = await fetch(`${API_URL}/clients/${clientId}/requested-documents/${documentCode}`, {
+      method: 'DELETE',
+      headers,
+    });
+    if (!response.ok) {
+      const error = await response.json().catch(() => ({ error: 'Failed to remove requested document' }));
+      throw new Error(error.error || 'Failed to remove requested document');
+    }
+    return response.json();
+  },
+
+  async setRequestedDocumentsReminderDuration(clientId: string, durationDays: number) {
+    const headers = await getAuthHeaders();
+    const response = await fetch(`${API_URL}/clients/${clientId}/requested-documents-reminder-duration`, {
+      method: 'PUT',
+      headers,
+      body: JSON.stringify({ durationDays }),
+    });
+    if (!response.ok) {
+      const error = await response.json().catch(() => ({ error: 'Failed to update reminder duration' }));
+      throw new Error(error.error || 'Failed to update reminder duration');
+    }
+    return response.json();
+  },
+
+  async updateRequestedDocumentsLastReminder(clientId: string) {
+    const headers = await getAuthHeaders();
+    const response = await fetch(`${API_URL}/clients/${clientId}/requested-documents-last-reminder`, {
+      method: 'PUT',
+      headers,
+    });
+    if (!response.ok) {
+      const error = await response.json().catch(() => ({ error: 'Failed to update last reminder date' }));
+      throw new Error(error.error || 'Failed to update last reminder date');
+    }
+    return response.json();
+  },
+
   async submitToAdministrative(clientId: string) {
     return this.updateClient(clientId, {
       submitted_to_immigration: true,

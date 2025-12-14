@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { X, Upload, CheckCircle, FileText, Download, Trash2, Plus, DollarSign, StickyNote, Archive, XCircle, AlertCircle, Send, Clock, Eye, ToggleLeft, ToggleRight, Calendar } from 'lucide-react';
 import JSZip from 'jszip';
 import { api } from '../utils/api';
-import { Client, RequiredDocument, AdditionalDocument } from '../types';
+import { Client, RequiredDocument, AdditionalDocument, RequestedDocument } from '../types';
 import ConfirmDialog from './ConfirmDialog';
 import { showToast } from './Toast';
 
@@ -31,6 +31,11 @@ export default function ClientDetailsModal({ client, onClose, onSuccess }: Props
   const [savingReminder, setSavingReminder] = useState(false);
   const [showReminderCalendar, setShowReminderCalendar] = useState(false);
   const [tempReminderDate, setTempReminderDate] = useState('');
+  const [showRequestedDocForm, setShowRequestedDocForm] = useState(false);
+  const [requestedDocForm, setRequestedDocForm] = useState({ name: '', description: '' });
+  const [uploadingRequestedDoc, setUploadingRequestedDoc] = useState<string | null>(null);
+  const [showDurationModal, setShowDurationModal] = useState(false);
+  const [durationDays, setDurationDays] = useState(client.requested_documents_reminder_duration_days || 10);
   const [confirmDialog, setConfirmDialog] = useState<{
     isOpen: boolean;
     title: string;
@@ -125,6 +130,87 @@ export default function ClientDetailsModal({ client, onClose, onSuccess }: Props
       onSuccess();
     } catch (error: any) {
       setError(error.message || 'Failed to update document');
+    }
+  };
+
+  const handleAddRequestedDocument = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setError('');
+    if (!requestedDocForm.name.trim()) {
+      setError('Document name is required');
+      return;
+    }
+    try {
+      await api.addRequestedDocument(client.id, {
+        name: requestedDocForm.name.trim(),
+        description: requestedDocForm.description.trim() || undefined,
+      });
+      setRequestedDocForm({ name: '', description: '' });
+      setShowRequestedDocForm(false);
+      await loadClient();
+      onSuccess();
+      showToast('Requested document added successfully', 'success');
+    } catch (error: any) {
+      setError(error.message || 'Failed to add requested document');
+      showToast(error.message || 'Failed to add requested document', 'error');
+    }
+  };
+
+  const handleUploadRequestedDocument = async (documentCode: string, file: File) => {
+    setError('');
+    setUploadingRequestedDoc(documentCode);
+    try {
+      await api.uploadRequestedDocument(client.id, documentCode, file);
+      await loadClient();
+      onSuccess();
+      showToast('Requested document uploaded successfully', 'success');
+    } catch (error: any) {
+      const errorMessage = error.message || 'Failed to upload requested document';
+      setError(errorMessage);
+      showToast(errorMessage, 'error');
+    } finally {
+      setUploadingRequestedDoc(null);
+    }
+  };
+
+  const handleRemoveRequestedDocument = async (documentCode: string) => {
+    setConfirmDialog({
+      isOpen: true,
+      title: 'Remove Requested Document',
+      message: 'Are you sure you want to remove this requested document?',
+      type: 'warning',
+      onConfirm: async () => {
+        setError('');
+        try {
+          await api.removeRequestedDocument(client.id, documentCode);
+          await loadClient();
+          onSuccess();
+          showToast('Requested document removed successfully', 'success');
+          setConfirmDialog({ ...confirmDialog, isOpen: false });
+        } catch (error: any) {
+          setError(error.message || 'Failed to remove requested document');
+          showToast(error.message || 'Failed to remove requested document', 'error');
+          setConfirmDialog({ ...confirmDialog, isOpen: false });
+        }
+      },
+    });
+  };
+
+  const handleSetReminderDuration = async () => {
+    setError('');
+    if (!durationDays || durationDays < 1 || durationDays > 365) {
+      setError('Duration must be between 1 and 365 days');
+      return;
+    }
+    try {
+      await api.setRequestedDocumentsReminderDuration(client.id, durationDays);
+      setShowDurationModal(false);
+      await loadClient();
+      onSuccess();
+      showToast('Reminder duration updated successfully', 'success');
+    } catch (error: any) {
+      setError(error.message || 'Failed to update reminder duration');
+      showToast(error.message || 'Failed to update reminder duration', 'error');
     }
   };
 
@@ -598,6 +684,185 @@ export default function ClientDetailsModal({ client, onClose, onSuccess }: Props
                 {silenceInfo ? Math.abs(silenceInfo.daysRemaining) : '--'}
               </div>
             </div>
+          </div>
+        )}
+
+        {/* Requested Documents Section - Only for submitted clients */}
+        {clientData.submitted_to_immigration && (
+          <div className="mb-6 p-5 bg-gradient-to-br from-purple-50 to-indigo-50 rounded-xl border-2 border-purple-200 shadow-md">
+            <div className="flex items-center justify-between mb-4">
+              <div className="flex items-center space-x-3">
+                <div className="bg-purple-100 p-3 rounded-lg">
+                  <AlertCircle className="w-6 h-6 text-purple-600" />
+                </div>
+                <div>
+                  <h3 className="font-semibold text-lg text-purple-900">Requested Documents</h3>
+                  <p className="text-sm text-purple-700">Documents requested by administration</p>
+                </div>
+              </div>
+              <div className="flex items-center space-x-2">
+                <button
+                  onClick={() => setShowDurationModal(true)}
+                  className="px-3 py-1.5 bg-purple-100 text-purple-700 font-semibold rounded-lg hover:bg-purple-200 transition-colors text-sm flex items-center space-x-1"
+                  title="Set reminder duration"
+                >
+                  <Clock className="w-4 h-4" />
+                  <span>{clientData.requested_documents_reminder_duration_days || 10} days</span>
+                </button>
+                <button
+                  onClick={() => setShowRequestedDocForm(true)}
+                  className="px-4 py-2 bg-purple-600 text-white font-semibold rounded-lg hover:bg-purple-700 transition-colors flex items-center space-x-2"
+                >
+                  <Plus className="w-4 h-4" />
+                  <span>Add Requested</span>
+                </button>
+              </div>
+            </div>
+
+            {/* Requested Documents Reminder Status */}
+            {(() => {
+              const requestedDocs = clientData.requested_documents || [];
+              const pendingDocs = requestedDocs.filter((d: RequestedDocument) => !d.submitted);
+              
+              if (pendingDocs.length > 0) {
+                const reminderInterval = clientData.requested_documents_reminder_interval_days || 3;
+                const lastReminder = clientData.requested_documents_last_reminder_date 
+                  ? new Date(clientData.requested_documents_last_reminder_date)
+                  : null;
+                const now = new Date();
+                const daysSinceLastReminder = lastReminder 
+                  ? Math.floor((now.getTime() - lastReminder.getTime()) / (1000 * 60 * 60 * 24))
+                  : Infinity;
+                
+                const needsReminder = !lastReminder || daysSinceLastReminder >= reminderInterval;
+                
+                return (
+                  <div className={`mb-4 p-3 rounded-lg ${
+                    needsReminder 
+                      ? 'bg-orange-100 border border-orange-300' 
+                      : 'bg-blue-100 border border-blue-300'
+                  }`}>
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center space-x-2">
+                        <Clock className={`w-5 h-5 ${needsReminder ? 'text-orange-600' : 'text-blue-600'}`} />
+                        <span className={`text-sm font-medium ${needsReminder ? 'text-orange-800' : 'text-blue-800'}`}>
+                          {needsReminder 
+                            ? `Reminder due - ${pendingDocs.length} document(s) pending`
+                            : `Next reminder in ${reminderInterval - daysSinceLastReminder} day(s)`}
+                        </span>
+                      </div>
+                      {needsReminder && (
+                        <button
+                          onClick={async () => {
+                            try {
+                              await api.updateRequestedDocumentsLastReminder(clientData.id);
+                              await loadClient();
+                              showToast('Reminder date updated', 'success');
+                            } catch (error: any) {
+                              showToast(error.message || 'Failed to update reminder', 'error');
+                            }
+                          }}
+                          className="px-3 py-1 bg-orange-600 text-white text-xs font-semibold rounded hover:bg-orange-700 transition-colors"
+                        >
+                          Mark Reminded
+                        </button>
+                      )}
+                    </div>
+                  </div>
+                );
+              }
+              return null;
+            })()}
+
+            {/* Requested Documents List */}
+            {clientData.requested_documents && clientData.requested_documents.length > 0 ? (
+              <div className="space-y-3">
+                {clientData.requested_documents.map((doc: RequestedDocument) => (
+                  <div key={doc.code} className="p-4 bg-white rounded-lg border border-purple-200">
+                    <div className="flex items-start justify-between">
+                      <div className="flex-1">
+                        <div className="flex items-center space-x-2 mb-2">
+                          <FileText className="w-5 h-5 text-purple-600" />
+                          <h4 className="font-semibold text-purple-900">{doc.name}</h4>
+                          {doc.submitted ? (
+                            <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold bg-emerald-100 text-emerald-700">
+                              ✓ Submitted
+                            </span>
+                          ) : (
+                            <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold bg-orange-100 text-orange-700">
+                              ⚠ Pending
+                            </span>
+                          )}
+                        </div>
+                        {doc.description && (
+                          <p className="text-sm text-purple-700 mb-2">{doc.description}</p>
+                        )}
+                        {doc.requestedAt && (
+                          <p className="text-xs text-purple-600">
+                            Requested: {new Date(doc.requestedAt).toLocaleDateString()}
+                          </p>
+                        )}
+                        {doc.submitted && doc.uploadedAt && (
+                          <p className="text-xs text-emerald-600 mt-1">
+                            Uploaded: {new Date(doc.uploadedAt).toLocaleDateString()}
+                          </p>
+                        )}
+                      </div>
+                      <div className="flex items-center space-x-2 ml-4">
+                        {doc.submitted && doc.fileUrl ? (
+                          <>
+                            <button
+                              onClick={() => window.open(doc.fileUrl, '_blank')}
+                              className="p-2 text-purple-600 hover:bg-purple-50 rounded-lg transition-colors"
+                              title="View document"
+                            >
+                              <Eye className="w-4 h-4" />
+                            </button>
+                            <a
+                              href={doc.fileUrl}
+                              download={doc.fileName}
+                              className="p-2 text-purple-600 hover:bg-purple-50 rounded-lg transition-colors"
+                              title="Download document"
+                            >
+                              <Download className="w-4 h-4" />
+                            </a>
+                          </>
+                        ) : (
+                          <label className="p-2 text-purple-600 hover:bg-purple-50 rounded-lg transition-colors cursor-pointer">
+                            <Upload className="w-4 h-4" />
+                            <input
+                              type="file"
+                              className="hidden"
+                              accept=".pdf,.doc,.docx,.jpg,.jpeg,.png"
+                              onChange={(e) => {
+                                const file = e.target.files?.[0];
+                                if (file) {
+                                  handleUploadRequestedDocument(doc.code, file);
+                                }
+                              }}
+                              disabled={uploadingRequestedDoc === doc.code}
+                            />
+                          </label>
+                        )}
+                        <button
+                          onClick={() => handleRemoveRequestedDocument(doc.code)}
+                          className="p-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors"
+                          title="Remove document"
+                        >
+                          <Trash2 className="w-4 h-4" />
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <div className="text-center py-8 text-purple-600">
+                <FileText className="w-12 h-12 mx-auto mb-2 opacity-50" />
+                <p className="text-sm font-medium">No requested documents yet</p>
+                <p className="text-xs mt-1">Add documents requested by administration</p>
+              </div>
+            )}
           </div>
         )}
 
@@ -1304,6 +1569,151 @@ export default function ClientDetailsModal({ client, onClose, onSuccess }: Props
                   </button>
                 </div>
               )}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Add Requested Document Modal */}
+      {showRequestedDocForm && (
+        <div 
+          className="fixed inset-0 z-[110] flex items-center justify-center p-4"
+          onClick={(e) => {
+            if (e.target === e.currentTarget) {
+              setShowRequestedDocForm(false);
+            }
+          }}
+          style={{
+            background: 'linear-gradient(135deg, rgba(15, 23, 42, 0.8) 0%, rgba(30, 41, 59, 0.85) 50%, rgba(15, 23, 42, 0.8) 100%)',
+            backdropFilter: 'blur(20px) saturate(180%)',
+            WebkitBackdropFilter: 'blur(20px) saturate(180%)',
+          }}
+        >
+          <div 
+            className="bg-white rounded-xl shadow-2xl max-w-md w-full p-6"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="text-lg font-bold text-purple-900">Add Requested Document</h3>
+              <button
+                onClick={() => setShowRequestedDocForm(false)}
+                className="p-2 text-gray-400 hover:text-gray-600 rounded-lg transition-colors"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+            <form onSubmit={handleAddRequestedDocument}>
+              <div className="space-y-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Document Name *</label>
+                  <input
+                    type="text"
+                    value={requestedDocForm.name}
+                    onChange={(e) => setRequestedDocForm({ ...requestedDocForm, name: e.target.value })}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 outline-none"
+                    required
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Description (Optional)</label>
+                  <textarea
+                    value={requestedDocForm.description}
+                    onChange={(e) => setRequestedDocForm({ ...requestedDocForm, description: e.target.value })}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 outline-none"
+                    rows={3}
+                  />
+                </div>
+              </div>
+              <div className="flex justify-end space-x-2 mt-6">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setShowRequestedDocForm(false);
+                    setRequestedDocForm({ name: '', description: '' });
+                  }}
+                  className="px-4 py-2 text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200 transition-colors"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  className="px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors"
+                >
+                  Add Document
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* Set Reminder Duration Modal */}
+      {showDurationModal && (
+        <div 
+          className="fixed inset-0 z-[110] flex items-center justify-center p-4"
+          onClick={(e) => {
+            if (e.target === e.currentTarget) {
+              setShowDurationModal(false);
+            }
+          }}
+          style={{
+            background: 'linear-gradient(135deg, rgba(15, 23, 42, 0.8) 0%, rgba(30, 41, 59, 0.85) 50%, rgba(15, 23, 42, 0.8) 100%)',
+            backdropFilter: 'blur(20px) saturate(180%)',
+            WebkitBackdropFilter: 'blur(20px) saturate(180%)',
+          }}
+        >
+          <div 
+            className="bg-white rounded-xl shadow-2xl max-w-md w-full p-6"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="flex items-center justify-between mb-4">
+              <div className="flex items-center space-x-3">
+                <div className="p-2 bg-purple-100 rounded-lg">
+                  <Clock className="w-5 h-5 text-purple-700" />
+                </div>
+                <div>
+                  <h3 className="text-lg font-bold text-purple-900">Set Reminder Duration</h3>
+                  <p className="text-xs text-gray-600 mt-0.5">Reminders will be sent every 3 days</p>
+                </div>
+              </div>
+              <button
+                onClick={() => setShowDurationModal(false)}
+                className="p-2 text-gray-400 hover:text-gray-600 rounded-lg transition-colors"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+            <div className="space-y-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Duration (days) *
+                </label>
+                <input
+                  type="number"
+                  min="1"
+                  max="365"
+                  value={durationDays}
+                  onChange={(e) => setDurationDays(parseInt(e.target.value) || 10)}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 outline-none"
+                  required
+                />
+                <p className="text-xs text-gray-500 mt-1">Reminders will be sent every 3 days until all requested documents are submitted</p>
+              </div>
+              <div className="flex justify-end space-x-2 mt-6">
+                <button
+                  type="button"
+                  onClick={() => setShowDurationModal(false)}
+                  className="px-4 py-2 text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200 transition-colors"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={handleSetReminderDuration}
+                  className="px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors"
+                >
+                  Set Duration
+                </button>
+              </div>
             </div>
           </div>
         </div>

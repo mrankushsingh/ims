@@ -36,6 +36,10 @@ interface Client {
   additional_docs_required: boolean;
   notes?: string;
   additional_documents?: any[];
+  requested_documents?: any[];
+  requested_documents_reminder_duration_days?: number;
+  requested_documents_reminder_interval_days?: number;
+  requested_documents_last_reminder_date?: string;
   created_at: string;
   updated_at: string;
 }
@@ -135,6 +139,10 @@ class DatabaseAdapter {
           additional_docs_required BOOLEAN DEFAULT FALSE,
           notes TEXT,
           additional_documents JSONB,
+          requested_documents JSONB,
+          requested_documents_reminder_duration_days INTEGER DEFAULT 10,
+          requested_documents_reminder_interval_days INTEGER DEFAULT 3,
+          requested_documents_last_reminder_date TIMESTAMP,
           created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
           updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
         )
@@ -399,8 +407,9 @@ class DatabaseAdapter {
         `INSERT INTO clients (id, first_name, last_name, parent_name, email, phone, case_template_id, case_type, details,
          required_documents, reminder_interval_days, administrative_silence_days, payment, 
          submitted_to_immigration, application_date, custom_reminder_date, notifications, additional_docs_required, 
-         notes, additional_documents, created_at, updated_at)
-         VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21, $22)`,
+         notes, additional_documents, requested_documents, requested_documents_reminder_duration_days, 
+         requested_documents_reminder_interval_days, requested_documents_last_reminder_date, created_at, updated_at)
+         VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21, $22, $23, $24, $25, $26)`,
         [
           client.id,
           client.first_name,
@@ -422,6 +431,10 @@ class DatabaseAdapter {
           client.additional_docs_required,
           client.notes || null,
           JSON.stringify(client.additional_documents || []),
+          JSON.stringify((client as any).requested_documents || []),
+          (client as any).requested_documents_reminder_duration_days || 10,
+          (client as any).requested_documents_reminder_interval_days || 3,
+          (client as any).requested_documents_last_reminder_date || null,
           client.created_at,
           client.updated_at,
         ]
@@ -470,6 +483,14 @@ class DatabaseAdapter {
       additional_documents: typeof row.additional_documents === 'string' 
         ? JSON.parse(row.additional_documents) 
         : row.additional_documents,
+      requested_documents: typeof row.requested_documents === 'string' 
+        ? JSON.parse(row.requested_documents) 
+        : (row.requested_documents || []),
+      requested_documents_reminder_duration_days: row.requested_documents_reminder_duration_days || 10,
+      requested_documents_reminder_interval_days: row.requested_documents_reminder_interval_days || 3,
+      requested_documents_last_reminder_date: row.requested_documents_last_reminder_date 
+        ? row.requested_documents_last_reminder_date.toISOString() 
+        : undefined,
       application_date: row.application_date ? row.application_date.toISOString() : undefined,
       custom_reminder_date: row.custom_reminder_date ? row.custom_reminder_date.toISOString() : undefined,
       created_at: row.created_at.toISOString(),
@@ -504,12 +525,16 @@ class DatabaseAdapter {
         additional_docs_required: data.additional_docs_required,
         notes: data.notes,
         additional_documents: data.additional_documents,
+        requested_documents: (data as any).requested_documents,
+        requested_documents_reminder_duration_days: (data as any).requested_documents_reminder_duration_days,
+        requested_documents_reminder_interval_days: (data as any).requested_documents_reminder_interval_days,
+        requested_documents_last_reminder_date: (data as any).requested_documents_last_reminder_date,
       };
 
       for (const [key, value] of Object.entries(fields)) {
         if (value !== undefined) {
           updates.push(`${key} = $${paramCount++}`);
-          if (['required_documents', 'payment', 'notifications', 'additional_documents'].includes(key)) {
+          if (['required_documents', 'payment', 'notifications', 'additional_documents', 'requested_documents'].includes(key)) {
             values.push(JSON.stringify(value));
           } else {
             values.push(value);

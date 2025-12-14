@@ -372,5 +372,161 @@ router.delete('/:id/additional-documents/:documentId', async (req, res) => {
   }
 });
 
+// Add requested document (only for submitted clients)
+router.post('/:id/requested-documents', async (req, res) => {
+  try {
+    const client = await memoryDb.getClient(req.params.id);
+    if (!client) {
+      return res.status(404).json({ error: 'Client not found' });
+    }
+
+    if (!client.submitted_to_immigration) {
+      return res.status(400).json({ error: 'Client must be submitted to immigration before adding requested documents' });
+    }
+
+    const { name, description } = req.body;
+    if (!name || typeof name !== 'string' || !name.trim()) {
+      return res.status(400).json({ error: 'Document name is required' });
+    }
+
+    const requestedDocs = client.requested_documents || [];
+    const code = `req_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+    const newDoc = {
+      code,
+      name: name.trim(),
+      description: description?.trim() || undefined,
+      submitted: false,
+      requestedAt: new Date().toISOString(),
+    };
+
+    requestedDocs.push(newDoc);
+
+    const updated = await memoryDb.updateClient(req.params.id, {
+      requested_documents: requestedDocs,
+    } as any);
+
+    res.json(updated);
+  } catch (error: any) {
+    res.status(500).json({ error: error.message || 'Failed to add requested document' });
+  }
+});
+
+// Upload file for requested document
+router.post('/:id/requested-documents/:code/upload', upload.single('file'), async (req, res) => {
+  try {
+    if (!req.file) {
+      return res.status(400).json({ error: 'No file uploaded' });
+    }
+
+    const client = await memoryDb.getClient(req.params.id);
+    if (!client) {
+      return res.status(404).json({ error: 'Client not found' });
+    }
+
+    if (!client.submitted_to_immigration) {
+      return res.status(400).json({ error: 'Client must be submitted to immigration' });
+    }
+
+    const requestedDocs = client.requested_documents || [];
+    const docIndex = requestedDocs.findIndex((d: any) => d.code === req.params.code);
+    if (docIndex === -1) {
+      return res.status(404).json({ error: 'Requested document not found' });
+    }
+
+    const fileUrl = await uploadFile(req.file, `clients/${req.params.id}/requested/${req.params.code}`);
+
+    requestedDocs[docIndex] = {
+      ...requestedDocs[docIndex],
+      submitted: true,
+      fileUrl,
+      fileName: req.file.originalname,
+      fileSize: req.file.size,
+      uploadedAt: new Date().toISOString(),
+    };
+
+    const updated = await memoryDb.updateClient(req.params.id, {
+      requested_documents: requestedDocs,
+    } as any);
+
+    res.json(updated);
+  } catch (error: any) {
+    res.status(500).json({ error: error.message || 'Failed to upload requested document' });
+  }
+});
+
+// Remove requested document
+router.delete('/:id/requested-documents/:code', async (req, res) => {
+  try {
+    const client = await memoryDb.getClient(req.params.id);
+    if (!client) {
+      return res.status(404).json({ error: 'Client not found' });
+    }
+
+    const requestedDocs = (client.requested_documents || []).filter(
+      (d: any) => d.code !== req.params.code
+    );
+
+    const docToRemove = client.requested_documents?.find((d: any) => d.code === req.params.code);
+    if (docToRemove && docToRemove.fileUrl && docToRemove.fileUrl.startsWith('/uploads/')) {
+      deleteFile(docToRemove.fileUrl).catch(err => {
+        console.error('Error deleting file:', err);
+      });
+    }
+
+    const updated = await memoryDb.updateClient(req.params.id, {
+      requested_documents: requestedDocs,
+    } as any);
+
+    res.json(updated);
+  } catch (error: any) {
+    res.status(500).json({ error: error.message || 'Failed to remove requested document' });
+  }
+});
+
+// Set requested documents reminder duration
+router.put('/:id/requested-documents-reminder-duration', async (req, res) => {
+  try {
+    const { durationDays } = req.body;
+    if (!durationDays || typeof durationDays !== 'number' || durationDays < 1 || durationDays > 365) {
+      return res.status(400).json({ error: 'Duration must be between 1 and 365 days' });
+    }
+
+    const client = await memoryDb.getClient(req.params.id);
+    if (!client) {
+      return res.status(404).json({ error: 'Client not found' });
+    }
+
+    if (!client.submitted_to_immigration) {
+      return res.status(400).json({ error: 'Client must be submitted to immigration' });
+    }
+
+    const updated = await memoryDb.updateClient(req.params.id, {
+      requested_documents_reminder_duration_days: durationDays,
+    } as any);
+
+    res.json(updated);
+  } catch (error: any) {
+    res.status(500).json({ error: error.message || 'Failed to update reminder duration' });
+  }
+});
+
+// Update last reminder date for requested documents
+router.put('/:id/requested-documents-last-reminder', async (req, res) => {
+  try {
+    const client = await memoryDb.getClient(req.params.id);
+    if (!client) {
+      return res.status(404).json({ error: 'Client not found' });
+    }
+
+    const updated = await memoryDb.updateClient(req.params.id, {
+      requested_documents_last_reminder_date: new Date().toISOString(),
+    } as any);
+
+    res.json(updated);
+  } catch (error: any) {
+    res.status(500).json({ error: error.message || 'Failed to update last reminder date' });
+  }
+});
+
 export default router;
 

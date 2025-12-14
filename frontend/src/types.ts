@@ -21,6 +21,18 @@ export interface RequiredDocument {
   isOptional?: boolean; // If true, document is optional for this client
 }
 
+export interface RequestedDocument {
+  code: string;
+  name: string;
+  description?: string;
+  submitted?: boolean;
+  fileUrl?: string;
+  uploadedAt?: string;
+  fileName?: string;
+  fileSize?: number;
+  requestedAt?: string; // When the document was requested by administration
+}
+
 export interface Client {
   id: string;
   first_name: string;
@@ -42,6 +54,10 @@ export interface Client {
   additional_docs_required: boolean;
   notes?: string;
   additional_documents?: AdditionalDocument[];
+  requested_documents?: RequestedDocument[]; // Documents requested by administration
+  requested_documents_reminder_duration_days?: number; // Duration for requested documents (default 10)
+  requested_documents_reminder_interval_days?: number; // Reminder interval for requested documents (default 3)
+  requested_documents_last_reminder_date?: string; // Last reminder date for requested documents
   created_at: string;
   updated_at: string;
 }
