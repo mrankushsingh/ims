@@ -201,19 +201,25 @@ export default function Dashboard() {
 
         <div 
           onClick={() => setShowAwaitingModal(true)}
-          className="glass-gold rounded-2xl p-5 sm:p-6 glass-hover animate-slide-up cursor-pointer transition-all duration-200 hover:shadow-xl border-2 border-green-300"
-          style={{ animationDelay: '0.3s' }}
+          className="rounded-2xl p-5 sm:p-6 animate-slide-up cursor-pointer transition-all duration-200 hover:shadow-xl border-2 border-green-400"
+          style={{ 
+            animationDelay: '0.3s',
+            background: 'linear-gradient(135deg, rgba(34, 197, 94, 0.15) 0%, rgba(22, 163, 74, 0.2) 50%, rgba(34, 197, 94, 0.15) 100%)',
+            backdropFilter: 'blur(20px) saturate(180%)',
+            WebkitBackdropFilter: 'blur(20px) saturate(180%)',
+            boxShadow: '0 8px 32px 0 rgba(34, 197, 94, 0.2), inset 0 1px 0 rgba(255, 255, 255, 0.2)',
+          }}
         >
           <div className="flex items-center justify-between mb-4">
-            <div className="bg-gradient-to-br from-green-100 to-green-200 p-3 rounded-xl shadow-lg">
-              <Clock className="w-6 h-6 text-green-800" />
+            <div className="bg-gradient-to-br from-green-200 to-green-300 p-3 rounded-xl shadow-lg">
+              <Clock className="w-6 h-6 text-green-900" />
             </div>
-            <span className="text-xs font-semibold text-green-700/70 uppercase tracking-wider">{t('dashboard.pending')}</span>
+            <span className="text-xs font-semibold text-green-800 uppercase tracking-wider">{t('dashboard.pending')}</span>
           </div>
-          <p className="text-4xl font-bold bg-gradient-to-r from-green-800 to-green-600 bg-clip-text text-transparent mb-2">{awaitingSubmission.length}</p>
-          <p className="text-sm text-green-700/70 font-medium leading-relaxed mb-2">{t('dashboard.awaitingSubmission')}</p>
+          <p className="text-4xl font-bold bg-gradient-to-r from-green-900 to-green-700 bg-clip-text text-transparent mb-2">{awaitingSubmission.length}</p>
+          <p className="text-sm text-green-800 font-medium leading-relaxed mb-2">{t('dashboard.awaitingSubmission')}</p>
           {awaitingSubmission.length > 0 && (
-            <p className="text-xs text-green-600 font-semibold">{t('dashboard.clickToView')}</p>
+            <p className="text-xs text-green-700 font-semibold">{t('dashboard.clickToView')}</p>
           )}
         </div>
 
@@ -276,19 +282,25 @@ export default function Dashboard() {
         {/* URGENTES Box */}
         <div 
           onClick={() => setShowUrgentesModal(true)}
-          className="glass-gold rounded-2xl p-5 sm:p-6 glass-hover animate-slide-up cursor-pointer transition-all duration-200 hover:shadow-xl border-2 border-red-400"
-          style={{ animationDelay: '0.7s' }}
+          className="rounded-2xl p-5 sm:p-6 animate-slide-up cursor-pointer transition-all duration-200 hover:shadow-xl border-2 border-red-500"
+          style={{ 
+            animationDelay: '0.7s',
+            background: 'linear-gradient(135deg, rgba(239, 68, 68, 0.15) 0%, rgba(220, 38, 38, 0.2) 50%, rgba(239, 68, 68, 0.15) 100%)',
+            backdropFilter: 'blur(20px) saturate(180%)',
+            WebkitBackdropFilter: 'blur(20px) saturate(180%)',
+            boxShadow: '0 8px 32px 0 rgba(239, 68, 68, 0.2), inset 0 1px 0 rgba(255, 255, 255, 0.2)',
+          }}
         >
           <div className="flex items-center justify-between mb-4">
-            <div className="bg-gradient-to-br from-red-200 to-red-300 p-3 rounded-xl shadow-lg">
-              <AlertTriangle className="w-6 h-6 text-red-900" />
+            <div className="bg-gradient-to-br from-red-300 to-red-400 p-3 rounded-xl shadow-lg">
+              <AlertTriangle className="w-6 h-6 text-red-950" />
             </div>
-            <span className="text-xs font-semibold text-red-800/80 uppercase tracking-wider">{t('dashboard.urgentes')}</span>
+            <span className="text-xs font-semibold text-red-900 uppercase tracking-wider">{t('dashboard.urgentes')}</span>
           </div>
-          <p className="text-4xl font-bold bg-gradient-to-r from-red-900 to-red-700 bg-clip-text text-transparent mb-2">{urgentes.length}</p>
-          <p className="text-sm text-red-800/80 font-medium leading-relaxed mb-2">{t('dashboard.urgentesDesc')}</p>
+          <p className="text-4xl font-bold bg-gradient-to-r from-red-950 to-red-800 bg-clip-text text-transparent mb-2">{urgentes.length}</p>
+          <p className="text-sm text-red-900 font-medium leading-relaxed mb-2">{t('dashboard.urgentesDesc')}</p>
           {urgentes.length > 0 && (
-            <p className="text-xs text-red-700 font-semibold">{t('dashboard.clickToView')}</p>
+            <p className="text-xs text-red-800 font-semibold">{t('dashboard.clickToView')}</p>
           )}
         </div>
 
