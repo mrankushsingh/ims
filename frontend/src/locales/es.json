@@ -84,7 +84,9 @@
     "urgentes": "URGENTES",
     "urgentesDesc": "Trámites que se deben hacer en 72h max",
     "pagos": "PAGOS",
-    "pagosDesc": "Pagos pendientes"
+    "pagosDesc": "Pagos pendientes",
+    "aportarDocumentacion": "APORTAR DOCUMENTACIÓN",
+    "aportarDocumentacionDesc": "Aportar documentación que falta al expediente"
   },
   "templates": {
     "title": "Plantillas de Casos",

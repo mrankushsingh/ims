@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { FileText, Users, CheckCircle, Clock, Send, X, AlertCircle, AlertTriangle, Gavel, DollarSign } from 'lucide-react';
+import { FileText, Users, CheckCircle, Clock, Send, X, AlertCircle, AlertTriangle, Gavel, DollarSign, FilePlus } from 'lucide-react';
 import { api } from '../utils/api';
 import { CaseTemplate, Client } from '../types';
 import ClientDetailsModal from './ClientDetailsModal';
@@ -13,6 +13,7 @@ export default function Dashboard() {
   const [showReadyToSubmitModal, setShowReadyToSubmitModal] = useState(false);
   const [showAwaitingModal, setShowAwaitingModal] = useState(false);
   const [showSubmittedModal, setShowSubmittedModal] = useState(false);
+  const [showAportarDocumentacionModal, setShowAportarDocumentacionModal] = useState(false);
   const [showRequerimientoModal, setShowRequerimientoModal] = useState(false);
   const [showRecursoModal, setShowRecursoModal] = useState(false);
   const [showUrgentesModal, setShowUrgentesModal] = useState(false);
@@ -20,6 +21,7 @@ export default function Dashboard() {
   const [, forceUpdate] = useState({});
   
   // Explicitly reference modal states to satisfy TypeScript
+  void showAportarDocumentacionModal;
   void showRequerimientoModal;
   void showRecursoModal;
   void showUrgentesModal;
@@ -72,6 +74,13 @@ export default function Dashboard() {
   });
   // Clients with incomplete documents (pending documentation)
   const awaitingSubmission = clients.filter((client) => {
+    if (client.submitted_to_immigration) return false;
+    const requiredDocs = client.required_documents?.filter((d: any) => !d.isOptional) || [];
+    return requiredDocs.length > 0 && requiredDocs.some((d: any) => !d.submitted);
+  });
+  
+  // APORTAR DOCUMENTACIÓN: Clients that need to add missing documents (not submitted, has missing required docs)
+  const aportarDocumentacion = clients.filter((client) => {
     if (client.submitted_to_immigration) return false;
     const requiredDocs = client.required_documents?.filter((d: any) => !d.isOptional) || [];
     return requiredDocs.length > 0 && requiredDocs.some((d: any) => !d.submitted);
@@ -241,11 +250,28 @@ export default function Dashboard() {
           <p className="text-xs text-amber-600 font-semibold">{t('dashboard.clickToView')}</p>
         </div>
 
+        {/* APORTAR DOCUMENTACIÓN Box */}
+        <div 
+          onClick={() => setShowAportarDocumentacionModal(true)}
+          className="glass-gold rounded-2xl p-5 sm:p-6 glass-hover animate-slide-up cursor-pointer transition-all duration-200 hover:shadow-xl"
+          style={{ animationDelay: '0.5s' }}
+        >
+          <div className="flex items-center justify-between mb-4">
+            <div className="bg-gradient-to-br from-amber-100 to-amber-200 p-3 rounded-xl shadow-lg">
+              <FilePlus className="w-6 h-6 text-amber-800" />
+            </div>
+            <span className="text-xs font-semibold text-amber-700/70 uppercase tracking-wider">{t('dashboard.aportarDocumentacion')}</span>
+          </div>
+          <p className="text-4xl font-bold bg-gradient-to-r from-amber-800 to-amber-600 bg-clip-text text-transparent mb-2">{aportarDocumentacion.length}</p>
+          <p className="text-sm text-amber-700/70 font-medium leading-relaxed mb-2">{t('dashboard.aportarDocumentacionDesc')}</p>
+          <p className="text-xs text-amber-600 font-semibold">{t('dashboard.clickToView')}</p>
+        </div>
+
         {/* REQUERIMIENTO Box */}
         <div 
           onClick={() => setShowRequerimientoModal(true)}
           className="glass-gold rounded-2xl p-5 sm:p-6 glass-hover animate-slide-up cursor-pointer transition-all duration-200 hover:shadow-xl"
-          style={{ animationDelay: '0.5s' }}
+          style={{ animationDelay: '0.6s' }}
         >
           <div className="flex items-center justify-between mb-4">
             <div className="bg-gradient-to-br from-amber-100 to-amber-200 p-3 rounded-xl shadow-lg">
@@ -264,7 +290,7 @@ export default function Dashboard() {
         <div 
           onClick={() => setShowRecursoModal(true)}
           className="glass-gold rounded-2xl p-5 sm:p-6 glass-hover animate-slide-up cursor-pointer transition-all duration-200 hover:shadow-xl"
-          style={{ animationDelay: '0.6s' }}
+          style={{ animationDelay: '0.7s' }}
         >
           <div className="flex items-center justify-between mb-4">
             <div className="bg-gradient-to-br from-amber-100 to-amber-200 p-3 rounded-xl shadow-lg">
@@ -284,7 +310,7 @@ export default function Dashboard() {
           onClick={() => setShowUrgentesModal(true)}
           className="rounded-2xl p-5 sm:p-6 animate-slide-up cursor-pointer transition-all duration-200 hover:shadow-xl border-2 border-red-500"
           style={{ 
-            animationDelay: '0.7s',
+            animationDelay: '0.8s',
             background: 'linear-gradient(135deg, rgba(239, 68, 68, 0.15) 0%, rgba(220, 38, 38, 0.2) 50%, rgba(239, 68, 68, 0.15) 100%)',
             backdropFilter: 'blur(20px) saturate(180%)',
             WebkitBackdropFilter: 'blur(20px) saturate(180%)',
