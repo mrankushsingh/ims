@@ -24,6 +24,7 @@
     "password": "Contraseña",
     "emailPlaceholder": "Ingrese su correo electrónico",
     "passwordPlaceholder": "Ingrese su contraseña",
+    "signIn": "Iniciar Sesión",
     "signingIn": "Iniciando sesión...",
     "invalidCredentials": "Correo electrónico o contraseña inválidos. Por favor, intente nuevamente.",
     "noAccount": "No se encontró ninguna cuenta con este correo electrónico.",

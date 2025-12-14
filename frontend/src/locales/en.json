@@ -24,6 +24,7 @@
     "password": "Password",
     "emailPlaceholder": "Enter your email",
     "passwordPlaceholder": "Enter your password",
+    "signIn": "Sign In",
     "signingIn": "Signing in...",
     "invalidCredentials": "Invalid email or password. Please try again.",
     "noAccount": "No account found with this email.",
