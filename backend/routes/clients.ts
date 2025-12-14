@@ -433,14 +433,39 @@ router.post('/:id/requested-documents/:code/upload', upload.single('file'), asyn
       return res.status(404).json({ error: 'Requested document not found' });
     }
 
-    const fileUrl = await uploadFile(req.file, `clients/${req.params.id}/requested/${req.params.code}`);
+    const file = req.file;
+    let fileUrl: string;
+    let fileName: string;
+
+    if (isUsingBucketStorage()) {
+      // Railway bucket: use file buffer
+      const ext = extname(file.originalname);
+      const uniqueSuffix = `${Date.now()}_${Math.round(Math.random() * 1E9)}`;
+      const name = file.originalname.replace(ext, '').replace(/[^a-zA-Z0-9]/g, '_');
+      fileName = `${name}_${uniqueSuffix}${ext}`;
+      
+      // Upload to Railway bucket
+      fileUrl = await uploadFile(file.buffer, `clients/${req.params.id}/requested/${fileName}`, file.mimetype);
+    } else {
+      // Local filesystem: multer already saved the file, just use the filename
+      fileName = file.filename || file.originalname;
+      fileUrl = `/uploads/${fileName}`;
+    }
+
+    // Delete old file if exists
+    const oldDoc = requestedDocs[docIndex];
+    if (oldDoc.fileUrl && oldDoc.fileUrl.startsWith('/uploads/')) {
+      deleteFile(oldDoc.fileUrl).catch(err => {
+        console.error('Error deleting old file:', err);
+      });
+    }
 
     requestedDocs[docIndex] = {
       ...requestedDocs[docIndex],
       submitted: true,
       fileUrl,
-      fileName: req.file.originalname,
-      fileSize: req.file.size,
+      fileName: file.originalname,
+      fileSize: file.size,
       uploadedAt: new Date().toISOString(),
     };
 
