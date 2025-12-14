@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { FileText, Users, CheckCircle, Clock, Send, X, AlertCircle } from 'lucide-react';
+import { FileText, Users, CheckCircle, Clock, Send, X, AlertCircle, AlertTriangle, Gavel, DollarSign } from 'lucide-react';
 import { api } from '../utils/api';
 import { CaseTemplate, Client } from '../types';
 import ClientDetailsModal from './ClientDetailsModal';
@@ -13,6 +13,10 @@ export default function Dashboard() {
   const [showReadyToSubmitModal, setShowReadyToSubmitModal] = useState(false);
   const [showAwaitingModal, setShowAwaitingModal] = useState(false);
   const [showSubmittedModal, setShowSubmittedModal] = useState(false);
+  const [showRequerimientoModal, setShowRequerimientoModal] = useState(false);
+  const [showRecursoModal, setShowRecursoModal] = useState(false);
+  const [showUrgentesModal, setShowUrgentesModal] = useState(false);
+  const [showPagosModal, setShowPagosModal] = useState(false);
   const [, forceUpdate] = useState({});
 
   useEffect(() => {
@@ -66,6 +70,79 @@ export default function Dashboard() {
     const requiredDocs = client.required_documents?.filter((d: any) => !d.isOptional) || [];
     return requiredDocs.length > 0 && requiredDocs.some((d: any) => !d.submitted);
   });
+  
+  // REQUERIMIENTO: Clients with pending requested documents (submitted clients with pending requested docs)
+  const requerimiento = clients.filter((client) => {
+    if (!client.submitted_to_immigration) return false;
+    const requestedDocs = client.requested_documents || [];
+    return requestedDocs.length > 0 && requestedDocs.some((d: any) => !d.submitted);
+  });
+  
+  // RECURSO: Clients that need to file an appeal (placeholder - can be expanded later)
+  // For now, this could be clients with expired administrative silence or specific status
+  const recurso = clients.filter((client) => {
+    if (!client.submitted_to_immigration || !client.application_date) return false;
+    // Check if administrative silence has expired (could indicate need for appeal)
+    const appDate = new Date(client.application_date);
+    const silenceDays = client.administrative_silence_days || 60;
+    const silenceEndDate = new Date(appDate);
+    silenceEndDate.setDate(silenceEndDate.getDate() + silenceDays);
+    const now = new Date();
+    // If silence period has expired, might need appeal
+    return now > silenceEndDate;
+  });
+  
+  // URGENTES: Clients with urgent deadlines within 72 hours
+  const urgentes = clients.filter((client) => {
+    const now = new Date();
+    const hours72 = 72 * 60 * 60 * 1000; // 72 hours in milliseconds
+    
+    // Check custom reminder date
+    if (client.custom_reminder_date) {
+      const reminderDate = new Date(client.custom_reminder_date);
+      const timeDiff = reminderDate.getTime() - now.getTime();
+      if (timeDiff > 0 && timeDiff <= hours72) return true;
+    }
+    
+    // Check requested documents deadline
+    if (client.submitted_to_immigration && client.requested_documents) {
+      const requestedDocs = client.requested_documents || [];
+      const pendingDocs = requestedDocs.filter((d: any) => !d.submitted);
+      if (pendingDocs.length > 0) {
+        const durationDays = client.requested_documents_reminder_duration_days || 10;
+        const lastRequestDate = pendingDocs[0]?.requestedAt 
+          ? new Date(pendingDocs[0].requestedAt)
+          : client.application_date 
+            ? new Date(client.application_date)
+            : null;
+        if (lastRequestDate) {
+          const deadline = new Date(lastRequestDate);
+          deadline.setDate(deadline.getDate() + durationDays);
+          const timeDiff = deadline.getTime() - now.getTime();
+          if (timeDiff > 0 && timeDiff <= hours72) return true;
+        }
+      }
+    }
+    
+    // Check administrative silence expiring soon
+    if (client.submitted_to_immigration && client.application_date) {
+      const appDate = new Date(client.application_date);
+      const silenceDays = client.administrative_silence_days || 60;
+      const silenceEndDate = new Date(appDate);
+      silenceEndDate.setDate(silenceEndDate.getDate() + silenceDays);
+      const timeDiff = silenceEndDate.getTime() - now.getTime();
+      if (timeDiff > 0 && timeDiff <= hours72) return true;
+    }
+    
+    return false;
+  });
+  
+  // PAGOS: Clients with pending payments
+  const pagos = clients.filter((client) => {
+    const totalFee = client.payment?.totalFee || 0;
+    const paidAmount = client.payment?.paidAmount || 0;
+    return totalFee > paidAmount;
+  });
 
   return (
     <div className="space-y-8 animate-fade-in">
@@ -77,7 +154,7 @@ export default function Dashboard() {
       </div>
 
       {/* Stats Cards */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-4 sm:gap-6">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-4 sm:gap-6">
         <div className="glass-gold rounded-2xl p-5 sm:p-6 glass-hover animate-slide-up">
           <div className="flex items-center justify-between mb-4">
             <div className="bg-gradient-to-br from-amber-100 to-amber-200 p-3 rounded-xl shadow-lg">

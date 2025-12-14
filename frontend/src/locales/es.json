@@ -76,7 +76,15 @@
     "daysRemaining": "días restantes",
     "expired": "Vencido",
     "daysAgo": "hace días",
-    "expiringSoon": "⚠️ {days} días restantes"
+    "expiringSoon": "⚠️ {days} días restantes",
+    "requerimiento": "REQUERIMIENTO",
+    "requerimientoDesc": "Pendiente Aportar y subsanar expediente",
+    "recurso": "RECURSO",
+    "recursoDesc": "Pendiente Presentar recurso de Reposición o Contencioso",
+    "urgentes": "URGENTES",
+    "urgentesDesc": "Trámites que se deben hacer en 72h max",
+    "pagos": "PAGOS",
+    "pagosDesc": "Pagos pendientes"
   },
   "templates": {
     "title": "Plantillas de Casos",
