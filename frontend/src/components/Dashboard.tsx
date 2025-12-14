@@ -201,18 +201,20 @@ export default function Dashboard() {
 
         <div 
           onClick={() => setShowAwaitingModal(true)}
-          className="glass-gold rounded-2xl p-5 sm:p-6 glass-hover animate-slide-up cursor-pointer transition-all duration-200 hover:shadow-xl"
+          className="glass-gold rounded-2xl p-5 sm:p-6 glass-hover animate-slide-up cursor-pointer transition-all duration-200 hover:shadow-xl border-2 border-green-300"
           style={{ animationDelay: '0.3s' }}
         >
           <div className="flex items-center justify-between mb-4">
-            <div className="bg-gradient-to-br from-amber-100 to-amber-200 p-3 rounded-xl shadow-lg">
-              <Clock className="w-6 h-6 text-amber-800" />
+            <div className="bg-gradient-to-br from-green-100 to-green-200 p-3 rounded-xl shadow-lg">
+              <Clock className="w-6 h-6 text-green-800" />
             </div>
-            <span className="text-xs font-semibold text-amber-700/70 uppercase tracking-wider">{t('dashboard.pending')}</span>
+            <span className="text-xs font-semibold text-green-700/70 uppercase tracking-wider">{t('dashboard.pending')}</span>
           </div>
-          <p className="text-4xl font-bold bg-gradient-to-r from-amber-800 to-amber-600 bg-clip-text text-transparent mb-2">{awaitingSubmission.length}</p>
-          <p className="text-sm text-amber-700/70 font-medium leading-relaxed mb-2">{t('dashboard.awaitingSubmission')}</p>
-          <p className="text-xs text-amber-600 font-semibold">{t('dashboard.clickToView')}</p>
+          <p className="text-4xl font-bold bg-gradient-to-r from-green-800 to-green-600 bg-clip-text text-transparent mb-2">{awaitingSubmission.length}</p>
+          <p className="text-sm text-green-700/70 font-medium leading-relaxed mb-2">{t('dashboard.awaitingSubmission')}</p>
+          {awaitingSubmission.length > 0 && (
+            <p className="text-xs text-green-600 font-semibold">{t('dashboard.clickToView')}</p>
+          )}
         </div>
 
         <div 
@@ -274,19 +276,19 @@ export default function Dashboard() {
         {/* URGENTES Box */}
         <div 
           onClick={() => setShowUrgentesModal(true)}
-          className="glass-gold rounded-2xl p-5 sm:p-6 glass-hover animate-slide-up cursor-pointer transition-all duration-200 hover:shadow-xl border-2 border-red-300"
+          className="glass-gold rounded-2xl p-5 sm:p-6 glass-hover animate-slide-up cursor-pointer transition-all duration-200 hover:shadow-xl border-2 border-red-400"
           style={{ animationDelay: '0.7s' }}
         >
           <div className="flex items-center justify-between mb-4">
-            <div className="bg-gradient-to-br from-red-100 to-red-200 p-3 rounded-xl shadow-lg">
-              <AlertTriangle className="w-6 h-6 text-red-800" />
+            <div className="bg-gradient-to-br from-red-200 to-red-300 p-3 rounded-xl shadow-lg">
+              <AlertTriangle className="w-6 h-6 text-red-900" />
             </div>
-            <span className="text-xs font-semibold text-red-700/70 uppercase tracking-wider">{t('dashboard.urgentes')}</span>
+            <span className="text-xs font-semibold text-red-800/80 uppercase tracking-wider">{t('dashboard.urgentes')}</span>
           </div>
-          <p className="text-4xl font-bold bg-gradient-to-r from-red-800 to-red-600 bg-clip-text text-transparent mb-2">{urgentes.length}</p>
-          <p className="text-sm text-red-700/70 font-medium leading-relaxed mb-2">{t('dashboard.urgentesDesc')}</p>
+          <p className="text-4xl font-bold bg-gradient-to-r from-red-900 to-red-700 bg-clip-text text-transparent mb-2">{urgentes.length}</p>
+          <p className="text-sm text-red-800/80 font-medium leading-relaxed mb-2">{t('dashboard.urgentesDesc')}</p>
           {urgentes.length > 0 && (
-            <p className="text-xs text-red-600 font-semibold">{t('dashboard.clickToView')}</p>
+            <p className="text-xs text-red-700 font-semibold">{t('dashboard.clickToView')}</p>
           )}
         </div>
 
@@ -762,7 +764,7 @@ export default function Dashboard() {
 
             {awaitingSubmission.length === 0 ? (
               <div className="text-center py-12">
-                <CheckCircle className="w-16 h-16 text-emerald-400 mx-auto mb-4" />
+                <CheckCircle className="w-16 h-16 text-green-400 mx-auto mb-4" />
                 <p className="text-slate-500 font-medium text-lg">{t('dashboard.allSubmitted')}</p>
                 <p className="text-sm text-slate-400 mt-1">{t('dashboard.noAwaiting')}</p>
               </div>
@@ -775,11 +777,11 @@ export default function Dashboard() {
                       setSelectedClient(client);
                       setShowAwaitingModal(false);
                     }}
-                    className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 p-4 sm:p-5 bg-amber-50 rounded-xl hover:bg-amber-100 border-2 border-amber-200 transition-all duration-200 group cursor-pointer hover:border-amber-300 hover:shadow-md"
+                    className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 p-4 sm:p-5 bg-green-50 rounded-xl hover:bg-green-100 border-2 border-green-200 transition-all duration-200 group cursor-pointer hover:border-green-300 hover:shadow-md"
                   >
                     <div className="flex items-center space-x-4 flex-1">
-                      <div className="bg-amber-200 group-hover:bg-amber-300 p-2.5 rounded-lg transition-colors flex-shrink-0">
-                        <AlertCircle className="w-5 h-5 text-amber-700" />
+                      <div className="bg-green-200 group-hover:bg-green-300 p-2.5 rounded-lg transition-colors flex-shrink-0">
+                        <AlertCircle className="w-5 h-5 text-green-700" />
                       </div>
                       <div className="flex-1 min-w-0">
                         <p className="font-semibold text-slate-900 text-base sm:text-lg group-hover:text-slate-700 transition-colors truncate">
