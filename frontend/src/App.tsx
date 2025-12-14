@@ -101,32 +101,42 @@ function App() {
       <header 
         className="sticky top-0 z-50 border-b"
         style={{
-          background: 'linear-gradient(135deg, rgba(180, 83, 9, 0.85) 0%, rgba(154, 52, 18, 0.9) 50%, rgba(180, 83, 9, 0.85) 100%)',
+          background: 'linear-gradient(135deg, rgba(0, 0, 0, 0.95) 0%, rgba(17, 24, 39, 0.98) 25%, rgba(0, 0, 0, 0.95) 50%, rgba(17, 24, 39, 0.98) 75%, rgba(0, 0, 0, 0.95) 100%)',
           backdropFilter: 'blur(30px) saturate(180%)',
           WebkitBackdropFilter: 'blur(30px) saturate(180%)',
-          borderColor: 'rgba(245, 158, 11, 0.3)',
-          boxShadow: '0 8px 32px 0 rgba(0, 0, 0, 0.2), inset 0 1px 0 rgba(255, 255, 255, 0.1)',
+          borderColor: 'rgba(255, 255, 255, 0.1)',
+          boxShadow: '0 8px 32px 0 rgba(0, 0, 0, 0.5), inset 0 1px 0 rgba(255, 255, 255, 0.15), 0 0 40px rgba(0, 0, 0, 0.3)',
+          position: 'relative',
         }}
       >
+        {/* Shine effect overlay */}
+        <div 
+          className="absolute inset-0 pointer-events-none"
+          style={{
+            background: 'linear-gradient(135deg, transparent 0%, rgba(255, 255, 255, 0.03) 25%, transparent 50%, rgba(255, 255, 255, 0.05) 75%, transparent 100%)',
+            backgroundSize: '200% 200%',
+            animation: 'shine 3s ease-in-out infinite',
+          }}
+        />
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between h-16 sm:h-20">
             {/* Logo */}
             <div className="flex items-center space-x-3 sm:space-x-4">
               <Logo size="md" animated={true} />
               <div className="hidden sm:block">
-                <p className="text-xs text-amber-200/80 font-medium uppercase tracking-wider">Immigration Case Manager</p>
+                <p className="text-xs text-white/70 font-medium uppercase tracking-wider">Immigration Case Manager</p>
               </div>
             </div>
             
             {/* Desktop Navigation */}
             <div className="hidden md:flex items-center space-x-3">
-              <nav className="flex space-x-2 bg-amber-900/40 backdrop-blur-sm p-1.5 rounded-xl border border-amber-700/30">
+              <nav className="flex space-x-2 bg-black/30 backdrop-blur-sm p-1.5 rounded-xl border border-white/10">
                 <button
                   onClick={() => setCurrentView('dashboard')}
                   className={`px-4 sm:px-5 py-2.5 rounded-lg font-semibold text-sm transition-all duration-200 ${
                     currentView === 'dashboard'
                       ? 'bg-gradient-to-r from-yellow-500 to-amber-500 text-amber-900 shadow-lg shadow-yellow-500/30 scale-105'
-                      : 'text-amber-100 hover:bg-amber-800/50 hover:text-white'
+                      : 'text-white/80 hover:bg-white/10 hover:text-white'
                   }`}
                 >
                   <div className="flex items-center space-x-2">
@@ -139,7 +149,7 @@ function App() {
                   className={`px-4 sm:px-5 py-2.5 rounded-lg font-semibold text-sm transition-all duration-200 ${
                     currentView === 'templates'
                       ? 'bg-gradient-to-r from-yellow-500 to-amber-500 text-amber-900 shadow-lg shadow-yellow-500/30 scale-105'
-                      : 'text-amber-100 hover:bg-amber-800/50 hover:text-white'
+                      : 'text-white/80 hover:bg-white/10 hover:text-white'
                   }`}
                 >
                   <div className="flex items-center space-x-2">
@@ -152,7 +162,7 @@ function App() {
                   className={`px-4 sm:px-5 py-2.5 rounded-lg font-semibold text-sm transition-all duration-200 ${
                     currentView === 'clients'
                       ? 'bg-gradient-to-r from-yellow-500 to-amber-500 text-amber-900 shadow-lg shadow-yellow-500/30 scale-105'
-                      : 'text-amber-100 hover:bg-amber-800/50 hover:text-white'
+                      : 'text-white/80 hover:bg-white/10 hover:text-white'
                   }`}
                 >
                   <div className="flex items-center space-x-2">
@@ -166,7 +176,7 @@ function App() {
               {/* Logout Button */}
               <button
                 onClick={handleLogout}
-                className="p-2 text-amber-100 hover:bg-amber-800/50 hover:text-white rounded-lg transition-colors"
+                className="p-2 text-white/80 hover:bg-white/10 hover:text-white rounded-lg transition-colors"
                 title={t('common.signOut')}
               >
                 <LogOut className="w-5 h-5" />
@@ -179,7 +189,7 @@ function App() {
               <Notifications onClientClick={setSelectedClient} />
               <button
                 onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-                className="p-2 text-amber-100 hover:bg-amber-800/50 rounded-lg transition-colors"
+                className="p-2 text-white/80 hover:bg-white/10 rounded-lg transition-colors"
                 aria-label="Toggle menu"
               >
                 {mobileMenuOpen ? (
@@ -193,7 +203,7 @@ function App() {
 
                 {/* Mobile Navigation */}
                 {mobileMenuOpen && (
-                  <div className="md:hidden border-t border-amber-700/30 pt-4 pb-4 animate-fade-in">
+                  <div className="md:hidden border-t border-white/10 pt-4 pb-4 animate-fade-in">
                     <nav className="flex flex-col space-y-2">
                       <button
                         onClick={() => {
@@ -203,7 +213,7 @@ function App() {
                         className={`w-full px-4 py-3 rounded-lg font-semibold text-sm transition-all duration-200 text-left ${
                           currentView === 'dashboard'
                             ? 'bg-gradient-to-r from-yellow-500 to-amber-500 text-amber-900 shadow-lg'
-                            : 'text-amber-100 hover:bg-amber-800/50'
+                            : 'text-white/80 hover:bg-white/10'
                         }`}
                       >
                         <div className="flex items-center space-x-3">
@@ -219,7 +229,7 @@ function App() {
                         className={`w-full px-4 py-3 rounded-lg font-semibold text-sm transition-all duration-200 text-left ${
                           currentView === 'templates'
                             ? 'bg-gradient-to-r from-yellow-500 to-amber-500 text-amber-900 shadow-lg'
-                            : 'text-amber-100 hover:bg-amber-800/50'
+                            : 'text-white/80 hover:bg-white/10'
                         }`}
                       >
                         <div className="flex items-center space-x-3">
@@ -235,7 +245,7 @@ function App() {
                         className={`w-full px-4 py-3 rounded-lg font-semibold text-sm transition-all duration-200 text-left ${
                           currentView === 'clients'
                             ? 'bg-gradient-to-r from-yellow-500 to-amber-500 text-amber-900 shadow-lg'
-                            : 'text-amber-100 hover:bg-amber-800/50'
+                            : 'text-white/80 hover:bg-white/10'
                         }`}
                       >
                         <div className="flex items-center space-x-3">
