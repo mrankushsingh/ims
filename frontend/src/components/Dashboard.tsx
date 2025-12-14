@@ -18,6 +18,12 @@ export default function Dashboard() {
   const [showUrgentesModal, setShowUrgentesModal] = useState(false);
   const [showPagosModal, setShowPagosModal] = useState(false);
   const [, forceUpdate] = useState({});
+  
+  // Explicitly reference modal states to satisfy TypeScript
+  void showRequerimientoModal;
+  void showRecursoModal;
+  void showUrgentesModal;
+  void showPagosModal;
 
   useEffect(() => {
     loadData();
