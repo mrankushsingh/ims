@@ -253,7 +253,7 @@ function App() {
                           <span>{t('common.clients')}</span>
                         </div>
                       </button>
-                      <div className="pt-2 border-t border-amber-700/30 mt-2">
+                      <div className="pt-2 border-t border-white/10 mt-2">
                         <button
                           onClick={() => {
                             handleLogout();
