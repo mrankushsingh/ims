@@ -162,6 +162,37 @@ class DatabaseAdapter {
         END $$;
       `);
 
+      // Add requested_documents columns if they don't exist (for existing databases)
+      await this.pool.query(`
+        DO $$ 
+        BEGIN
+          IF NOT EXISTS (
+            SELECT 1 FROM information_schema.columns
+              WHERE table_name = 'clients' AND column_name = 'requested_documents'
+          ) THEN
+            ALTER TABLE clients ADD COLUMN requested_documents JSONB;
+          END IF;
+          IF NOT EXISTS (
+            SELECT 1 FROM information_schema.columns
+              WHERE table_name = 'clients' AND column_name = 'requested_documents_reminder_duration_days'
+          ) THEN
+            ALTER TABLE clients ADD COLUMN requested_documents_reminder_duration_days INTEGER DEFAULT 10;
+          END IF;
+          IF NOT EXISTS (
+            SELECT 1 FROM information_schema.columns
+              WHERE table_name = 'clients' AND column_name = 'requested_documents_reminder_interval_days'
+          ) THEN
+            ALTER TABLE clients ADD COLUMN requested_documents_reminder_interval_days INTEGER DEFAULT 3;
+          END IF;
+          IF NOT EXISTS (
+            SELECT 1 FROM information_schema.columns
+              WHERE table_name = 'clients' AND column_name = 'requested_documents_last_reminder_date'
+          ) THEN
+            ALTER TABLE clients ADD COLUMN requested_documents_last_reminder_date TIMESTAMP;
+          END IF;
+        END $$;
+      `);
+
       console.log('✅ PostgreSQL database initialized and tables created');
     } catch (error: any) {
       console.error('❌ Error initializing PostgreSQL:', error.message);
