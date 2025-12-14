@@ -15,12 +15,24 @@ export default function Login({ onLoginSuccess }: LoginProps) {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [showPassword, setShowPassword] = useState(false);
+  const [, forceUpdate] = useState({});
 
   // Check if Firebase is configured on mount
   useEffect(() => {
     if (!isFirebaseAvailable()) {
       setError(t('login.firebaseNotConfigured'));
     }
+  }, []);
+
+  useEffect(() => {
+    // Listen for language changes to force re-render
+    const handleLanguageChange = () => {
+      forceUpdate({});
+    };
+    window.addEventListener('languagechange', handleLanguageChange);
+    return () => {
+      window.removeEventListener('languagechange', handleLanguageChange);
+    };
   }, []);
 
   const handleSubmit = async (e: React.FormEvent) => {

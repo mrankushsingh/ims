@@ -14,9 +14,21 @@ export default function Clients() {
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [selectedClient, setSelectedClient] = useState<Client | null>(null);
   const [deleteConfirm, setDeleteConfirm] = useState<{ client: Client | null; isOpen: boolean }>({ client: null, isOpen: false });
+  const [, forceUpdate] = useState({});
 
   useEffect(() => {
     loadClients();
+  }, []);
+
+  useEffect(() => {
+    // Listen for language changes to force re-render
+    const handleLanguageChange = () => {
+      forceUpdate({});
+    };
+    window.addEventListener('languagechange', handleLanguageChange);
+    return () => {
+      window.removeEventListener('languagechange', handleLanguageChange);
+    };
   }, []);
 
   const loadClients = async () => {

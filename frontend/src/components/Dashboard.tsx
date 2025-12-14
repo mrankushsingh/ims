@@ -13,9 +13,21 @@ export default function Dashboard() {
   const [showReadyToSubmitModal, setShowReadyToSubmitModal] = useState(false);
   const [showAwaitingModal, setShowAwaitingModal] = useState(false);
   const [showSubmittedModal, setShowSubmittedModal] = useState(false);
+  const [, forceUpdate] = useState({});
 
   useEffect(() => {
     loadData();
+  }, []);
+
+  useEffect(() => {
+    // Listen for language changes to force re-render
+    const handleLanguageChange = () => {
+      forceUpdate({});
+    };
+    window.addEventListener('languagechange', handleLanguageChange);
+    return () => {
+      window.removeEventListener('languagechange', handleLanguageChange);
+    };
   }, []);
 
   const loadData = async () => {

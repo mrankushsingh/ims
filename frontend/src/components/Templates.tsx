@@ -13,9 +13,21 @@ export default function Templates() {
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [editingTemplate, setEditingTemplate] = useState<CaseTemplate | null>(null);
   const [deleteConfirm, setDeleteConfirm] = useState<{ templateId: string | null; templateName: string; isOpen: boolean }>({ templateId: null, templateName: '', isOpen: false });
+  const [, forceUpdate] = useState({});
 
   useEffect(() => {
     loadTemplates();
+  }, []);
+
+  useEffect(() => {
+    // Listen for language changes to force re-render
+    const handleLanguageChange = () => {
+      forceUpdate({});
+    };
+    window.addEventListener('languagechange', handleLanguageChange);
+    return () => {
+      window.removeEventListener('languagechange', handleLanguageChange);
+    };
   }, []);
 
   const loadTemplates = async () => {

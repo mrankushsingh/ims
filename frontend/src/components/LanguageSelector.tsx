@@ -1,15 +1,21 @@
 import { Globe } from 'lucide-react';
 import { useState, useRef, useEffect } from 'react';
-import { getLanguage, setLanguage, availableLanguages, languageNames, type Language } from '../utils/i18n';
+import { getLanguage, setLanguage, availableLanguages, languageNames, onLanguageChange, type Language } from '../utils/i18n';
 
 export default function LanguageSelector() {
   const [isOpen, setIsOpen] = useState(false);
   const [currentLang, setCurrentLang] = useState<Language>(getLanguage());
+  const [, forceUpdate] = useState({});
   const dropdownRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    // Update when language changes externally
-    setCurrentLang(getLanguage());
+    // Listen for language changes
+    const unsubscribe = onLanguageChange(() => {
+      setCurrentLang(getLanguage());
+      // Force re-render by updating state
+      forceUpdate({});
+    });
+    return unsubscribe;
   }, []);
 
   useEffect(() => {
@@ -32,8 +38,8 @@ export default function LanguageSelector() {
     setLanguage(lang);
     setCurrentLang(lang);
     setIsOpen(false);
-    // Reload page to apply translations
-    window.location.reload();
+    // Trigger a custom event to notify all components to re-render
+    window.dispatchEvent(new CustomEvent('languagechange'));
   };
 
   return (

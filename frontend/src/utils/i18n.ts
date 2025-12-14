@@ -10,19 +10,31 @@ const translations: Record<Language, any> = {
 
 let currentLanguage: Language = 'en';
 
-  // Load language from localStorage
-  if (typeof window !== 'undefined') {
-    const savedLanguage = localStorage.getItem('app_language') as Language;
-    if (savedLanguage && (savedLanguage === 'en' || savedLanguage === 'es')) {
-      currentLanguage = savedLanguage;
-    }
+// Language change listeners
+const languageChangeListeners = new Set<() => void>();
+
+// Load language from localStorage
+if (typeof window !== 'undefined') {
+  const savedLanguage = localStorage.getItem('app_language') as Language;
+  if (savedLanguage && (savedLanguage === 'en' || savedLanguage === 'es')) {
+    currentLanguage = savedLanguage;
   }
+}
 
 export function setLanguage(lang: Language) {
   currentLanguage = lang;
   if (typeof window !== 'undefined') {
     localStorage.setItem('app_language', lang);
+    // Notify all listeners about language change
+    languageChangeListeners.forEach(listener => listener());
   }
+}
+
+export function onLanguageChange(callback: () => void) {
+  languageChangeListeners.add(callback);
+  return () => {
+    languageChangeListeners.delete(callback);
+  };
 }
 
 export function getLanguage(): Language {

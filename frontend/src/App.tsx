@@ -54,6 +54,17 @@ function App() {
     };
   }, []);
 
+  useEffect(() => {
+    // Listen for language changes to force re-render
+    const handleLanguageChange = () => {
+      forceUpdate({});
+    };
+    window.addEventListener('languagechange', handleLanguageChange);
+    return () => {
+      window.removeEventListener('languagechange', handleLanguageChange);
+    };
+  }, []);
+
   const handleCloseToast = (id: string) => {
     setToasts((prev) => prev.filter((toast) => toast.id !== id));
   };
