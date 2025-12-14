@@ -21,6 +21,7 @@ function App() {
   const [selectedClient, setSelectedClient] = useState<Client | null>(null);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [toasts, setToasts] = useState<Toast[]>([]);
+  const [, forceUpdate] = useState({});
 
   useEffect(() => {
     // Check if Firebase is available
