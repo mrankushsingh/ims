@@ -480,6 +480,64 @@ export default function Dashboard() {
         )}
       </div>
 
+      {/* APORTAR DOCUMENTACIÓN Modal */}
+      {showAportarDocumentacionModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
+          <div className="bg-white rounded-2xl max-w-4xl w-full max-h-[90vh] overflow-hidden flex flex-col">
+            <div className="p-6 border-b border-gray-200 bg-gradient-to-r from-amber-50 to-amber-100">
+              <div className="flex items-center justify-between">
+                <div>
+                  <h2 className="text-2xl font-bold text-amber-900">{t('dashboard.aportarDocumentacion')}</h2>
+                  <p className="text-amber-700 mt-1">{t('dashboard.aportarDocumentacionDesc')}</p>
+                </div>
+                <button
+                  onClick={() => setShowAportarDocumentacionModal(false)}
+                  className="p-2 text-gray-400 hover:text-gray-600 rounded-lg transition-colors"
+                >
+                  <X className="w-6 h-6" />
+                </button>
+              </div>
+            </div>
+            <div className="flex-1 overflow-y-auto p-6">
+              {aportarDocumentacion.length === 0 ? (
+                <div className="text-center py-12">
+                  <FilePlus className="w-16 h-16 mx-auto text-amber-400 mb-4" />
+                  <p className="text-gray-500 font-medium text-lg">{t('dashboard.allSubmitted')}</p>
+                  <p className="text-sm text-gray-400 mt-1">Todos los documentos requeridos han sido proporcionados</p>
+                </div>
+              ) : (
+                <div className="space-y-4">
+                  {aportarDocumentacion.map((client) => {
+                    const missingDocs = (client.required_documents || []).filter((d: any) => !d.submitted && !d.isOptional);
+                    return (
+                      <div
+                        key={client.id}
+                        onClick={() => {
+                          setSelectedClient(client);
+                          setShowAportarDocumentacionModal(false);
+                        }}
+                        className="p-4 border-2 border-amber-200 rounded-xl hover:border-amber-300 hover:shadow-md transition-all cursor-pointer bg-gradient-to-br from-amber-50 to-white"
+                      >
+                        <div className="flex items-center justify-between">
+                          <div className="flex-1">
+                            <h3 className="font-bold text-amber-900 text-lg">{client.first_name} {client.last_name}</h3>
+                            <p className="text-sm text-amber-700 mt-1">{client.case_type || 'No template'}</p>
+                            <p className="text-xs text-amber-600 mt-2">
+                              {missingDocs.length} documento(s) faltante(s): {missingDocs.map((d: any) => d.name).join(', ')}
+                            </p>
+                          </div>
+                          <FilePlus className="w-6 h-6 text-amber-600 ml-4" />
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* REQUERIMIENTO Modal */}
       {showRequerimientoModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
