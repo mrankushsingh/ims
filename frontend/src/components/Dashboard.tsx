@@ -10,6 +10,7 @@ export default function Dashboard() {
   const [clients, setClients] = useState<Client[]>([]);
   const [loading, setLoading] = useState(true);
   const [selectedClient, setSelectedClient] = useState<Client | null>(null);
+  const [showReadyToSubmitModal, setShowReadyToSubmitModal] = useState(false);
   const [showAwaitingModal, setShowAwaitingModal] = useState(false);
   const [showSubmittedModal, setShowSubmittedModal] = useState(false);
 
@@ -40,13 +41,19 @@ export default function Dashboard() {
     );
   }
 
-  const totalDocs = clients.reduce((sum, client) => sum + (client.required_documents?.filter((d: any) => !d.isOptional).length || 0), 0);
-  const submittedDocs = clients.reduce(
-    (sum, client) => sum + (client.required_documents?.filter((d: any) => d.submitted && !d.isOptional).length || 0),
-    0
-  );
   const submittedToAdmin = clients.filter((client) => client.submitted_to_immigration);
-  const awaitingSubmission = clients.filter((client) => !client.submitted_to_immigration);
+  // Clients ready to submit (all documents complete, not yet submitted)
+  const readyToSubmit = clients.filter((client) => {
+    if (client.submitted_to_immigration) return false;
+    const requiredDocs = client.required_documents?.filter((d: any) => !d.isOptional) || [];
+    return requiredDocs.length > 0 && requiredDocs.every((d: any) => d.submitted);
+  });
+  // Clients with incomplete documents (pending documentation)
+  const awaitingSubmission = clients.filter((client) => {
+    if (client.submitted_to_immigration) return false;
+    const requiredDocs = client.required_documents?.filter((d: any) => !d.isOptional) || [];
+    return requiredDocs.length > 0 && requiredDocs.some((d: any) => !d.submitted);
+  });
 
   return (
     <div className="space-y-8 animate-fade-in">
@@ -81,15 +88,20 @@ export default function Dashboard() {
           <p className="text-sm text-amber-700/70 font-medium">{t('dashboard.totalClients')}</p>
         </div>
 
-        <div className="glass-gold rounded-2xl p-6 glass-hover animate-slide-up" style={{ animationDelay: '0.2s' }}>
+        <div 
+          onClick={() => setShowReadyToSubmitModal(true)}
+          className="glass-gold rounded-2xl p-6 glass-hover animate-slide-up cursor-pointer"
+          style={{ animationDelay: '0.2s' }}
+        >
           <div className="flex items-center justify-between mb-4">
             <div className="bg-gradient-to-br from-green-100 to-emerald-200 p-3 rounded-xl shadow-lg">
               <CheckCircle className="w-6 h-6 text-emerald-700" />
             </div>
-            <span className="text-xs font-semibold text-amber-700/70 uppercase tracking-wider">{t('dashboard.submitted')}</span>
+            <span className="text-xs font-semibold text-amber-700/70 uppercase tracking-wider">{t('dashboard.readyToSubmit')}</span>
           </div>
-          <p className="text-4xl font-bold bg-gradient-to-r from-amber-800 to-amber-600 bg-clip-text text-transparent mb-1">{submittedDocs}/{totalDocs}</p>
-          <p className="text-sm text-amber-700/70 font-medium">{t('dashboard.documentsCompleted')}</p>
+          <p className="text-4xl font-bold bg-gradient-to-r from-amber-800 to-amber-600 bg-clip-text text-transparent mb-1">{readyToSubmit.length}</p>
+          <p className="text-sm text-amber-700/70 font-medium">{t('dashboard.readyToSubmitDesc')}</p>
+          <p className="text-xs text-amber-600 mt-2 font-semibold">{t('dashboard.clickToView')}</p>
         </div>
 
         <div 
@@ -265,6 +277,71 @@ export default function Dashboard() {
             loadData();
           }}
         />
+      )}
+
+      {/* Ready to Submit Modal */}
+      {showReadyToSubmitModal && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-2 sm:p-4 animate-fade-in overflow-y-auto">
+          <div className="bg-white rounded-xl sm:rounded-2xl p-4 sm:p-6 max-w-4xl w-full max-h-[95vh] sm:max-h-[90vh] overflow-y-auto shadow-2xl animate-scale-in my-4 sm:my-8">
+            <div className="flex justify-between items-center mb-6">
+              <div>
+                <h2 className="text-2xl font-bold text-slate-900">{t('dashboard.readyToSubmitTitle')}</h2>
+                <p className="text-slate-600 mt-1">{t('dashboard.readyToSubmitDesc')}</p>
+              </div>
+              <button
+                onClick={() => setShowReadyToSubmitModal(false)}
+                className="p-2 text-gray-600 hover:bg-gray-100 rounded-lg transition-colors"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            {readyToSubmit.length === 0 ? (
+              <div className="text-center py-12">
+                <CheckCircle className="w-16 h-16 text-emerald-400 mx-auto mb-4" />
+                <p className="text-slate-500 font-medium text-lg">{t('dashboard.allSubmitted')}</p>
+                <p className="text-sm text-slate-400 mt-1">{t('dashboard.noAwaiting')}</p>
+              </div>
+            ) : (
+              <div className="space-y-3">
+                {readyToSubmit.map((client) => (
+                  <div
+                    key={client.id}
+                    onClick={() => {
+                      setSelectedClient(client);
+                      setShowReadyToSubmitModal(false);
+                    }}
+                    className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 p-4 sm:p-5 bg-emerald-50 rounded-xl hover:bg-emerald-100 border-2 border-emerald-200 transition-all duration-200 group cursor-pointer hover:border-emerald-300 hover:shadow-md"
+                  >
+                    <div className="flex items-center space-x-4 flex-1">
+                      <div className="bg-emerald-200 group-hover:bg-emerald-300 p-2.5 rounded-lg transition-colors flex-shrink-0">
+                        <CheckCircle className="w-5 h-5 text-emerald-700" />
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <p className="font-semibold text-slate-900 text-base sm:text-lg group-hover:text-slate-700 transition-colors truncate">
+                          {client.first_name} {client.last_name}
+                        </p>
+                        <p className="text-xs sm:text-sm text-slate-600 truncate mt-1">{client.case_type || t('clients.noTemplate')}</p>
+                      </div>
+                    </div>
+                    <div className="text-left sm:text-right flex-shrink-0">
+                      <div className="inline-flex items-center space-x-2 bg-white px-3 sm:px-4 py-2 rounded-lg border border-emerald-200">
+                        <span className="text-base sm:text-lg font-bold text-emerald-700">
+                          {client.required_documents?.filter((d: any) => d.submitted).length || 0}
+                        </span>
+                        <span className="text-slate-400">/</span>
+                        <span className="text-base sm:text-lg font-semibold text-slate-600">
+                          {client.required_documents?.length || 0}
+                        </span>
+                      </div>
+                      <p className="text-xs text-emerald-600 mt-1 font-medium">{t('dashboard.documents')}</p>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        </div>
       )}
 
       {/* Awaiting Submission Modal */}
