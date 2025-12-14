@@ -434,6 +434,234 @@ export default function Dashboard() {
         )}
       </div>
 
+      {/* REQUERIMIENTO Modal */}
+      {showRequerimientoModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
+          <div className="bg-white rounded-2xl max-w-4xl w-full max-h-[90vh] overflow-hidden flex flex-col">
+            <div className="p-6 border-b border-gray-200 bg-gradient-to-r from-amber-50 to-amber-100">
+              <div className="flex items-center justify-between">
+                <div>
+                  <h2 className="text-2xl font-bold text-amber-900">{t('dashboard.requerimiento')}</h2>
+                  <p className="text-amber-700 mt-1">{t('dashboard.requerimientoDesc')}</p>
+                </div>
+                <button
+                  onClick={() => setShowRequerimientoModal(false)}
+                  className="p-2 text-gray-400 hover:text-gray-600 rounded-lg transition-colors"
+                >
+                  <X className="w-6 h-6" />
+                </button>
+              </div>
+            </div>
+            <div className="flex-1 overflow-y-auto p-6">
+              {requerimiento.length === 0 ? (
+                <div className="text-center py-12">
+                  <AlertCircle className="w-16 h-16 mx-auto text-amber-400 mb-4" />
+                  <p className="text-gray-500 font-medium text-lg">{t('dashboard.allSubmitted')}</p>
+                  <p className="text-sm text-gray-400 mt-1">Todos los documentos solicitados han sido proporcionados</p>
+                </div>
+              ) : (
+                <div className="space-y-4">
+                  {requerimiento.map((client) => {
+                    const pendingDocs = (client.requested_documents || []).filter((d: any) => !d.submitted);
+                    return (
+                      <div
+                        key={client.id}
+                        onClick={() => {
+                          setSelectedClient(client);
+                          setShowRequerimientoModal(false);
+                        }}
+                        className="p-4 border-2 border-amber-200 rounded-xl hover:border-amber-300 hover:shadow-md transition-all cursor-pointer bg-gradient-to-br from-amber-50 to-white"
+                      >
+                        <div className="flex items-center justify-between">
+                          <div className="flex-1">
+                            <h3 className="font-bold text-amber-900 text-lg">{client.first_name} {client.last_name}</h3>
+                            <p className="text-sm text-amber-700 mt-1">{client.case_type || 'No template'}</p>
+                            <p className="text-xs text-amber-600 mt-2">
+                              {pendingDocs.length} documento(s) pendiente(s): {pendingDocs.map((d: any) => d.name).join(', ')}
+                            </p>
+                          </div>
+                          <AlertCircle className="w-6 h-6 text-amber-600 ml-4" />
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* RECURSO Modal */}
+      {showRecursoModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
+          <div className="bg-white rounded-2xl max-w-4xl w-full max-h-[90vh] overflow-hidden flex flex-col">
+            <div className="p-6 border-b border-gray-200 bg-gradient-to-r from-amber-50 to-amber-100">
+              <div className="flex items-center justify-between">
+                <div>
+                  <h2 className="text-2xl font-bold text-amber-900">{t('dashboard.recurso')}</h2>
+                  <p className="text-amber-700 mt-1">{t('dashboard.recursoDesc')}</p>
+                </div>
+                <button
+                  onClick={() => setShowRecursoModal(false)}
+                  className="p-2 text-gray-400 hover:text-gray-600 rounded-lg transition-colors"
+                >
+                  <X className="w-6 h-6" />
+                </button>
+              </div>
+            </div>
+            <div className="flex-1 overflow-y-auto p-6">
+              {recurso.length === 0 ? (
+                <div className="text-center py-12">
+                  <Gavel className="w-16 h-16 mx-auto text-amber-400 mb-4" />
+                  <p className="text-gray-500 font-medium text-lg">No hay recursos pendientes</p>
+                  <p className="text-sm text-gray-400 mt-1">No hay casos que requieran presentar recurso</p>
+                </div>
+              ) : (
+                <div className="space-y-4">
+                  {recurso.map((client) => (
+                    <div
+                      key={client.id}
+                      onClick={() => {
+                        setSelectedClient(client);
+                        setShowRecursoModal(false);
+                      }}
+                      className="p-4 border-2 border-amber-200 rounded-xl hover:border-amber-300 hover:shadow-md transition-all cursor-pointer bg-gradient-to-br from-amber-50 to-white"
+                    >
+                      <div className="flex items-center justify-between">
+                        <div className="flex-1">
+                          <h3 className="font-bold text-amber-900 text-lg">{client.first_name} {client.last_name}</h3>
+                          <p className="text-sm text-amber-700 mt-1">{client.case_type || 'No template'}</p>
+                          {client.application_date && (
+                            <p className="text-xs text-amber-600 mt-2">
+                              Presentado: {new Date(client.application_date).toLocaleDateString()}
+                            </p>
+                          )}
+                        </div>
+                        <Gavel className="w-6 h-6 text-amber-600 ml-4" />
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* URGENTES Modal */}
+      {showUrgentesModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
+          <div className="bg-white rounded-2xl max-w-4xl w-full max-h-[90vh] overflow-hidden flex flex-col">
+            <div className="p-6 border-b border-gray-200 bg-gradient-to-r from-red-50 to-red-100">
+              <div className="flex items-center justify-between">
+                <div>
+                  <h2 className="text-2xl font-bold text-red-900">{t('dashboard.urgentes')}</h2>
+                  <p className="text-red-700 mt-1">{t('dashboard.urgentesDesc')}</p>
+                </div>
+                <button
+                  onClick={() => setShowUrgentesModal(false)}
+                  className="p-2 text-gray-400 hover:text-gray-600 rounded-lg transition-colors"
+                >
+                  <X className="w-6 h-6" />
+                </button>
+              </div>
+            </div>
+            <div className="flex-1 overflow-y-auto p-6">
+              {urgentes.length === 0 ? (
+                <div className="text-center py-12">
+                  <AlertTriangle className="w-16 h-16 mx-auto text-red-400 mb-4" />
+                  <p className="text-gray-500 font-medium text-lg">No hay trámites urgentes</p>
+                  <p className="text-sm text-gray-400 mt-1">Todos los trámites están al día</p>
+                </div>
+              ) : (
+                <div className="space-y-4">
+                  {urgentes.map((client) => (
+                    <div
+                      key={client.id}
+                      onClick={() => {
+                        setSelectedClient(client);
+                        setShowUrgentesModal(false);
+                      }}
+                      className="p-4 border-2 border-red-300 rounded-xl hover:border-red-400 hover:shadow-md transition-all cursor-pointer bg-gradient-to-br from-red-50 to-white"
+                    >
+                      <div className="flex items-center justify-between">
+                        <div className="flex-1">
+                          <h3 className="font-bold text-red-900 text-lg">{client.first_name} {client.last_name}</h3>
+                          <p className="text-sm text-red-700 mt-1">{client.case_type || 'No template'}</p>
+                          <p className="text-xs text-red-600 mt-2 font-semibold">⚠️ Acción requerida en menos de 72 horas</p>
+                        </div>
+                        <AlertTriangle className="w-6 h-6 text-red-600 ml-4" />
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* PAGOS Modal */}
+      {showPagosModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
+          <div className="bg-white rounded-2xl max-w-4xl w-full max-h-[90vh] overflow-hidden flex flex-col">
+            <div className="p-6 border-b border-gray-200 bg-gradient-to-r from-amber-50 to-amber-100">
+              <div className="flex items-center justify-between">
+                <div>
+                  <h2 className="text-2xl font-bold text-amber-900">{t('dashboard.pagos')}</h2>
+                  <p className="text-amber-700 mt-1">{t('dashboard.pagosDesc')}</p>
+                </div>
+                <button
+                  onClick={() => setShowPagosModal(false)}
+                  className="p-2 text-gray-400 hover:text-gray-600 rounded-lg transition-colors"
+                >
+                  <X className="w-6 h-6" />
+                </button>
+              </div>
+            </div>
+            <div className="flex-1 overflow-y-auto p-6">
+              {pagos.length === 0 ? (
+                <div className="text-center py-12">
+                  <DollarSign className="w-16 h-16 mx-auto text-amber-400 mb-4" />
+                  <p className="text-gray-500 font-medium text-lg">No hay pagos pendientes</p>
+                  <p className="text-sm text-gray-400 mt-1">Todos los pagos están al día</p>
+                </div>
+              ) : (
+                <div className="space-y-4">
+                  {pagos.map((client) => {
+                    const totalFee = client.payment?.totalFee || 0;
+                    const paidAmount = client.payment?.paidAmount || 0;
+                    const remaining = totalFee - paidAmount;
+                    return (
+                      <div
+                        key={client.id}
+                        onClick={() => {
+                          setSelectedClient(client);
+                          setShowPagosModal(false);
+                        }}
+                        className="p-4 border-2 border-amber-200 rounded-xl hover:border-amber-300 hover:shadow-md transition-all cursor-pointer bg-gradient-to-br from-amber-50 to-white"
+                      >
+                        <div className="flex items-center justify-between">
+                          <div className="flex-1">
+                            <h3 className="font-bold text-amber-900 text-lg">{client.first_name} {client.last_name}</h3>
+                            <p className="text-sm text-amber-700 mt-1">{client.case_type || 'No template'}</p>
+                            <p className="text-xs text-amber-600 mt-2 font-semibold">
+                              Pendiente: €{remaining.toFixed(2)} / Total: €{totalFee.toFixed(2)}
+                            </p>
+                          </div>
+                          <DollarSign className="w-6 h-6 text-amber-600 ml-4" />
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
+
       {selectedClient && (
         <ClientDetailsModal
           client={selectedClient}
