@@ -78,76 +78,76 @@ export default function Dashboard() {
 
       {/* Stats Cards */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-4 sm:gap-6">
-        <div className="glass-gold rounded-xl sm:rounded-2xl p-4 sm:p-6 glass-hover animate-slide-up">
+        <div className="glass-gold rounded-2xl p-5 sm:p-6 glass-hover animate-slide-up">
           <div className="flex items-center justify-between mb-4">
             <div className="bg-gradient-to-br from-amber-100 to-amber-200 p-3 rounded-xl shadow-lg">
               <FileText className="w-6 h-6 text-amber-800" />
             </div>
             <span className="text-xs font-semibold text-amber-700/70 uppercase tracking-wider">{t('dashboard.templates')}</span>
           </div>
-          <p className="text-4xl font-bold bg-gradient-to-r from-amber-800 to-amber-600 bg-clip-text text-transparent mb-1">{templates.length}</p>
-          <p className="text-sm text-amber-700/70 font-medium">{t('dashboard.activeTemplates')}</p>
+          <p className="text-4xl font-bold bg-gradient-to-r from-amber-800 to-amber-600 bg-clip-text text-transparent mb-2">{templates.length}</p>
+          <p className="text-sm text-amber-700/70 font-medium leading-relaxed">{t('dashboard.activeTemplates')}</p>
         </div>
 
-        <div className="glass-gold rounded-2xl p-6 glass-hover animate-slide-up" style={{ animationDelay: '0.1s' }}>
+        <div className="glass-gold rounded-2xl p-5 sm:p-6 glass-hover animate-slide-up" style={{ animationDelay: '0.1s' }}>
           <div className="flex items-center justify-between mb-4">
-            <div className="bg-gradient-to-br from-yellow-100 to-amber-200 p-3 rounded-xl shadow-lg">
+            <div className="bg-gradient-to-br from-amber-100 to-amber-200 p-3 rounded-xl shadow-lg">
               <Users className="w-6 h-6 text-amber-800" />
             </div>
             <span className="text-xs font-semibold text-amber-700/70 uppercase tracking-wider">{t('dashboard.clients')}</span>
           </div>
-          <p className="text-4xl font-bold bg-gradient-to-r from-amber-800 to-amber-600 bg-clip-text text-transparent mb-1">{clients.length}</p>
-          <p className="text-sm text-amber-700/70 font-medium">{t('dashboard.totalClients')}</p>
+          <p className="text-4xl font-bold bg-gradient-to-r from-amber-800 to-amber-600 bg-clip-text text-transparent mb-2">{clients.length}</p>
+          <p className="text-sm text-amber-700/70 font-medium leading-relaxed">{t('dashboard.totalClients')}</p>
         </div>
 
         <div 
           onClick={() => setShowReadyToSubmitModal(true)}
-          className="glass-gold rounded-2xl p-6 glass-hover animate-slide-up cursor-pointer"
+          className="glass-gold rounded-2xl p-5 sm:p-6 glass-hover animate-slide-up cursor-pointer transition-all duration-200 hover:shadow-xl"
           style={{ animationDelay: '0.2s' }}
         >
           <div className="flex items-center justify-between mb-4">
-            <div className="bg-gradient-to-br from-green-100 to-emerald-200 p-3 rounded-xl shadow-lg">
-              <CheckCircle className="w-6 h-6 text-emerald-700" />
+            <div className="bg-gradient-to-br from-amber-100 to-amber-200 p-3 rounded-xl shadow-lg">
+              <CheckCircle className="w-6 h-6 text-amber-800" />
             </div>
             <span className="text-xs font-semibold text-amber-700/70 uppercase tracking-wider">{t('dashboard.readyToSubmit')}</span>
           </div>
-          <p className="text-4xl font-bold bg-gradient-to-r from-amber-800 to-amber-600 bg-clip-text text-transparent mb-1">{readyToSubmit.length}</p>
-          <p className="text-sm text-amber-700/70 font-medium">{t('dashboard.readyToSubmitDesc')}</p>
-          <p className="text-xs text-amber-600 mt-2 font-semibold">{t('dashboard.clickToView')}</p>
+          <p className="text-4xl font-bold bg-gradient-to-r from-amber-800 to-amber-600 bg-clip-text text-transparent mb-2">{readyToSubmit.length}</p>
+          <p className="text-sm text-amber-700/70 font-medium leading-relaxed mb-2">{t('dashboard.readyToSubmitDesc')}</p>
+          <p className="text-xs text-amber-600 font-semibold">{t('dashboard.clickToView')}</p>
         </div>
 
         <div 
           onClick={() => setShowAwaitingModal(true)}
-          className="glass-gold rounded-2xl p-6 glass-hover animate-slide-up cursor-pointer"
+          className="glass-gold rounded-2xl p-5 sm:p-6 glass-hover animate-slide-up cursor-pointer transition-all duration-200 hover:shadow-xl"
           style={{ animationDelay: '0.3s' }}
         >
           <div className="flex items-center justify-between mb-4">
-            <div className="bg-gradient-to-br from-amber-100 to-yellow-200 p-3 rounded-xl shadow-lg">
-              <Clock className="w-6 h-6 text-amber-700" />
+            <div className="bg-gradient-to-br from-amber-100 to-amber-200 p-3 rounded-xl shadow-lg">
+              <Clock className="w-6 h-6 text-amber-800" />
             </div>
             <span className="text-xs font-semibold text-amber-700/70 uppercase tracking-wider">{t('dashboard.pending')}</span>
           </div>
-          <p className="text-4xl font-bold bg-gradient-to-r from-amber-800 to-amber-600 bg-clip-text text-transparent mb-1">{awaitingSubmission.length}</p>
-          <p className="text-sm text-amber-700/70 font-medium">{t('dashboard.awaitingSubmission')}</p>
-          <p className="text-xs text-amber-600 mt-2 font-semibold">{t('dashboard.clickToView')}</p>
+          <p className="text-4xl font-bold bg-gradient-to-r from-amber-800 to-amber-600 bg-clip-text text-transparent mb-2">{awaitingSubmission.length}</p>
+          <p className="text-sm text-amber-700/70 font-medium leading-relaxed mb-2">{t('dashboard.awaitingSubmission')}</p>
+          <p className="text-xs text-amber-600 font-semibold">{t('dashboard.clickToView')}</p>
         </div>
 
         <div 
           onClick={() => setShowSubmittedModal(true)}
-          className="glass-gold rounded-2xl p-6 glass-hover animate-slide-up cursor-pointer"
+          className="glass-gold rounded-2xl p-5 sm:p-6 glass-hover animate-slide-up cursor-pointer transition-all duration-200 hover:shadow-xl"
           style={{ animationDelay: '0.4s' }}
         >
           <div className="flex items-center justify-between mb-4">
-            <div className="bg-gradient-to-br from-indigo-100 to-purple-200 p-3 rounded-xl shadow-lg">
-              <Send className="w-6 h-6 text-indigo-700" />
+            <div className="bg-gradient-to-br from-amber-100 to-amber-200 p-3 rounded-xl shadow-lg">
+              <Send className="w-6 h-6 text-amber-800" />
             </div>
             <span className="text-xs font-semibold text-amber-700/70 uppercase tracking-wider">{t('dashboard.administrative')}</span>
           </div>
-          <p className="text-4xl font-bold bg-gradient-to-r from-amber-800 to-amber-600 bg-clip-text text-transparent mb-1">{submittedToAdmin.length}</p>
-          <p className="text-sm text-amber-700/70 font-medium">
+          <p className="text-4xl font-bold bg-gradient-to-r from-amber-800 to-amber-600 bg-clip-text text-transparent mb-2">{submittedToAdmin.length}</p>
+          <p className="text-sm text-amber-700/70 font-medium leading-relaxed mb-2">
             {submittedToAdmin.length === 1 ? t('dashboard.caseSubmitted') : t('dashboard.casesSubmitted')}
           </p>
-          <p className="text-xs text-amber-600 mt-2 font-semibold">{t('dashboard.clickToView')}</p>
+          <p className="text-xs text-amber-600 font-semibold">{t('dashboard.clickToView')}</p>
         </div>
       </div>
 
