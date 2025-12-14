@@ -226,6 +226,82 @@ export default function Dashboard() {
           </p>
           <p className="text-xs text-amber-600 font-semibold">{t('dashboard.clickToView')}</p>
         </div>
+
+        {/* REQUERIMIENTO Box */}
+        <div 
+          onClick={() => setShowRequerimientoModal(true)}
+          className="glass-gold rounded-2xl p-5 sm:p-6 glass-hover animate-slide-up cursor-pointer transition-all duration-200 hover:shadow-xl"
+          style={{ animationDelay: '0.5s' }}
+        >
+          <div className="flex items-center justify-between mb-4">
+            <div className="bg-gradient-to-br from-amber-100 to-amber-200 p-3 rounded-xl shadow-lg">
+              <AlertCircle className="w-6 h-6 text-amber-800" />
+            </div>
+            <span className="text-xs font-semibold text-amber-700/70 uppercase tracking-wider">{t('dashboard.requerimiento')}</span>
+          </div>
+          <p className="text-4xl font-bold bg-gradient-to-r from-amber-800 to-amber-600 bg-clip-text text-transparent mb-2">{requerimiento.length}</p>
+          <p className="text-sm text-amber-700/70 font-medium leading-relaxed mb-2">{t('dashboard.requerimientoDesc')}</p>
+          {requerimiento.length > 0 && (
+            <p className="text-xs text-amber-600 font-semibold">{t('dashboard.clickToView')}</p>
+          )}
+        </div>
+
+        {/* RECURSO Box */}
+        <div 
+          onClick={() => setShowRecursoModal(true)}
+          className="glass-gold rounded-2xl p-5 sm:p-6 glass-hover animate-slide-up cursor-pointer transition-all duration-200 hover:shadow-xl"
+          style={{ animationDelay: '0.6s' }}
+        >
+          <div className="flex items-center justify-between mb-4">
+            <div className="bg-gradient-to-br from-amber-100 to-amber-200 p-3 rounded-xl shadow-lg">
+              <Gavel className="w-6 h-6 text-amber-800" />
+            </div>
+            <span className="text-xs font-semibold text-amber-700/70 uppercase tracking-wider">{t('dashboard.recurso')}</span>
+          </div>
+          <p className="text-4xl font-bold bg-gradient-to-r from-amber-800 to-amber-600 bg-clip-text text-transparent mb-2">{recurso.length}</p>
+          <p className="text-sm text-amber-700/70 font-medium leading-relaxed mb-2">{t('dashboard.recursoDesc')}</p>
+          {recurso.length > 0 && (
+            <p className="text-xs text-amber-600 font-semibold">{t('dashboard.clickToView')}</p>
+          )}
+        </div>
+
+        {/* URGENTES Box */}
+        <div 
+          onClick={() => setShowUrgentesModal(true)}
+          className="glass-gold rounded-2xl p-5 sm:p-6 glass-hover animate-slide-up cursor-pointer transition-all duration-200 hover:shadow-xl border-2 border-red-300"
+          style={{ animationDelay: '0.7s' }}
+        >
+          <div className="flex items-center justify-between mb-4">
+            <div className="bg-gradient-to-br from-red-100 to-red-200 p-3 rounded-xl shadow-lg">
+              <AlertTriangle className="w-6 h-6 text-red-800" />
+            </div>
+            <span className="text-xs font-semibold text-red-700/70 uppercase tracking-wider">{t('dashboard.urgentes')}</span>
+          </div>
+          <p className="text-4xl font-bold bg-gradient-to-r from-red-800 to-red-600 bg-clip-text text-transparent mb-2">{urgentes.length}</p>
+          <p className="text-sm text-red-700/70 font-medium leading-relaxed mb-2">{t('dashboard.urgentesDesc')}</p>
+          {urgentes.length > 0 && (
+            <p className="text-xs text-red-600 font-semibold">{t('dashboard.clickToView')}</p>
+          )}
+        </div>
+
+        {/* PAGOS Box */}
+        <div 
+          onClick={() => setShowPagosModal(true)}
+          className="glass-gold rounded-2xl p-5 sm:p-6 glass-hover animate-slide-up cursor-pointer transition-all duration-200 hover:shadow-xl"
+          style={{ animationDelay: '0.8s' }}
+        >
+          <div className="flex items-center justify-between mb-4">
+            <div className="bg-gradient-to-br from-amber-100 to-amber-200 p-3 rounded-xl shadow-lg">
+              <DollarSign className="w-6 h-6 text-amber-800" />
+            </div>
+            <span className="text-xs font-semibold text-amber-700/70 uppercase tracking-wider">{t('dashboard.pagos')}</span>
+          </div>
+          <p className="text-4xl font-bold bg-gradient-to-r from-amber-800 to-amber-600 bg-clip-text text-transparent mb-2">{pagos.length}</p>
+          <p className="text-sm text-amber-700/70 font-medium leading-relaxed mb-2">{t('dashboard.pagosDesc')}</p>
+          {pagos.length > 0 && (
+            <p className="text-xs text-amber-600 font-semibold">{t('dashboard.clickToView')}</p>
+          )}
+        </div>
       </div>
 
       {/* Recent Clients */}
