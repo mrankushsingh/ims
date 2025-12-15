@@ -29,13 +29,18 @@ router.get('/me', async (req: AuthenticatedRequest, res) => {
     
     // If user doesn't exist in database, create one using info from the decoded token
     if (!user) {
+      // Check if there are any admins in the system
+      const allUsers = await memoryDb.getUsers();
+      const hasAdmin = allUsers.some(u => u.role === 'admin');
+      
       // Use the information from the decoded token (req.user) instead of fetching from Firebase Admin
       // This avoids permission issues with Firebase Admin SDK
+      // If no admins exist, make the first user an admin
       user = await memoryDb.insertUser({
         firebase_uid: req.user.uid,
         email: req.user.email || '',
         name: req.user.name || undefined,
-        role: 'user',
+        role: hasAdmin ? 'user' : 'admin', // First user becomes admin
         active: true,
         created_by: req.user.uid,
       });
@@ -126,10 +131,20 @@ router.put('/:id', async (req: AuthenticatedRequest, res) => {
       return res.status(403).json({ error: 'You can only update your own profile' });
     }
 
-    // Only admins can change roles
+    // Only admins can change roles, OR if there are no admins, allow anyone to make themselves admin
     const { role, ...updateData } = req.body;
-    if (role && currentUser.role !== 'admin') {
-      return res.status(403).json({ error: 'Only admins can change user roles' });
+    if (role) {
+      const allUsers = await memoryDb.getUsers();
+      const hasAdmin = allUsers.some(u => u.role === 'admin' && u.id !== targetUser.id);
+      
+      if (currentUser.role !== 'admin') {
+        // If no admins exist, allow user to make themselves admin
+        if (!hasAdmin && role === 'admin' && targetUser.firebase_uid === req.user.uid) {
+          // Allow this - user is making themselves the first admin
+        } else {
+          return res.status(403).json({ error: 'Only admins can change user roles' });
+        }
+      }
     }
 
     const updated = await memoryDb.updateUser(req.params.id, {

@@ -140,7 +140,11 @@
       "firebaseUid": "UID de Firebase",
       "firebaseUidPlaceholder": "Ingrese el ID de Usuario de Firebase",
       "firebaseUidHint": "Obtenga esto desde la consola de Firebase Authentication",
-      "deleteConfirm": "¿Está seguro de que desea eliminar al usuario {email}? Esta acción no se puede deshacer."
+      "deleteConfirm": "¿Está seguro de que desea eliminar al usuario {email}? Esta acción no se puede deshacer.",
+      "makeAdmin": "Hacer Administrador",
+      "removeAdmin": "Quitar Administrador",
+      "makeFirstAdmin": "Hacer Primer Administrador",
+      "canMakeFirstAdmin": "Puede hacerse el primer administrador ya que aún no existen administradores."
     }
   }
 

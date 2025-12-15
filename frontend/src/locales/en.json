@@ -139,7 +139,11 @@
       "firebaseUid": "Firebase UID",
       "firebaseUidPlaceholder": "Enter Firebase User ID",
       "firebaseUidHint": "Get this from Firebase Authentication console",
-      "deleteConfirm": "Are you sure you want to delete user {email}? This action cannot be undone."
+      "deleteConfirm": "Are you sure you want to delete user {email}? This action cannot be undone.",
+      "makeAdmin": "Make Admin",
+      "removeAdmin": "Remove Admin",
+      "makeFirstAdmin": "Make First Admin",
+      "canMakeFirstAdmin": "You can make yourself the first admin since no admins exist yet."
     }
   }
 

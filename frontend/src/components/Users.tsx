@@ -137,7 +137,21 @@ export default function Users() {
     }
   };
 
+  const handleToggleRole = async (user: User) => {
+    try {
+      const newRole = user.role === 'admin' ? 'user' : 'admin';
+      await api.updateUser(user.id, { role: newRole });
+      await loadUsers();
+      await loadCurrentUser(); // Reload current user in case we changed our own role
+      showToast(`User role changed to ${newRole} successfully`, 'success');
+    } catch (error: any) {
+      showToast(error.message || 'Failed to update user role', 'error');
+    }
+  };
+
   const isAdmin = currentUser?.role === 'admin';
+  const hasAdmin = users.some(u => u.role === 'admin');
+  const canChangeRoles = isAdmin || (!hasAdmin && currentUser?.firebase_uid); // Allow if admin, or if no admins exist
 
   if (loading) {
     return (
@@ -246,7 +260,7 @@ export default function Users() {
                 </div>
               </div>
 
-              {isAdmin && (
+              {(isAdmin || (canChangeRoles && user.firebase_uid === currentUser?.firebase_uid)) && (
                 <div className="flex items-center space-x-2 pt-4 border-t border-amber-200/50">
                   <button
                     onClick={() => handleEditUser(user)}
@@ -255,22 +269,46 @@ export default function Users() {
                     <Edit2 className="w-4 h-4" />
                     <span>{t('common.edit')}</span>
                   </button>
-                  <button
-                    onClick={() => handleToggleActive(user)}
-                    className={`px-3 py-2 rounded-lg transition-colors flex items-center justify-center space-x-2 text-sm font-semibold ${
-                      user.active
-                        ? 'bg-yellow-600 text-white hover:bg-yellow-700'
-                        : 'bg-green-600 text-white hover:bg-green-700'
-                    }`}
-                  >
-                    {user.active ? <XCircle className="w-4 h-4" /> : <CheckCircle className="w-4 h-4" />}
-                  </button>
-                  {user.firebase_uid !== currentUser?.firebase_uid && (
+                  {isAdmin && (
+                    <>
+                      <button
+                        onClick={() => handleToggleActive(user)}
+                        className={`px-3 py-2 rounded-lg transition-colors flex items-center justify-center space-x-2 text-sm font-semibold ${
+                          user.active
+                            ? 'bg-yellow-600 text-white hover:bg-yellow-700'
+                            : 'bg-green-600 text-white hover:bg-green-700'
+                        }`}
+                      >
+                        {user.active ? <XCircle className="w-4 h-4" /> : <CheckCircle className="w-4 h-4" />}
+                      </button>
+                      <button
+                        onClick={() => handleToggleRole(user)}
+                        className={`px-3 py-2 rounded-lg transition-colors flex items-center justify-center space-x-2 text-sm font-semibold ${
+                          user.role === 'admin'
+                            ? 'bg-purple-600 text-white hover:bg-purple-700'
+                            : 'bg-indigo-600 text-white hover:bg-indigo-700'
+                        }`}
+                        title={user.role === 'admin' ? t('users.removeAdmin') : t('users.makeAdmin')}
+                      >
+                        <Shield className="w-4 h-4" />
+                      </button>
+                      {user.firebase_uid !== currentUser?.firebase_uid && (
+                        <button
+                          onClick={(e) => handleDeleteUser(user, e)}
+                          className="px-3 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors flex items-center justify-center space-x-2 text-sm font-semibold"
+                        >
+                          <Trash2 className="w-4 h-4" />
+                        </button>
+                      )}
+                    </>
+                  )}
+                  {!hasAdmin && user.firebase_uid === currentUser?.firebase_uid && user.role !== 'admin' && (
                     <button
-                      onClick={(e) => handleDeleteUser(user, e)}
-                      className="px-3 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors flex items-center justify-center space-x-2 text-sm font-semibold"
+                      onClick={() => handleToggleRole(user)}
+                      className="flex-1 px-3 py-2 bg-gradient-to-r from-purple-600 to-indigo-600 text-white rounded-lg hover:from-purple-700 hover:to-indigo-700 transition-colors flex items-center justify-center space-x-2 text-sm font-semibold"
                     >
-                      <Trash2 className="w-4 h-4" />
+                      <Shield className="w-4 h-4" />
+                      <span>{t('users.makeFirstAdmin')}</span>
                     </button>
                   )}
                 </div>
@@ -367,10 +405,14 @@ export default function Users() {
                   value={userForm.role}
                   onChange={(e) => setUserForm({ ...userForm, role: e.target.value as 'admin' | 'user' })}
                   className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-amber-500 focus:border-amber-500 outline-none"
+                  disabled={!isAdmin && !hasAdmin}
                 >
                   <option value="user">{t('users.user')}</option>
                   <option value="admin">{t('users.admin')}</option>
                 </select>
+                {!isAdmin && !hasAdmin && editingUser && editingUser.firebase_uid === currentUser?.firebase_uid && (
+                  <p className="mt-1 text-xs text-amber-600">{t('users.canMakeFirstAdmin')}</p>
+                )}
               </div>
 
               <div className="flex justify-end space-x-3 pt-4">
