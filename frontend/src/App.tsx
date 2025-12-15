@@ -274,7 +274,7 @@ function App() {
       {/* Main Content */}
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 sm:py-8">
         <div className="animate-fade-in">
-          {currentView === 'dashboard' && <Dashboard />}
+          {currentView === 'dashboard' && <Dashboard onNavigate={setCurrentView} />}
           {currentView === 'templates' && <Templates />}
           {currentView === 'clients' && <Clients />}
         </div>

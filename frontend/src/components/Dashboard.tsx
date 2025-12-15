@@ -5,7 +5,11 @@ import { CaseTemplate, Client } from '../types';
 import ClientDetailsModal from './ClientDetailsModal';
 import { t } from '../utils/i18n';
 
-export default function Dashboard() {
+interface DashboardProps {
+  onNavigate?: (view: 'templates' | 'clients') => void;
+}
+
+export default function Dashboard({ onNavigate }: DashboardProps = {}) {
   const [templates, setTemplates] = useState<CaseTemplate[]>([]);
   const [clients, setClients] = useState<Client[]>([]);
   const [loading, setLoading] = useState(true);
@@ -170,7 +174,10 @@ export default function Dashboard() {
 
       {/* Stats Cards */}
       <div className="grid grid-cols-5 gap-4 sm:gap-6">
-        <div className="glass-gold rounded-2xl p-5 sm:p-6 glass-hover animate-slide-up">
+        <div 
+          onClick={() => onNavigate?.('templates')}
+          className="glass-gold rounded-2xl p-5 sm:p-6 glass-hover animate-slide-up cursor-pointer transition-all duration-200 hover:shadow-xl"
+        >
           <div className="flex items-center justify-between mb-4">
             <div className="bg-gradient-to-br from-amber-100 to-amber-200 p-3 rounded-xl shadow-lg">
               <FileText className="w-6 h-6 text-amber-800" />
@@ -179,9 +186,14 @@ export default function Dashboard() {
           </div>
           <p className="text-4xl font-bold bg-gradient-to-r from-amber-800 to-amber-600 bg-clip-text text-transparent mb-2">{templates.length}</p>
           <p className="text-sm text-amber-700/70 font-medium leading-relaxed">{t('dashboard.activeTemplates')}</p>
+          <p className="text-xs text-amber-600 font-semibold mt-2">{t('dashboard.clickToView')}</p>
         </div>
 
-        <div className="glass-gold rounded-2xl p-5 sm:p-6 glass-hover animate-slide-up" style={{ animationDelay: '0.1s' }}>
+        <div 
+          onClick={() => onNavigate?.('clients')}
+          className="glass-gold rounded-2xl p-5 sm:p-6 glass-hover animate-slide-up cursor-pointer transition-all duration-200 hover:shadow-xl"
+          style={{ animationDelay: '0.1s' }}
+        >
           <div className="flex items-center justify-between mb-4">
             <div className="bg-gradient-to-br from-amber-100 to-amber-200 p-3 rounded-xl shadow-lg">
               <Users className="w-6 h-6 text-amber-800" />
@@ -190,6 +202,7 @@ export default function Dashboard() {
           </div>
           <p className="text-4xl font-bold bg-gradient-to-r from-amber-800 to-amber-600 bg-clip-text text-transparent mb-2">{clients.length}</p>
           <p className="text-sm text-amber-700/70 font-medium leading-relaxed">{t('dashboard.totalClients')}</p>
+          <p className="text-xs text-amber-600 font-semibold mt-2">{t('dashboard.clickToView')}</p>
         </div>
 
         <div 
