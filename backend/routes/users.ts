@@ -1,7 +1,6 @@
 import { Router } from 'express';
 import { db } from '../utils/database.js';
 import { authenticateToken, AuthenticatedRequest } from '../middleware/auth.js';
-import { getFirebaseAdmin } from '../utils/firebase.js';
 
 const router = Router();
 const memoryDb = db; // For backward compatibility
@@ -28,39 +27,23 @@ router.get('/me', async (req: AuthenticatedRequest, res) => {
 
     let user = await memoryDb.getUserByFirebaseUid(req.user.uid);
     
-    // If user doesn't exist in database, create one
+    // If user doesn't exist in database, create one using info from the decoded token
     if (!user) {
-      const firebaseAdmin = getFirebaseAdmin();
-      if (firebaseAdmin) {
-        try {
-          const firebaseUser = await firebaseAdmin.auth().getUser(req.user.uid);
-          user = await memoryDb.insertUser({
-            firebase_uid: req.user.uid,
-            email: req.user.email || firebaseUser.email || '',
-            name: req.user.name || firebaseUser.displayName || undefined,
-            role: 'user',
-            active: true,
-            created_by: req.user.uid,
-          });
-        } catch (error: any) {
-          console.error('Error creating user:', error);
-          return res.status(500).json({ error: 'Failed to create user record' });
-        }
-      } else {
-        // Fallback: create user without Firebase admin
-        user = await memoryDb.insertUser({
-          firebase_uid: req.user.uid,
-          email: req.user.email || '',
-          name: req.user.name || undefined,
-          role: 'user',
-          active: true,
-          created_by: req.user.uid,
-        });
-      }
+      // Use the information from the decoded token (req.user) instead of fetching from Firebase Admin
+      // This avoids permission issues with Firebase Admin SDK
+      user = await memoryDb.insertUser({
+        firebase_uid: req.user.uid,
+        email: req.user.email || '',
+        name: req.user.name || undefined,
+        role: 'user',
+        active: true,
+        created_by: req.user.uid,
+      });
     }
 
     res.json(user);
   } catch (error: any) {
+    console.error('Error in /me route:', error);
     res.status(500).json({ error: error.message || 'Failed to fetch user' });
   }
 });
