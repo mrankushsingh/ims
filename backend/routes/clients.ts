@@ -177,11 +177,18 @@ router.delete('/:id', async (req, res) => {
 });
 
 // Upload required document
-router.post('/:id/documents/:documentCode', upload.single('file'), async (req, res) => {
+router.post('/:id/documents/:documentCode', upload.single('file'), async (req: AuthenticatedRequest, res) => {
   try {
     if (!req.file) {
       return res.status(400).json({ error: 'No file uploaded or file upload failed' });
     }
+    if (!req.user?.uid) {
+      return res.status(401).json({ error: 'User not authenticated' });
+    }
+
+    // Get user name from database
+    const user = await memoryDb.getUserByFirebaseUid(req.user.uid);
+    const userName = user?.name || user?.email || req.user.email || req.user.name || 'Unknown User';
 
     const file = req.file; // Store in const for TypeScript narrowing
     const client = await memoryDb.getClient(req.params.id);
