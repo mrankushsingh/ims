@@ -405,5 +405,92 @@ export const api = {
     if (!response.ok) throw new Error('Failed to delete client');
     return response.json();
   },
+
+  // User management
+  async getUsers() {
+    const headers = await getAuthHeaders();
+    const response = await fetch(`${API_URL}/users`, {
+      method: 'GET',
+      headers,
+    });
+    if (!response.ok) {
+      const error = await response.json().catch(() => ({ error: 'Failed to fetch users' }));
+      throw new Error(error.error || 'Failed to fetch users');
+    }
+    return response.json();
+  },
+
+  async getCurrentUser() {
+    const headers = await getAuthHeaders();
+    const response = await fetch(`${API_URL}/users/me`, {
+      method: 'GET',
+      headers,
+    });
+    if (!response.ok) {
+      const error = await response.json().catch(() => ({ error: 'Failed to fetch current user' }));
+      throw new Error(error.error || 'Failed to fetch current user');
+    }
+    return response.json();
+  },
+
+  async getUser(id: string) {
+    const headers = await getAuthHeaders();
+    const response = await fetch(`${API_URL}/users/${id}`, {
+      method: 'GET',
+      headers,
+    });
+    if (!response.ok) {
+      const error = await response.json().catch(() => ({ error: 'Failed to fetch user' }));
+      throw new Error(error.error || 'Failed to fetch user');
+    }
+    return response.json();
+  },
+
+  async createUser(data: { email: string; name?: string; role: 'admin' | 'user'; firebase_uid: string }) {
+    const headers = await getAuthHeaders();
+    const response = await fetch(`${API_URL}/users`, {
+      method: 'POST',
+      headers: {
+        ...headers,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(data),
+    });
+    if (!response.ok) {
+      const error = await response.json().catch(() => ({ error: 'Failed to create user' }));
+      throw new Error(error.error || 'Failed to create user');
+    }
+    return response.json();
+  },
+
+  async updateUser(id: string, data: { email?: string; name?: string; role?: 'admin' | 'user'; active?: boolean }) {
+    const headers = await getAuthHeaders();
+    const response = await fetch(`${API_URL}/users/${id}`, {
+      method: 'PUT',
+      headers: {
+        ...headers,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(data),
+    });
+    if (!response.ok) {
+      const error = await response.json().catch(() => ({ error: 'Failed to update user' }));
+      throw new Error(error.error || 'Failed to update user');
+    }
+    return response.json();
+  },
+
+  async deleteUser(id: string) {
+    const headers = await getAuthHeaders();
+    const response = await fetch(`${API_URL}/users/${id}`, {
+      method: 'DELETE',
+      headers,
+    });
+    if (!response.ok) {
+      const error = await response.json().catch(() => ({ error: 'Failed to delete user' }));
+      throw new Error(error.error || 'Failed to delete user');
+    }
+    return response.json();
+  },
 };
 

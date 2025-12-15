@@ -1,8 +1,9 @@
 import { useState, useEffect } from 'react';
-import { FileText, Users, LayoutDashboard, Menu, X, LogOut } from 'lucide-react';
+import { FileText, Users as UsersIcon, LayoutDashboard, Menu, X, LogOut, UserCog } from 'lucide-react';
 import Dashboard from './components/Dashboard';
 import Templates from './components/Templates';
 import Clients from './components/Clients';
+import Users from './components/Users';
 import Notifications from './components/Notifications';
 import ClientDetailsModal from './components/ClientDetailsModal';
 import Login from './components/Login';
@@ -13,7 +14,7 @@ import { onAuthChange, getCurrentUser, logout as firebaseLogout, isFirebaseAvail
 import { Client } from './types';
 import { t } from './utils/i18n';
 
-type View = 'dashboard' | 'templates' | 'clients';
+type View = 'dashboard' | 'templates' | 'clients' | 'users';
 
 function App() {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
@@ -166,8 +167,21 @@ function App() {
                   }`}
                 >
                   <div className="flex items-center space-x-2">
-                    <Users className="w-4 h-4" />
+                    <UsersIcon className="w-4 h-4" />
                     <span>{t('common.clients')}</span>
+                  </div>
+                </button>
+                <button
+                  onClick={() => setCurrentView('users')}
+                  className={`px-4 sm:px-5 py-2.5 rounded-lg font-semibold text-sm transition-all duration-200 ${
+                    currentView === 'users'
+                      ? 'bg-gradient-to-r from-yellow-500 to-amber-500 text-amber-900 shadow-lg shadow-yellow-500/30 scale-105'
+                      : 'text-white/80 hover:bg-white/10 hover:text-white'
+                  }`}
+                >
+                  <div className="flex items-center space-x-2">
+                    <UserCog className="w-4 h-4" />
+                    <span>{t('users.title')}</span>
                   </div>
                 </button>
               </nav>
@@ -249,8 +263,24 @@ function App() {
                         }`}
                       >
                         <div className="flex items-center space-x-3">
-                          <Users className="w-5 h-5" />
+                          <UsersIcon className="w-5 h-5" />
                           <span>{t('common.clients')}</span>
+                        </div>
+                      </button>
+                      <button
+                        onClick={() => {
+                          setCurrentView('users');
+                          setMobileMenuOpen(false);
+                        }}
+                        className={`w-full px-4 py-3 rounded-lg font-semibold text-sm transition-all duration-200 text-left ${
+                          currentView === 'users'
+                            ? 'bg-gradient-to-r from-yellow-500 to-amber-500 text-amber-900 shadow-lg'
+                            : 'text-white/80 hover:bg-white/10'
+                        }`}
+                      >
+                        <div className="flex items-center space-x-3">
+                          <UserCog className="w-5 h-5" />
+                          <span>{t('users.title')}</span>
                         </div>
                       </button>
                       <div className="pt-2 border-t border-white/10 mt-2">
@@ -277,6 +307,7 @@ function App() {
           {currentView === 'dashboard' && <Dashboard onNavigate={setCurrentView} />}
           {currentView === 'templates' && <Templates />}
           {currentView === 'clients' && <Clients />}
+          {currentView === 'users' && <Users />}
         </div>
       </main>
 

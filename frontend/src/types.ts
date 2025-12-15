@@ -95,3 +95,15 @@ export interface AdditionalDocument {
   uploadedAt: string;
 }
 
+export interface User {
+  id: string;
+  firebase_uid: string;
+  email: string;
+  name?: string;
+  role: 'admin' | 'user';
+  active: boolean;
+  created_by?: string;
+  created_at: string;
+  updated_at: string;
+}
+

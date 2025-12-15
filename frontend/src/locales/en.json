@@ -116,8 +116,30 @@
   },
   "notifications": {
     "title": "Notifications",
-    "noNotifications": "No notifications",
-    "allCaughtUp": "You're all caught up!"
+      "noNotifications": "No notifications",
+      "allCaughtUp": "You're all caught up!"
+    },
+    "users": {
+      "title": "User Management",
+      "subtitle": "Manage system users and permissions",
+      "newUser": "New User",
+      "createUser": "Create User",
+      "editUser": "Edit User",
+      "deleteUser": "Delete User",
+      "noUsers": "No users yet",
+      "createFirstUser": "Create your first user to get started",
+      "email": "Email",
+      "name": "Name",
+      "namePlaceholder": "Full name",
+      "role": "Role",
+      "admin": "Admin",
+      "user": "User",
+      "active": "Active",
+      "inactive": "Inactive",
+      "firebaseUid": "Firebase UID",
+      "firebaseUidPlaceholder": "Enter Firebase User ID",
+      "firebaseUidHint": "Get this from Firebase Authentication console",
+      "deleteConfirm": "Are you sure you want to delete user {email}? This action cannot be undone."
+    }
   }
-}
 

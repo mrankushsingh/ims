@@ -47,6 +47,18 @@ interface Client {
   updated_at: string;
 }
 
+interface User {
+  id: string;
+  firebase_uid: string;
+  email: string;
+  name?: string;
+  role: 'admin' | 'user';
+  active: boolean;
+  created_by?: string;
+  created_at: string;
+  updated_at: string;
+}
+
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 
@@ -59,18 +71,22 @@ class DatabaseAdapter {
   private uploadsDir: string;
   private templates: Map<string, CaseTemplate>;
   private clients: Map<string, Client>;
+  private users: Map<string, User>;
   private templateCounter: number = 0;
   private clientCounter: number = 0;
+  private userCounter: number = 0;
   private dbInitialized: Promise<void> | null = null;
 
   constructor() {
     this.dataDir = join(__dirname, '../../data');
     this.templatesFile = join(this.dataDir, 'templates.json');
     this.clientsFile = join(this.dataDir, 'clients.json');
+    this.usersFile = join(this.dataDir, 'users.json');
     this.uploadsDir = join(this.dataDir, 'uploads');
     
     this.templates = new Map();
     this.clients = new Map();
+    this.users = new Map();
 
     // Check if DATABASE_URL is set (Railway provides this automatically)
     const databaseUrl = process.env.DATABASE_URL;
@@ -149,6 +165,20 @@ class DatabaseAdapter {
           aportar_documentacion JSONB,
           requerimiento JSONB,
           resolucion JSONB,
+          created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+          updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        )
+      `);
+
+      await this.pool.query(`
+        CREATE TABLE IF NOT EXISTS users (
+          id VARCHAR(255) PRIMARY KEY,
+          firebase_uid VARCHAR(255) UNIQUE NOT NULL,
+          email VARCHAR(255) UNIQUE NOT NULL,
+          name VARCHAR(255),
+          role VARCHAR(50) DEFAULT 'user',
+          active BOOLEAN DEFAULT TRUE,
+          created_by VARCHAR(255),
           created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
           updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
         )
@@ -274,6 +304,21 @@ class DatabaseAdapter {
           });
         }
       }
+
+      // Load users
+      if (existsSync(this.usersFile)) {
+        const usersData = JSON.parse(readFileSync(this.usersFile, 'utf-8'));
+        if (Array.isArray(usersData)) {
+          usersData.forEach((user: User) => {
+            this.users.set(user.id, user);
+            const match = user.id.match(/user_(\d+)_/);
+            if (match) {
+              const num = parseInt(match[1], 10);
+              if (num > this.userCounter) this.userCounter = num;
+            }
+          });
+        }
+      }
     } catch (error) {
       console.error('Error loading data:', error);
     }
@@ -296,6 +341,16 @@ class DatabaseAdapter {
       writeFileSync(this.clientsFile, JSON.stringify(clientsArray, null, 2), 'utf-8');
     } catch (error) {
       console.error('Error saving clients:', error);
+    }
+  }
+
+  private saveUsers() {
+    if (this.usePostgres) return; // PostgreSQL handles persistence automatically
+    try {
+      const usersArray = Array.from(this.users.values());
+      writeFileSync(this.usersFile, JSON.stringify(usersArray, null, 2), 'utf-8');
+    } catch (error) {
+      console.error('Error saving users:', error);
     }
   }
 
@@ -677,6 +732,194 @@ class DatabaseAdapter {
     const deleted = this.clients.delete(id);
     if (deleted) {
       this.saveClients();
+    }
+    return deleted;
+  }
+
+  // User management methods
+  async insertUser(data: Omit<User, 'id' | 'created_at' | 'updated_at'>): Promise<User> {
+    await this.ensureInitialized();
+    const id = `user_${++this.userCounter}_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+    const now = new Date().toISOString();
+    const user: User = {
+      ...data,
+      id,
+      created_at: now,
+      updated_at: now,
+    };
+
+    if (this.usePostgres && this.pool) {
+      await this.pool.query(
+        `INSERT INTO users (id, firebase_uid, email, name, role, active, created_by, created_at, updated_at)
+         VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)`,
+        [
+          user.id,
+          user.firebase_uid,
+          user.email,
+          user.name || null,
+          user.role,
+          user.active,
+          user.created_by || null,
+          user.created_at,
+          user.updated_at,
+        ]
+      );
+      return user;
+    }
+
+    this.users.set(id, user);
+    this.saveUsers();
+    return user;
+  }
+
+  async getUsers(): Promise<User[]> {
+    await this.ensureInitialized();
+    if (this.usePostgres && this.pool) {
+      const result = await this.pool.query('SELECT * FROM users ORDER BY created_at DESC');
+      return result.rows.map((row: any) => ({
+        id: row.id,
+        firebase_uid: row.firebase_uid,
+        email: row.email,
+        name: row.name || undefined,
+        role: row.role,
+        active: row.active,
+        created_by: row.created_by || undefined,
+        created_at: row.created_at.toISOString(),
+        updated_at: row.updated_at.toISOString(),
+      }));
+    }
+    return Array.from(this.users.values());
+  }
+
+  async getUser(id: string): Promise<User | null> {
+    await this.ensureInitialized();
+    if (this.usePostgres && this.pool) {
+      const result = await this.pool.query('SELECT * FROM users WHERE id = $1', [id]);
+      if (result.rows.length === 0) return null;
+      const row = result.rows[0];
+      return {
+        id: row.id,
+        firebase_uid: row.firebase_uid,
+        email: row.email,
+        name: row.name || undefined,
+        role: row.role,
+        active: row.active,
+        created_by: row.created_by || undefined,
+        created_at: row.created_at.toISOString(),
+        updated_at: row.updated_at.toISOString(),
+      };
+    }
+    return this.users.get(id) || null;
+  }
+
+  async getUserByFirebaseUid(firebaseUid: string): Promise<User | null> {
+    await this.ensureInitialized();
+    if (this.usePostgres && this.pool) {
+      const result = await this.pool.query('SELECT * FROM users WHERE firebase_uid = $1', [firebaseUid]);
+      if (result.rows.length === 0) return null;
+      const row = result.rows[0];
+      return {
+        id: row.id,
+        firebase_uid: row.firebase_uid,
+        email: row.email,
+        name: row.name || undefined,
+        role: row.role,
+        active: row.active,
+        created_by: row.created_by || undefined,
+        created_at: row.created_at.toISOString(),
+        updated_at: row.updated_at.toISOString(),
+      };
+    }
+    return Array.from(this.users.values()).find(u => u.firebase_uid === firebaseUid) || null;
+  }
+
+  async getUserByEmail(email: string): Promise<User | null> {
+    await this.ensureInitialized();
+    if (this.usePostgres && this.pool) {
+      const result = await this.pool.query('SELECT * FROM users WHERE email = $1', [email]);
+      if (result.rows.length === 0) return null;
+      const row = result.rows[0];
+      return {
+        id: row.id,
+        firebase_uid: row.firebase_uid,
+        email: row.email,
+        name: row.name || undefined,
+        role: row.role,
+        active: row.active,
+        created_by: row.created_by || undefined,
+        created_at: row.created_at.toISOString(),
+        updated_at: row.updated_at.toISOString(),
+      };
+    }
+    return Array.from(this.users.values()).find(u => u.email === email) || null;
+  }
+
+  async updateUser(id: string, data: Partial<User>): Promise<User | null> {
+    await this.ensureInitialized();
+    if (this.usePostgres && this.pool) {
+      const updates: string[] = [];
+      const values: any[] = [];
+      let paramCount = 0;
+
+      if (data.email !== undefined) {
+        paramCount++;
+        updates.push(`email = $${paramCount}`);
+        values.push(data.email);
+      }
+      if (data.name !== undefined) {
+        paramCount++;
+        updates.push(`name = $${paramCount}`);
+        values.push(data.name || null);
+      }
+      if (data.role !== undefined) {
+        paramCount++;
+        updates.push(`role = $${paramCount}`);
+        values.push(data.role);
+      }
+      if (data.active !== undefined) {
+        paramCount++;
+        updates.push(`active = $${paramCount}`);
+        values.push(data.active);
+      }
+      if (data.firebase_uid !== undefined) {
+        paramCount++;
+        updates.push(`firebase_uid = $${paramCount}`);
+        values.push(data.firebase_uid);
+      }
+
+      if (updates.length === 0) {
+        return this.getUser(id);
+      }
+
+      paramCount++;
+      updates.push(`updated_at = CURRENT_TIMESTAMP`);
+      values.push(id);
+
+      await this.pool.query(
+        `UPDATE users SET ${updates.join(', ')} WHERE id = $${paramCount}`,
+        values
+      );
+
+      return this.getUser(id);
+    }
+
+    const user = this.users.get(id);
+    if (!user) return null;
+    const updated = { ...user, ...data, updated_at: new Date().toISOString() };
+    this.users.set(id, updated);
+    this.saveUsers();
+    return updated;
+  }
+
+  async deleteUser(id: string): Promise<boolean> {
+    await this.ensureInitialized();
+    if (this.usePostgres && this.pool) {
+      const result = await this.pool.query('DELETE FROM users WHERE id = $1', [id]);
+      return (result.rowCount ?? 0) > 0;
+    }
+    const deleted = this.users.delete(id);
+    if (deleted) {
+      this.saveUsers();
     }
     return deleted;
   }
