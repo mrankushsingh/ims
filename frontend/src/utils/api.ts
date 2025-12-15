@@ -276,12 +276,19 @@ export const api = {
   },
 
   // APORTAR DOCUMENTACIÓN
-  async uploadAportarDocumentacion(clientId: string, file: File) {
+  async uploadAportarDocumentacion(clientId: string, name: string, description: string, file: File) {
     const formData = new FormData();
     formData.append('file', file);
-    const headers = await getAuthHeaders();
-    delete (headers as any)['Content-Type'];
-    const response = await fetch(`${API_URL}/clients/${clientId}/aportar-documentacion/upload`, {
+    formData.append('name', name);
+    if (description) {
+      formData.append('description', description);
+    }
+    const token = await (await import('./firebase.js')).getIdToken();
+    const headers: HeadersInit = {};
+    if (token) {
+      headers['Authorization'] = `Bearer ${token}`;
+    }
+    const response = await fetch(`${API_URL}/clients/${clientId}/aportar-documentacion`, {
       method: 'POST',
       headers,
       body: formData,
@@ -293,9 +300,9 @@ export const api = {
     return response.json();
   },
 
-  async removeAportarDocumentacion(clientId: string, documentCode: string) {
+  async removeAportarDocumentacion(clientId: string, documentId: string) {
     const headers = await getAuthHeaders();
-    const response = await fetch(`${API_URL}/clients/${clientId}/aportar-documentacion/${documentCode}`, {
+    const response = await fetch(`${API_URL}/clients/${clientId}/aportar-documentacion/${documentId}`, {
       method: 'DELETE',
       headers,
     });
@@ -307,12 +314,19 @@ export const api = {
   },
 
   // REQUERIMIENTO
-  async uploadRequerimiento(clientId: string, file: File) {
+  async uploadRequerimiento(clientId: string, name: string, description: string, file: File) {
     const formData = new FormData();
     formData.append('file', file);
-    const headers = await getAuthHeaders();
-    delete (headers as any)['Content-Type'];
-    const response = await fetch(`${API_URL}/clients/${clientId}/requerimiento/upload`, {
+    formData.append('name', name);
+    if (description) {
+      formData.append('description', description);
+    }
+    const token = await (await import('./firebase.js')).getIdToken();
+    const headers: HeadersInit = {};
+    if (token) {
+      headers['Authorization'] = `Bearer ${token}`;
+    }
+    const response = await fetch(`${API_URL}/clients/${clientId}/requerimiento`, {
       method: 'POST',
       headers,
       body: formData,
@@ -324,9 +338,9 @@ export const api = {
     return response.json();
   },
 
-  async removeRequerimiento(clientId: string, documentCode: string) {
+  async removeRequerimiento(clientId: string, documentId: string) {
     const headers = await getAuthHeaders();
-    const response = await fetch(`${API_URL}/clients/${clientId}/requerimiento/${documentCode}`, {
+    const response = await fetch(`${API_URL}/clients/${clientId}/requerimiento/${documentId}`, {
       method: 'DELETE',
       headers,
     });
@@ -338,12 +352,19 @@ export const api = {
   },
 
   // RESOLUCIÓN
-  async uploadResolucion(clientId: string, file: File) {
+  async uploadResolucion(clientId: string, name: string, description: string, file: File) {
     const formData = new FormData();
     formData.append('file', file);
-    const headers = await getAuthHeaders();
-    delete (headers as any)['Content-Type'];
-    const response = await fetch(`${API_URL}/clients/${clientId}/resolucion/upload`, {
+    formData.append('name', name);
+    if (description) {
+      formData.append('description', description);
+    }
+    const token = await (await import('./firebase.js')).getIdToken();
+    const headers: HeadersInit = {};
+    if (token) {
+      headers['Authorization'] = `Bearer ${token}`;
+    }
+    const response = await fetch(`${API_URL}/clients/${clientId}/resolucion`, {
       method: 'POST',
       headers,
       body: formData,
@@ -355,9 +376,9 @@ export const api = {
     return response.json();
   },
 
-  async removeResolucion(clientId: string, documentCode: string) {
+  async removeResolucion(clientId: string, documentId: string) {
     const headers = await getAuthHeaders();
-    const response = await fetch(`${API_URL}/clients/${clientId}/resolucion/${documentCode}`, {
+    const response = await fetch(`${API_URL}/clients/${clientId}/resolucion/${documentId}`, {
       method: 'DELETE',
       headers,
     });

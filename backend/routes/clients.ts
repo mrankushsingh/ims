@@ -564,13 +564,14 @@ async function handleDocumentUpload(
       return res.status(400).json({ error: 'No file uploaded' });
     }
 
+    const { name, description } = req.body;
+    if (!name || !name.trim()) {
+      return res.status(400).json({ error: 'Document name is required' });
+    }
+
     const client = await memoryDb.getClient(req.params.id);
     if (!client) {
       return res.status(404).json({ error: 'Client not found' });
-    }
-
-    if (!client.submitted_to_immigration) {
-      return res.status(400).json({ error: 'Client must be submitted to immigration' });
     }
 
     const documents = (client as any)[documentType] || [];
@@ -590,9 +591,9 @@ async function handleDocumentUpload(
     }
 
     const newDoc: any = {
-      code: `doc_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
-      name: file.originalname.replace(/\.[^/.]+$/, ''),
-      submitted: true,
+      id: `doc_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
+      name: name.trim(),
+      description: description ? description.trim() : undefined,
       fileUrl,
       fileName: file.originalname,
       fileSize: file.size,
@@ -624,16 +625,24 @@ async function handleDocumentRemove(
     }
 
     const documents = ((client as any)[documentType] || []).filter(
-      (d: any) => d.code !== req.params.code
+      (d: any) => d.id !== req.params.docId
     );
 
     const docToRemove = ((client as any)[documentType] || []).find(
-      (d: any) => d.code === req.params.code
+      (d: any) => d.id === req.params.docId
     );
-    if (docToRemove && docToRemove.fileUrl && docToRemove.fileUrl.startsWith('/uploads/')) {
-      deleteFile(docToRemove.fileUrl).catch(err => {
-        console.error('Error deleting file:', err);
-      });
+    if (docToRemove && docToRemove.fileUrl) {
+      if (docToRemove.fileUrl.startsWith('/uploads/')) {
+        deleteFile(docToRemove.fileUrl).catch(err => {
+          console.error('Error deleting file:', err);
+        });
+      } else if (isUsingBucketStorage()) {
+        // Delete from bucket storage
+        const key = docToRemove.fileUrl.split('/').slice(-3).join('/'); // Get the key from URL
+        deleteFile(key).catch(err => {
+          console.error('Error deleting file from bucket:', err);
+        });
+      }
     }
 
     const updated = await memoryDb.updateClient(req.params.id, {
@@ -647,26 +656,26 @@ async function handleDocumentRemove(
 }
 
 // APORTAR DOCUMENTACIÓN routes
-router.post('/:id/aportar-documentacion/upload', upload.single('file'), (req, res) => 
+router.post('/:id/aportar-documentacion', upload.single('file'), (req, res) => 
   handleDocumentUpload(req, res, 'aportar_documentacion')
 );
-router.delete('/:id/aportar-documentacion/:code', (req, res) => 
+router.delete('/:id/aportar-documentacion/:docId', (req, res) => 
   handleDocumentRemove(req, res, 'aportar_documentacion')
 );
 
 // REQUERIMIENTO routes
-router.post('/:id/requerimiento/upload', upload.single('file'), (req, res) => 
+router.post('/:id/requerimiento', upload.single('file'), (req, res) => 
   handleDocumentUpload(req, res, 'requerimiento')
 );
-router.delete('/:id/requerimiento/:code', (req, res) => 
+router.delete('/:id/requerimiento/:docId', (req, res) => 
   handleDocumentRemove(req, res, 'requerimiento')
 );
 
 // RESOLUCIÓN routes
-router.post('/:id/resolucion/upload', upload.single('file'), (req, res) => 
+router.post('/:id/resolucion', upload.single('file'), (req, res) => 
   handleDocumentUpload(req, res, 'resolucion')
 );
-router.delete('/:id/resolucion/:code', (req, res) => 
+router.delete('/:id/resolucion/:docId', (req, res) => 
   handleDocumentRemove(req, res, 'resolucion')
 );
 

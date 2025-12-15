@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { X, Upload, CheckCircle, FileText, Download, Trash2, Plus, DollarSign, StickyNote, Archive, XCircle, AlertCircle, Send, Clock, Eye, ToggleLeft, ToggleRight, Calendar, FilePlus } from 'lucide-react';
+import { X, Upload, CheckCircle, FileText, Download, Trash2, Plus, DollarSign, StickyNote, Archive, XCircle, AlertCircle, Send, Clock, Eye, ToggleLeft, ToggleRight, Calendar } from 'lucide-react';
 import JSZip from 'jszip';
 import { api } from '../utils/api';
 import { Client, RequiredDocument, AdditionalDocument, RequestedDocument } from '../types';
@@ -36,9 +36,12 @@ export default function ClientDetailsModal({ client, onClose, onSuccess }: Props
   const [uploadingRequestedDoc, setUploadingRequestedDoc] = useState<string | null>(null);
   const [showDurationModal, setShowDurationModal] = useState(false);
   const [durationDays, setDurationDays] = useState(client.requested_documents_reminder_duration_days || 10);
-  const [uploadingAportarDoc, setUploadingAportarDoc] = useState(false);
-  const [uploadingRequerimientoDoc, setUploadingRequerimientoDoc] = useState(false);
-  const [uploadingResolucionDoc, setUploadingResolucionDoc] = useState(false);
+  const [showAportarDocForm, setShowAportarDocForm] = useState(false);
+  const [aportarDocForm, setAportarDocForm] = useState({ name: '', description: '', file: null as File | null });
+  const [showRequerimientoForm, setShowRequerimientoForm] = useState(false);
+  const [requerimientoForm, setRequerimientoForm] = useState({ name: '', description: '', file: null as File | null });
+  const [showResolucionForm, setShowResolucionForm] = useState(false);
+  const [resolucionForm, setResolucionForm] = useState({ name: '', description: '', file: null as File | null });
   const [confirmDialog, setConfirmDialog] = useState<{
     isOpen: boolean;
     title: string;
@@ -199,11 +202,30 @@ export default function ClientDetailsModal({ client, onClose, onSuccess }: Props
     });
   };
 
-  const handleUploadAportarDocumentacion = async (file: File) => {
+  const handleUploadAportarDocumentacion = async (e: React.FormEvent) => {
+    e.preventDefault();
     setError('');
-    setUploadingAportarDoc(true);
+
+    if (!aportarDocForm.name.trim()) {
+      setError('Document name is required');
+      return;
+    }
+
+    if (!aportarDocForm.file) {
+      setError('Please select a file');
+      return;
+    }
+
+    setUploading('aportar');
     try {
-      await api.uploadAportarDocumentacion(client.id, file);
+      await api.uploadAportarDocumentacion(
+        client.id,
+        aportarDocForm.name,
+        aportarDocForm.description,
+        aportarDocForm.file
+      );
+      setAportarDocForm({ name: '', description: '', file: null });
+      setShowAportarDocForm(false);
       await loadClient();
       onSuccess();
       showToast('Document uploaded successfully', 'success');
@@ -212,11 +234,11 @@ export default function ClientDetailsModal({ client, onClose, onSuccess }: Props
       setError(errorMessage);
       showToast(errorMessage, 'error');
     } finally {
-      setUploadingAportarDoc(false);
+      setUploading(null);
     }
   };
 
-  const handleRemoveAportarDocumentacion = async (documentCode: string) => {
+  const handleRemoveAportarDocumentacion = async (documentId: string) => {
     setConfirmDialog({
       isOpen: true,
       title: 'Remove Document',
@@ -225,7 +247,7 @@ export default function ClientDetailsModal({ client, onClose, onSuccess }: Props
       onConfirm: async () => {
         setError('');
         try {
-          await api.removeAportarDocumentacion(client.id, documentCode);
+          await api.removeAportarDocumentacion(client.id, documentId);
           await loadClient();
           onSuccess();
           showToast('Document removed successfully', 'success');
@@ -239,11 +261,31 @@ export default function ClientDetailsModal({ client, onClose, onSuccess }: Props
     });
   };
 
-  const handleUploadRequerimiento = async (file: File) => {
+
+  const handleUploadRequerimiento = async (e: React.FormEvent) => {
+    e.preventDefault();
     setError('');
-    setUploadingRequerimientoDoc(true);
+
+    if (!requerimientoForm.name.trim()) {
+      setError('Document name is required');
+      return;
+    }
+
+    if (!requerimientoForm.file) {
+      setError('Please select a file');
+      return;
+    }
+
+    setUploading('requerimiento');
     try {
-      await api.uploadRequerimiento(client.id, file);
+      await api.uploadRequerimiento(
+        client.id,
+        requerimientoForm.name,
+        requerimientoForm.description,
+        requerimientoForm.file
+      );
+      setRequerimientoForm({ name: '', description: '', file: null });
+      setShowRequerimientoForm(false);
       await loadClient();
       onSuccess();
       showToast('Document uploaded successfully', 'success');
@@ -252,11 +294,11 @@ export default function ClientDetailsModal({ client, onClose, onSuccess }: Props
       setError(errorMessage);
       showToast(errorMessage, 'error');
     } finally {
-      setUploadingRequerimientoDoc(false);
+      setUploading(null);
     }
   };
 
-  const handleRemoveRequerimiento = async (documentCode: string) => {
+  const handleRemoveRequerimiento = async (documentId: string) => {
     setConfirmDialog({
       isOpen: true,
       title: 'Remove Document',
@@ -265,7 +307,7 @@ export default function ClientDetailsModal({ client, onClose, onSuccess }: Props
       onConfirm: async () => {
         setError('');
         try {
-          await api.removeRequerimiento(client.id, documentCode);
+          await api.removeRequerimiento(client.id, documentId);
           await loadClient();
           onSuccess();
           showToast('Document removed successfully', 'success');
@@ -279,11 +321,30 @@ export default function ClientDetailsModal({ client, onClose, onSuccess }: Props
     });
   };
 
-  const handleUploadResolucion = async (file: File) => {
+  const handleUploadResolucion = async (e: React.FormEvent) => {
+    e.preventDefault();
     setError('');
-    setUploadingResolucionDoc(true);
+
+    if (!resolucionForm.name.trim()) {
+      setError('Document name is required');
+      return;
+    }
+
+    if (!resolucionForm.file) {
+      setError('Please select a file');
+      return;
+    }
+
+    setUploading('resolucion');
     try {
-      await api.uploadResolucion(client.id, file);
+      await api.uploadResolucion(
+        client.id,
+        resolucionForm.name,
+        resolucionForm.description,
+        resolucionForm.file
+      );
+      setResolucionForm({ name: '', description: '', file: null });
+      setShowResolucionForm(false);
       await loadClient();
       onSuccess();
       showToast('Document uploaded successfully', 'success');
@@ -292,11 +353,11 @@ export default function ClientDetailsModal({ client, onClose, onSuccess }: Props
       setError(errorMessage);
       showToast(errorMessage, 'error');
     } finally {
-      setUploadingResolucionDoc(false);
+      setUploading(null);
     }
   };
 
-  const handleRemoveResolucion = async (documentCode: string) => {
+  const handleRemoveResolucion = async (documentId: string) => {
     setConfirmDialog({
       isOpen: true,
       title: 'Remove Document',
@@ -305,7 +366,7 @@ export default function ClientDetailsModal({ client, onClose, onSuccess }: Props
       onConfirm: async () => {
         setError('');
         try {
-          await api.removeResolucion(client.id, documentCode);
+          await api.removeResolucion(client.id, documentId);
           await loadClient();
           onSuccess();
           showToast('Document removed successfully', 'success');
@@ -1595,83 +1656,129 @@ export default function ClientDetailsModal({ client, onClose, onSuccess }: Props
         </div>
 
         {/* APORTAR DOCUMENTACIÓN Section */}
-        <div className="mb-6 p-5 bg-gradient-to-br from-blue-50 to-cyan-50 rounded-xl border-2 border-blue-200 shadow-md">
-          <div className="flex items-center justify-between mb-4">
-            <div className="flex items-center space-x-3">
-              <div className="bg-blue-100 p-3 rounded-lg">
-                <FilePlus className="w-6 h-6 text-blue-600" />
-              </div>
-              <div>
-                <h3 className="font-semibold text-lg text-blue-900">APORTAR DOCUMENTACIÓN</h3>
-                <p className="text-sm text-blue-700">Upload documents to add to the file</p>
-              </div>
-            </div>
+        <div className="mb-6 p-5 bg-gradient-to-br from-blue-50/50 to-white rounded-xl border border-gray-200 shadow-sm">
+          <div className="flex justify-between items-center mb-4">
+            <h3 className="text-lg font-bold text-gray-900 flex items-center space-x-2">
+              <div className="w-1 h-6 bg-gradient-to-b from-blue-600 to-cyan-600 rounded-full"></div>
+              <span>APORTAR DOCUMENTACIÓN</span>
+            </h3>
+            <button
+              onClick={() => setShowAportarDocForm(!showAportarDocForm)}
+              className="px-4 py-2 bg-blue-600 text-white text-sm rounded-lg hover:bg-blue-700 transition-colors flex items-center space-x-2"
+            >
+              <Plus className="w-4 h-4" />
+              <span>Add Document</span>
+            </button>
           </div>
 
-          {clientData.aportar_documentacion && clientData.aportar_documentacion.length > 0 ? (
+          {showAportarDocForm && (
+            <form onSubmit={handleUploadAportarDocumentacion} className="mb-4 p-4 bg-blue-50 rounded-lg border border-blue-200">
+              <div className="space-y-3">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Document Name *</label>
+                  <input
+                    type="text"
+                    required
+                    value={aportarDocForm.name}
+                    onChange={(e) => setAportarDocForm({ ...aportarDocForm, name: e.target.value })}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none"
+                    placeholder="e.g., Additional Certificate"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Description (optional)</label>
+                  <input
+                    type="text"
+                    value={aportarDocForm.description}
+                    onChange={(e) => setAportarDocForm({ ...aportarDocForm, description: e.target.value })}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none"
+                    placeholder="Brief description"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">File *</label>
+                  <input
+                    type="file"
+                    required
+                    onChange={(e) => {
+                      const file = e.target.files?.[0];
+                      if (file) {
+                        setAportarDocForm({ ...aportarDocForm, file });
+                      }
+                    }}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none"
+                  />
+                </div>
+              </div>
+              <div className="flex justify-end space-x-2 mt-3">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setShowAportarDocForm(false);
+                    setAportarDocForm({ name: '', description: '', file: null });
+                  }}
+                  className="px-4 py-2 text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200 transition-colors text-sm"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  disabled={uploading === 'aportar'}
+                  className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors text-sm disabled:opacity-50"
+                >
+                  {uploading === 'aportar' ? 'Uploading...' : 'Upload Document'}
+                </button>
+              </div>
+            </form>
+          )}
+
+          {!clientData.aportar_documentacion || clientData.aportar_documentacion.length === 0 ? (
+            <div className="text-center py-8 text-gray-500 bg-gray-50 rounded-lg border-2 border-dashed border-gray-300">
+              <FileText className="w-12 h-12 mx-auto mb-3 text-gray-400" />
+              <p>No documents uploaded yet.</p>
+            </div>
+          ) : (
             <div className="space-y-3">
-              {clientData.aportar_documentacion.map((doc: RequestedDocument) => (
-                <div key={doc.code} className="p-4 bg-white rounded-lg border border-blue-200">
+              {clientData.aportar_documentacion.map((doc: AdditionalDocument) => (
+                <div
+                  key={doc.id}
+                  className="border-2 border-blue-300 bg-gradient-to-br from-blue-50 to-white rounded-xl p-4 shadow-sm hover:shadow-md transition-all"
+                >
                   <div className="flex items-start justify-between">
                     <div className="flex-1">
                       <div className="flex items-center space-x-2 mb-2">
                         <FileText className="w-5 h-5 text-blue-600" />
-                        <h4 className="font-semibold text-blue-900">{doc.name}</h4>
-                        {doc.submitted && (
-                          <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold bg-emerald-100 text-emerald-700">
-                            ✓ Uploaded
-                          </span>
-                        )}
+                        <h4 className="font-semibold text-gray-900">{doc.name}</h4>
                       </div>
                       {doc.description && (
-                        <p className="text-sm text-blue-700 mb-2">{doc.description}</p>
+                        <p className="text-sm text-gray-600 mb-2">{doc.description}</p>
                       )}
-                      {doc.uploadedAt && (
-                        <p className="text-xs text-emerald-600">
-                          Uploaded: {new Date(doc.uploadedAt).toLocaleDateString()}
-                        </p>
-                      )}
+                      <p className="text-xs text-gray-500">
+                        File: {doc.fileName} ({`${(doc.fileSize / 1024).toFixed(2)} KB`})
+                      </p>
+                      <p className="text-xs text-gray-500 mt-1">
+                        Uploaded: {new Date(doc.uploadedAt).toLocaleDateString()}
+                      </p>
                     </div>
                     <div className="flex items-center space-x-2 ml-4">
-                      {doc.submitted && doc.fileUrl ? (
-                        <>
-                          <button
-                            onClick={() => window.open(doc.fileUrl, '_blank')}
-                            className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
-                            title="View document"
-                          >
-                            <Eye className="w-4 h-4" />
-                          </button>
-                          <a
-                            href={doc.fileUrl}
-                            download={doc.fileName}
-                            className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
-                            title="Download document"
-                          >
-                            <Download className="w-4 h-4" />
-                          </a>
-                        </>
-                      ) : (
-                        <label className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors cursor-pointer">
-                          <Upload className="w-4 h-4" />
-                          <input
-                            type="file"
-                            className="hidden"
-                            accept=".pdf,.doc,.docx,.jpg,.jpeg,.png"
-                            onChange={(e) => {
-                              const file = e.target.files?.[0];
-                              if (file) {
-                                handleUploadAportarDocumentacion(file);
-                              }
-                            }}
-                            disabled={uploadingAportarDoc}
-                          />
-                        </label>
-                      )}
                       <button
-                        onClick={() => handleRemoveAportarDocumentacion(doc.code)}
-                        className="p-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors"
-                        title="Remove document"
+                        onClick={() => handleViewDocument(doc.fileUrl, doc.fileName)}
+                        className="p-2 text-green-600 hover:bg-green-50 rounded-lg transition-colors border border-green-200 hover:border-green-300"
+                        title="View Document"
+                      >
+                        <Eye className="w-4 h-4" />
+                      </button>
+                      <button
+                        onClick={() => handleDownload(doc.fileUrl, doc.fileName)}
+                        className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors border border-blue-200 hover:border-blue-300"
+                        title="Download"
+                      >
+                        <Download className="w-4 h-4" />
+                      </button>
+                      <button
+                        onClick={() => handleRemoveAportarDocumentacion(doc.id)}
+                        className="p-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors border border-red-200 hover:border-red-300"
+                        title="Remove"
                       >
                         <Trash2 className="w-4 h-4" />
                       </button>
@@ -1679,109 +1786,134 @@ export default function ClientDetailsModal({ client, onClose, onSuccess }: Props
                   </div>
                 </div>
               ))}
-            </div>
-          ) : (
-            <div className="text-center py-8 text-blue-600">
-              <FileText className="w-12 h-12 mx-auto mb-2 opacity-50" />
-              <p className="text-sm font-medium">No documents yet</p>
-              <label className="mt-4 inline-block px-4 py-2 bg-blue-600 text-white font-semibold rounded-lg hover:bg-blue-700 transition-colors cursor-pointer">
-                <Upload className="w-4 h-4 inline mr-2" />
-                Upload Document
-                <input
-                  type="file"
-                  className="hidden"
-                  accept=".pdf,.doc,.docx,.jpg,.jpeg,.png"
-                  onChange={(e) => {
-                    const file = e.target.files?.[0];
-                    if (file) {
-                      handleUploadAportarDocumentacion(file);
-                    }
-                  }}
-                  disabled={uploadingAportarDoc}
-                />
-              </label>
             </div>
           )}
         </div>
 
         {/* REQUERIMIENTO Section */}
-        <div className="mb-6 p-5 bg-gradient-to-br from-amber-50 to-orange-50 rounded-xl border-2 border-amber-200 shadow-md">
-          <div className="flex items-center justify-between mb-4">
-            <div className="flex items-center space-x-3">
-              <div className="bg-amber-100 p-3 rounded-lg">
-                <AlertCircle className="w-6 h-6 text-amber-600" />
-              </div>
-              <div>
-                <h3 className="font-semibold text-lg text-amber-900">REQUERIMIENTO</h3>
-                <p className="text-sm text-amber-700">Upload requirement documents</p>
-              </div>
-            </div>
+        <div className="mb-6 p-5 bg-gradient-to-br from-amber-50/50 to-white rounded-xl border border-gray-200 shadow-sm">
+          <div className="flex justify-between items-center mb-4">
+            <h3 className="text-lg font-bold text-gray-900 flex items-center space-x-2">
+              <div className="w-1 h-6 bg-gradient-to-b from-amber-600 to-orange-600 rounded-full"></div>
+              <span>REQUERIMIENTO</span>
+            </h3>
+            <button
+              onClick={() => setShowRequerimientoForm(!showRequerimientoForm)}
+              className="px-4 py-2 bg-amber-600 text-white text-sm rounded-lg hover:bg-amber-700 transition-colors flex items-center space-x-2"
+            >
+              <Plus className="w-4 h-4" />
+              <span>Add Document</span>
+            </button>
           </div>
 
-          {clientData.requerimiento && clientData.requerimiento.length > 0 ? (
+          {showRequerimientoForm && (
+            <form onSubmit={handleUploadRequerimiento} className="mb-4 p-4 bg-amber-50 rounded-lg border border-amber-200">
+              <div className="space-y-3">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Document Name *</label>
+                  <input
+                    type="text"
+                    required
+                    value={requerimientoForm.name}
+                    onChange={(e) => setRequerimientoForm({ ...requerimientoForm, name: e.target.value })}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-amber-500 outline-none"
+                    placeholder="e.g., Requirement Document"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Description (optional)</label>
+                  <input
+                    type="text"
+                    value={requerimientoForm.description}
+                    onChange={(e) => setRequerimientoForm({ ...requerimientoForm, description: e.target.value })}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-amber-500 outline-none"
+                    placeholder="Brief description"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">File *</label>
+                  <input
+                    type="file"
+                    required
+                    onChange={(e) => {
+                      const file = e.target.files?.[0];
+                      if (file) {
+                        setRequerimientoForm({ ...requerimientoForm, file });
+                      }
+                    }}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-amber-500 outline-none"
+                  />
+                </div>
+              </div>
+              <div className="flex justify-end space-x-2 mt-3">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setShowRequerimientoForm(false);
+                    setRequerimientoForm({ name: '', description: '', file: null });
+                  }}
+                  className="px-4 py-2 text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200 transition-colors text-sm"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  disabled={uploading === 'requerimiento'}
+                  className="px-4 py-2 bg-amber-600 text-white rounded-lg hover:bg-amber-700 transition-colors text-sm disabled:opacity-50"
+                >
+                  {uploading === 'requerimiento' ? 'Uploading...' : 'Upload Document'}
+                </button>
+              </div>
+            </form>
+          )}
+
+          {!clientData.requerimiento || clientData.requerimiento.length === 0 ? (
+            <div className="text-center py-8 text-gray-500 bg-gray-50 rounded-lg border-2 border-dashed border-gray-300">
+              <FileText className="w-12 h-12 mx-auto mb-3 text-gray-400" />
+              <p>No documents uploaded yet.</p>
+            </div>
+          ) : (
             <div className="space-y-3">
-              {clientData.requerimiento.map((doc: RequestedDocument) => (
-                <div key={doc.code} className="p-4 bg-white rounded-lg border border-amber-200">
+              {clientData.requerimiento.map((doc: AdditionalDocument) => (
+                <div
+                  key={doc.id}
+                  className="border-2 border-amber-300 bg-gradient-to-br from-amber-50 to-white rounded-xl p-4 shadow-sm hover:shadow-md transition-all"
+                >
                   <div className="flex items-start justify-between">
                     <div className="flex-1">
                       <div className="flex items-center space-x-2 mb-2">
                         <FileText className="w-5 h-5 text-amber-600" />
-                        <h4 className="font-semibold text-amber-900">{doc.name}</h4>
-                        {doc.submitted && (
-                          <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold bg-emerald-100 text-emerald-700">
-                            ✓ Uploaded
-                          </span>
-                        )}
+                        <h4 className="font-semibold text-gray-900">{doc.name}</h4>
                       </div>
                       {doc.description && (
-                        <p className="text-sm text-amber-700 mb-2">{doc.description}</p>
+                        <p className="text-sm text-gray-600 mb-2">{doc.description}</p>
                       )}
-                      {doc.uploadedAt && (
-                        <p className="text-xs text-emerald-600">
-                          Uploaded: {new Date(doc.uploadedAt).toLocaleDateString()}
-                        </p>
-                      )}
+                      <p className="text-xs text-gray-500">
+                        File: {doc.fileName} ({`${(doc.fileSize / 1024).toFixed(2)} KB`})
+                      </p>
+                      <p className="text-xs text-gray-500 mt-1">
+                        Uploaded: {new Date(doc.uploadedAt).toLocaleDateString()}
+                      </p>
                     </div>
                     <div className="flex items-center space-x-2 ml-4">
-                      {doc.submitted && doc.fileUrl ? (
-                        <>
-                          <button
-                            onClick={() => window.open(doc.fileUrl, '_blank')}
-                            className="p-2 text-amber-600 hover:bg-amber-50 rounded-lg transition-colors"
-                            title="View document"
-                          >
-                            <Eye className="w-4 h-4" />
-                          </button>
-                          <a
-                            href={doc.fileUrl}
-                            download={doc.fileName}
-                            className="p-2 text-amber-600 hover:bg-amber-50 rounded-lg transition-colors"
-                            title="Download document"
-                          >
-                            <Download className="w-4 h-4" />
-                          </a>
-                        </>
-                      ) : (
-                        <label className="p-2 text-amber-600 hover:bg-amber-50 rounded-lg transition-colors cursor-pointer">
-                          <Upload className="w-4 h-4" />
-                          <input
-                            type="file"
-                            className="hidden"
-                            accept=".pdf,.doc,.docx,.jpg,.jpeg,.png"
-                            onChange={(e) => {
-                              const file = e.target.files?.[0];
-                              if (file) {
-                                handleUploadRequerimiento(file);
-                              }
-                            }}
-                            disabled={uploadingRequerimientoDoc}
-                          />
-                        </label>
-                      )}
                       <button
-                        onClick={() => handleRemoveRequerimiento(doc.code)}
-                        className="p-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors"
-                        title="Remove document"
+                        onClick={() => handleViewDocument(doc.fileUrl, doc.fileName)}
+                        className="p-2 text-green-600 hover:bg-green-50 rounded-lg transition-colors border border-green-200 hover:border-green-300"
+                        title="View Document"
+                      >
+                        <Eye className="w-4 h-4" />
+                      </button>
+                      <button
+                        onClick={() => handleDownload(doc.fileUrl, doc.fileName)}
+                        className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors border border-blue-200 hover:border-blue-300"
+                        title="Download"
+                      >
+                        <Download className="w-4 h-4" />
+                      </button>
+                      <button
+                        onClick={() => handleRemoveRequerimiento(doc.id)}
+                        className="p-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors border border-red-200 hover:border-red-300"
+                        title="Remove"
                       >
                         <Trash2 className="w-4 h-4" />
                       </button>
@@ -1789,109 +1921,134 @@ export default function ClientDetailsModal({ client, onClose, onSuccess }: Props
                   </div>
                 </div>
               ))}
-            </div>
-          ) : (
-            <div className="text-center py-8 text-amber-600">
-              <FileText className="w-12 h-12 mx-auto mb-2 opacity-50" />
-              <p className="text-sm font-medium">No documents yet</p>
-              <label className="mt-4 inline-block px-4 py-2 bg-amber-600 text-white font-semibold rounded-lg hover:bg-amber-700 transition-colors cursor-pointer">
-                <Upload className="w-4 h-4 inline mr-2" />
-                Upload Document
-                <input
-                  type="file"
-                  className="hidden"
-                  accept=".pdf,.doc,.docx,.jpg,.jpeg,.png"
-                  onChange={(e) => {
-                    const file = e.target.files?.[0];
-                    if (file) {
-                      handleUploadRequerimiento(file);
-                    }
-                  }}
-                  disabled={uploadingRequerimientoDoc}
-                />
-              </label>
             </div>
           )}
         </div>
 
         {/* RESOLUCIÓN Section */}
-        <div className="mb-6 p-5 bg-gradient-to-br from-green-50 to-emerald-50 rounded-xl border-2 border-green-200 shadow-md">
-          <div className="flex items-center justify-between mb-4">
-            <div className="flex items-center space-x-3">
-              <div className="bg-green-100 p-3 rounded-lg">
-                <CheckCircle className="w-6 h-6 text-green-600" />
-              </div>
-              <div>
-                <h3 className="font-semibold text-lg text-green-900">RESOLUCIÓN</h3>
-                <p className="text-sm text-green-700">Upload resolution documents</p>
-              </div>
-            </div>
+        <div className="mb-6 p-5 bg-gradient-to-br from-green-50/50 to-white rounded-xl border border-gray-200 shadow-sm">
+          <div className="flex justify-between items-center mb-4">
+            <h3 className="text-lg font-bold text-gray-900 flex items-center space-x-2">
+              <div className="w-1 h-6 bg-gradient-to-b from-green-600 to-emerald-600 rounded-full"></div>
+              <span>RESOLUCIÓN</span>
+            </h3>
+            <button
+              onClick={() => setShowResolucionForm(!showResolucionForm)}
+              className="px-4 py-2 bg-green-600 text-white text-sm rounded-lg hover:bg-green-700 transition-colors flex items-center space-x-2"
+            >
+              <Plus className="w-4 h-4" />
+              <span>Add Document</span>
+            </button>
           </div>
 
-          {clientData.resolucion && clientData.resolucion.length > 0 ? (
+          {showResolucionForm && (
+            <form onSubmit={handleUploadResolucion} className="mb-4 p-4 bg-green-50 rounded-lg border border-green-200">
+              <div className="space-y-3">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Document Name *</label>
+                  <input
+                    type="text"
+                    required
+                    value={resolucionForm.name}
+                    onChange={(e) => setResolucionForm({ ...resolucionForm, name: e.target.value })}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 outline-none"
+                    placeholder="e.g., Resolution Document"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Description (optional)</label>
+                  <input
+                    type="text"
+                    value={resolucionForm.description}
+                    onChange={(e) => setResolucionForm({ ...resolucionForm, description: e.target.value })}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 outline-none"
+                    placeholder="Brief description"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">File *</label>
+                  <input
+                    type="file"
+                    required
+                    onChange={(e) => {
+                      const file = e.target.files?.[0];
+                      if (file) {
+                        setResolucionForm({ ...resolucionForm, file });
+                      }
+                    }}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 outline-none"
+                  />
+                </div>
+              </div>
+              <div className="flex justify-end space-x-2 mt-3">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setShowResolucionForm(false);
+                    setResolucionForm({ name: '', description: '', file: null });
+                  }}
+                  className="px-4 py-2 text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200 transition-colors text-sm"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  disabled={uploading === 'resolucion'}
+                  className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors text-sm disabled:opacity-50"
+                >
+                  {uploading === 'resolucion' ? 'Uploading...' : 'Upload Document'}
+                </button>
+              </div>
+            </form>
+          )}
+
+          {!clientData.resolucion || clientData.resolucion.length === 0 ? (
+            <div className="text-center py-8 text-gray-500 bg-gray-50 rounded-lg border-2 border-dashed border-gray-300">
+              <FileText className="w-12 h-12 mx-auto mb-3 text-gray-400" />
+              <p>No documents uploaded yet.</p>
+            </div>
+          ) : (
             <div className="space-y-3">
-              {clientData.resolucion.map((doc: RequestedDocument) => (
-                <div key={doc.code} className="p-4 bg-white rounded-lg border border-green-200">
+              {clientData.resolucion.map((doc: AdditionalDocument) => (
+                <div
+                  key={doc.id}
+                  className="border-2 border-green-300 bg-gradient-to-br from-green-50 to-white rounded-xl p-4 shadow-sm hover:shadow-md transition-all"
+                >
                   <div className="flex items-start justify-between">
                     <div className="flex-1">
                       <div className="flex items-center space-x-2 mb-2">
                         <FileText className="w-5 h-5 text-green-600" />
-                        <h4 className="font-semibold text-green-900">{doc.name}</h4>
-                        {doc.submitted && (
-                          <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold bg-emerald-100 text-emerald-700">
-                            ✓ Uploaded
-                          </span>
-                        )}
+                        <h4 className="font-semibold text-gray-900">{doc.name}</h4>
                       </div>
                       {doc.description && (
-                        <p className="text-sm text-green-700 mb-2">{doc.description}</p>
+                        <p className="text-sm text-gray-600 mb-2">{doc.description}</p>
                       )}
-                      {doc.uploadedAt && (
-                        <p className="text-xs text-emerald-600">
-                          Uploaded: {new Date(doc.uploadedAt).toLocaleDateString()}
-                        </p>
-                      )}
+                      <p className="text-xs text-gray-500">
+                        File: {doc.fileName} ({`${(doc.fileSize / 1024).toFixed(2)} KB`})
+                      </p>
+                      <p className="text-xs text-gray-500 mt-1">
+                        Uploaded: {new Date(doc.uploadedAt).toLocaleDateString()}
+                      </p>
                     </div>
                     <div className="flex items-center space-x-2 ml-4">
-                      {doc.submitted && doc.fileUrl ? (
-                        <>
-                          <button
-                            onClick={() => window.open(doc.fileUrl, '_blank')}
-                            className="p-2 text-green-600 hover:bg-green-50 rounded-lg transition-colors"
-                            title="View document"
-                          >
-                            <Eye className="w-4 h-4" />
-                          </button>
-                          <a
-                            href={doc.fileUrl}
-                            download={doc.fileName}
-                            className="p-2 text-green-600 hover:bg-green-50 rounded-lg transition-colors"
-                            title="Download document"
-                          >
-                            <Download className="w-4 h-4" />
-                          </a>
-                        </>
-                      ) : (
-                        <label className="p-2 text-green-600 hover:bg-green-50 rounded-lg transition-colors cursor-pointer">
-                          <Upload className="w-4 h-4" />
-                          <input
-                            type="file"
-                            className="hidden"
-                            accept=".pdf,.doc,.docx,.jpg,.jpeg,.png"
-                            onChange={(e) => {
-                              const file = e.target.files?.[0];
-                              if (file) {
-                                handleUploadResolucion(file);
-                              }
-                            }}
-                            disabled={uploadingResolucionDoc}
-                          />
-                        </label>
-                      )}
                       <button
-                        onClick={() => handleRemoveResolucion(doc.code)}
-                        className="p-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors"
-                        title="Remove document"
+                        onClick={() => handleViewDocument(doc.fileUrl, doc.fileName)}
+                        className="p-2 text-green-600 hover:bg-green-50 rounded-lg transition-colors border border-green-200 hover:border-green-300"
+                        title="View Document"
+                      >
+                        <Eye className="w-4 h-4" />
+                      </button>
+                      <button
+                        onClick={() => handleDownload(doc.fileUrl, doc.fileName)}
+                        className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors border border-blue-200 hover:border-blue-300"
+                        title="Download"
+                      >
+                        <Download className="w-4 h-4" />
+                      </button>
+                      <button
+                        onClick={() => handleRemoveResolucion(doc.id)}
+                        className="p-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors border border-red-200 hover:border-red-300"
+                        title="Remove"
                       >
                         <Trash2 className="w-4 h-4" />
                       </button>
@@ -1899,27 +2056,6 @@ export default function ClientDetailsModal({ client, onClose, onSuccess }: Props
                   </div>
                 </div>
               ))}
-            </div>
-          ) : (
-            <div className="text-center py-8 text-green-600">
-              <FileText className="w-12 h-12 mx-auto mb-2 opacity-50" />
-              <p className="text-sm font-medium">No documents yet</p>
-              <label className="mt-4 inline-block px-4 py-2 bg-green-600 text-white font-semibold rounded-lg hover:bg-green-700 transition-colors cursor-pointer">
-                <Upload className="w-4 h-4 inline mr-2" />
-                Upload Document
-                <input
-                  type="file"
-                  className="hidden"
-                  accept=".pdf,.doc,.docx,.jpg,.jpeg,.png"
-                  onChange={(e) => {
-                    const file = e.target.files?.[0];
-                    if (file) {
-                      handleUploadResolucion(file);
-                    }
-                  }}
-                  disabled={uploadingResolucionDoc}
-                />
-              </label>
             </div>
           )}
         </div>
