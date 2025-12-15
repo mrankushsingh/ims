@@ -144,7 +144,9 @@
       "makeAdmin": "Hacer Administrador",
       "removeAdmin": "Quitar Administrador",
       "makeFirstAdmin": "Hacer Primer Administrador",
-      "canMakeFirstAdmin": "Puede hacerse el primer administrador ya que aún no existen administradores."
+      "canMakeFirstAdmin": "Puede hacerse el primer administrador ya que aún no existen administradores.",
+      "accessDenied": "Acceso Denegado",
+      "adminOnly": "La gestión de usuarios solo es accesible para administradores."
     }
   }
 

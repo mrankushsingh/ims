@@ -143,7 +143,9 @@
       "makeAdmin": "Make Admin",
       "removeAdmin": "Remove Admin",
       "makeFirstAdmin": "Make First Admin",
-      "canMakeFirstAdmin": "You can make yourself the first admin since no admins exist yet."
+      "canMakeFirstAdmin": "You can make yourself the first admin since no admins exist yet.",
+      "accessDenied": "Access Denied",
+      "adminOnly": "User Management is only accessible to administrators."
     }
   }
 

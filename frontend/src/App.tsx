@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { FileText, Users as UsersIcon, LayoutDashboard, Menu, X, LogOut, UserCog } from 'lucide-react';
+import { FileText, Users as UsersIcon, LayoutDashboard, Menu, X, LogOut, UserCog, Shield } from 'lucide-react';
 import Dashboard from './components/Dashboard';
 import Templates from './components/Templates';
 import Clients from './components/Clients';
@@ -13,6 +13,7 @@ import { ToastContainer, subscribeToToasts, Toast } from './components/Toast';
 import { onAuthChange, getCurrentUser, logout as firebaseLogout, isFirebaseAvailable } from './utils/firebase';
 import { Client } from './types';
 import { t } from './utils/i18n';
+import { api } from './utils/api';
 
 type View = 'dashboard' | 'templates' | 'clients' | 'users';
 
@@ -23,6 +24,7 @@ function App() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [toasts, setToasts] = useState<Toast[]>([]);
   const [, forceUpdate] = useState({});
+  const [currentUserRole, setCurrentUserRole] = useState<'admin' | 'user' | null>(null);
 
   useEffect(() => {
     // Check if Firebase is available
@@ -35,16 +37,32 @@ function App() {
     // Listen to Firebase auth state changes
     const unsubscribe = onAuthChange((user) => {
       setIsAuthenticated(!!user);
+      if (user) {
+        loadCurrentUserRole();
+      } else {
+        setCurrentUserRole(null);
+      }
     });
 
     // Check initial auth state
     const user = getCurrentUser();
     if (user) {
       setIsAuthenticated(true);
+      loadCurrentUserRole();
     }
 
     return () => unsubscribe();
   }, []);
+
+  const loadCurrentUserRole = async () => {
+    try {
+      const user = await api.getCurrentUser();
+      setCurrentUserRole(user.role);
+    } catch (error) {
+      console.error('Failed to load current user role:', error);
+      setCurrentUserRole(null);
+    }
+  };
 
   useEffect(() => {
     // Subscribe to toast notifications
@@ -67,12 +85,20 @@ function App() {
     };
   }, []);
 
+  // Redirect away from users view if not admin
+  useEffect(() => {
+    if (currentView === 'users' && currentUserRole !== 'admin' && currentUserRole !== null) {
+      setCurrentView('dashboard');
+    }
+  }, [currentView, currentUserRole]);
+
   const handleCloseToast = (id: string) => {
     setToasts((prev) => prev.filter((toast) => toast.id !== id));
   };
 
-  const handleLoginSuccess = () => {
+  const handleLoginSuccess = async () => {
     setIsAuthenticated(true);
+    await loadCurrentUserRole();
   };
 
   const handleLogout = async () => {
@@ -171,19 +197,21 @@ function App() {
                     <span>{t('common.clients')}</span>
                   </div>
                 </button>
-                <button
-                  onClick={() => setCurrentView('users')}
-                  className={`px-4 sm:px-5 py-2.5 rounded-lg font-semibold text-sm transition-all duration-200 ${
-                    currentView === 'users'
-                      ? 'bg-gradient-to-r from-yellow-500 to-amber-500 text-amber-900 shadow-lg shadow-yellow-500/30 scale-105'
-                      : 'text-white/80 hover:bg-white/10 hover:text-white'
-                  }`}
-                >
-                  <div className="flex items-center space-x-2">
-                    <UserCog className="w-4 h-4" />
-                    <span>{t('users.title')}</span>
-                  </div>
-                </button>
+                {currentUserRole === 'admin' && (
+                  <button
+                    onClick={() => setCurrentView('users')}
+                    className={`px-4 sm:px-5 py-2.5 rounded-lg font-semibold text-sm transition-all duration-200 ${
+                      currentView === 'users'
+                        ? 'bg-gradient-to-r from-yellow-500 to-amber-500 text-amber-900 shadow-lg shadow-yellow-500/30 scale-105'
+                        : 'text-white/80 hover:bg-white/10 hover:text-white'
+                    }`}
+                  >
+                    <div className="flex items-center space-x-2">
+                      <UserCog className="w-4 h-4" />
+                      <span>{t('users.title')}</span>
+                    </div>
+                  </button>
+                )}
               </nav>
               <LanguageSelector />
               <Notifications onClientClick={setSelectedClient} />
@@ -267,22 +295,24 @@ function App() {
                           <span>{t('common.clients')}</span>
                         </div>
                       </button>
-                      <button
-                        onClick={() => {
-                          setCurrentView('users');
-                          setMobileMenuOpen(false);
-                        }}
-                        className={`w-full px-4 py-3 rounded-lg font-semibold text-sm transition-all duration-200 text-left ${
-                          currentView === 'users'
-                            ? 'bg-gradient-to-r from-yellow-500 to-amber-500 text-amber-900 shadow-lg'
-                            : 'text-white/80 hover:bg-white/10'
-                        }`}
-                      >
-                        <div className="flex items-center space-x-3">
-                          <UserCog className="w-5 h-5" />
-                          <span>{t('users.title')}</span>
-                        </div>
-                      </button>
+                  {currentUserRole === 'admin' && (
+                    <button
+                      onClick={() => {
+                        setCurrentView('users');
+                        setMobileMenuOpen(false);
+                      }}
+                      className={`w-full px-4 py-3 rounded-lg font-semibold text-sm transition-all duration-200 text-left ${
+                        currentView === 'users'
+                          ? 'bg-gradient-to-r from-yellow-500 to-amber-500 text-amber-900 shadow-lg'
+                          : 'text-white/80 hover:bg-white/10'
+                      }`}
+                    >
+                      <div className="flex items-center space-x-3">
+                        <UserCog className="w-5 h-5" />
+                        <span>{t('users.title')}</span>
+                      </div>
+                    </button>
+                  )}
                       <div className="pt-2 border-t border-white/10 mt-2">
                         <button
                           onClick={() => {
@@ -307,7 +337,16 @@ function App() {
           {currentView === 'dashboard' && <Dashboard onNavigate={setCurrentView} />}
           {currentView === 'templates' && <Templates />}
           {currentView === 'clients' && <Clients />}
-          {currentView === 'users' && <Users />}
+          {currentView === 'users' && currentUserRole === 'admin' && <Users />}
+          {currentView === 'users' && currentUserRole !== 'admin' && (
+            <div className="flex items-center justify-center h-64">
+              <div className="text-center">
+                <Shield className="w-16 h-16 text-red-500 mx-auto mb-4" />
+                <h2 className="text-2xl font-bold text-gray-900 mb-2">{t('users.accessDenied')}</h2>
+                <p className="text-gray-600">{t('users.adminOnly')}</p>
+              </div>
+            </div>
+          )}
         </div>
       </main>
 
