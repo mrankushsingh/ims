@@ -491,6 +491,9 @@ class DatabaseAdapter {
           (client as any).requested_documents_reminder_duration_days || 10,
           (client as any).requested_documents_reminder_interval_days || 3,
           (client as any).requested_documents_last_reminder_date || null,
+          JSON.stringify((client as any).aportar_documentacion || []),
+          JSON.stringify((client as any).requerimiento || []),
+          JSON.stringify((client as any).resolucion || []),
           client.created_at,
           client.updated_at,
         ]
