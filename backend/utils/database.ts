@@ -40,6 +40,9 @@ interface Client {
   requested_documents_reminder_duration_days?: number;
   requested_documents_reminder_interval_days?: number;
   requested_documents_last_reminder_date?: string;
+  aportar_documentacion?: any[];
+  requerimiento?: any[];
+  resolucion?: any[];
   created_at: string;
   updated_at: string;
 }
@@ -143,6 +146,9 @@ class DatabaseAdapter {
           requested_documents_reminder_duration_days INTEGER DEFAULT 10,
           requested_documents_reminder_interval_days INTEGER DEFAULT 3,
           requested_documents_last_reminder_date TIMESTAMP,
+          aportar_documentacion JSONB,
+          requerimiento JSONB,
+          resolucion JSONB,
           created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
           updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
         )
@@ -189,6 +195,24 @@ class DatabaseAdapter {
               WHERE table_name = 'clients' AND column_name = 'requested_documents_last_reminder_date'
           ) THEN
             ALTER TABLE clients ADD COLUMN requested_documents_last_reminder_date TIMESTAMP;
+          END IF;
+          IF NOT EXISTS (
+            SELECT 1 FROM information_schema.columns
+              WHERE table_name = 'clients' AND column_name = 'aportar_documentacion'
+          ) THEN
+            ALTER TABLE clients ADD COLUMN aportar_documentacion JSONB;
+          END IF;
+          IF NOT EXISTS (
+            SELECT 1 FROM information_schema.columns
+              WHERE table_name = 'clients' AND column_name = 'requerimiento'
+          ) THEN
+            ALTER TABLE clients ADD COLUMN requerimiento JSONB;
+          END IF;
+          IF NOT EXISTS (
+            SELECT 1 FROM information_schema.columns
+              WHERE table_name = 'clients' AND column_name = 'resolucion'
+          ) THEN
+            ALTER TABLE clients ADD COLUMN resolucion JSONB;
           END IF;
         END $$;
       `);
@@ -439,8 +463,9 @@ class DatabaseAdapter {
          required_documents, reminder_interval_days, administrative_silence_days, payment, 
          submitted_to_immigration, application_date, custom_reminder_date, notifications, additional_docs_required, 
          notes, additional_documents, requested_documents, requested_documents_reminder_duration_days, 
-         requested_documents_reminder_interval_days, requested_documents_last_reminder_date, created_at, updated_at)
-         VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21, $22, $23, $24, $25, $26)`,
+         requested_documents_reminder_interval_days, requested_documents_last_reminder_date, 
+         aportar_documentacion, requerimiento, resolucion, created_at, updated_at)
+         VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21, $22, $23, $24, $25, $26, $27, $28, $29)`,
         [
           client.id,
           client.first_name,
@@ -522,6 +547,15 @@ class DatabaseAdapter {
       requested_documents_last_reminder_date: row.requested_documents_last_reminder_date 
         ? row.requested_documents_last_reminder_date.toISOString() 
         : undefined,
+      aportar_documentacion: typeof row.aportar_documentacion === 'string' 
+        ? JSON.parse(row.aportar_documentacion) 
+        : (row.aportar_documentacion || []),
+      requerimiento: typeof row.requerimiento === 'string' 
+        ? JSON.parse(row.requerimiento) 
+        : (row.requerimiento || []),
+      resolucion: typeof row.resolucion === 'string' 
+        ? JSON.parse(row.resolucion) 
+        : (row.resolucion || []),
       application_date: row.application_date ? row.application_date.toISOString() : undefined,
       custom_reminder_date: row.custom_reminder_date ? row.custom_reminder_date.toISOString() : undefined,
       created_at: row.created_at.toISOString(),
@@ -560,12 +594,15 @@ class DatabaseAdapter {
         requested_documents_reminder_duration_days: (data as any).requested_documents_reminder_duration_days,
         requested_documents_reminder_interval_days: (data as any).requested_documents_reminder_interval_days,
         requested_documents_last_reminder_date: (data as any).requested_documents_last_reminder_date,
+        aportar_documentacion: (data as any).aportar_documentacion,
+        requerimiento: (data as any).requerimiento,
+        resolucion: (data as any).resolucion,
       };
 
       for (const [key, value] of Object.entries(fields)) {
         if (value !== undefined) {
           updates.push(`${key} = $${paramCount++}`);
-          if (['required_documents', 'payment', 'notifications', 'additional_documents', 'requested_documents'].includes(key)) {
+          if (['required_documents', 'payment', 'notifications', 'additional_documents', 'requested_documents', 'aportar_documentacion', 'requerimiento', 'resolucion'].includes(key)) {
             values.push(JSON.stringify(value));
           } else {
             values.push(value);

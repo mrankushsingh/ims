@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { X, Upload, CheckCircle, FileText, Download, Trash2, Plus, DollarSign, StickyNote, Archive, XCircle, AlertCircle, Send, Clock, Eye, ToggleLeft, ToggleRight, Calendar } from 'lucide-react';
+import { X, Upload, CheckCircle, FileText, Download, Trash2, Plus, DollarSign, StickyNote, Archive, XCircle, AlertCircle, Send, Clock, Eye, ToggleLeft, ToggleRight, Calendar, FilePlus } from 'lucide-react';
 import JSZip from 'jszip';
 import { api } from '../utils/api';
 import { Client, RequiredDocument, AdditionalDocument, RequestedDocument } from '../types';
@@ -36,6 +36,9 @@ export default function ClientDetailsModal({ client, onClose, onSuccess }: Props
   const [uploadingRequestedDoc, setUploadingRequestedDoc] = useState<string | null>(null);
   const [showDurationModal, setShowDurationModal] = useState(false);
   const [durationDays, setDurationDays] = useState(client.requested_documents_reminder_duration_days || 10);
+  const [uploadingAportarDoc, setUploadingAportarDoc] = useState(false);
+  const [uploadingRequerimientoDoc, setUploadingRequerimientoDoc] = useState(false);
+  const [uploadingResolucionDoc, setUploadingResolucionDoc] = useState(false);
   const [confirmDialog, setConfirmDialog] = useState<{
     isOpen: boolean;
     title: string;
@@ -190,6 +193,126 @@ export default function ClientDetailsModal({ client, onClose, onSuccess }: Props
         } catch (error: any) {
           setError(error.message || 'Failed to remove requested document');
           showToast(error.message || 'Failed to remove requested document', 'error');
+          setConfirmDialog({ ...confirmDialog, isOpen: false });
+        }
+      },
+    });
+  };
+
+  const handleUploadAportarDocumentacion = async (file: File) => {
+    setError('');
+    setUploadingAportarDoc(true);
+    try {
+      await api.uploadAportarDocumentacion(client.id, file);
+      await loadClient();
+      onSuccess();
+      showToast('Document uploaded successfully', 'success');
+    } catch (error: any) {
+      const errorMessage = error.message || 'Failed to upload document';
+      setError(errorMessage);
+      showToast(errorMessage, 'error');
+    } finally {
+      setUploadingAportarDoc(false);
+    }
+  };
+
+  const handleRemoveAportarDocumentacion = async (documentCode: string) => {
+    setConfirmDialog({
+      isOpen: true,
+      title: 'Remove Document',
+      message: 'Are you sure you want to remove this document?',
+      type: 'warning',
+      onConfirm: async () => {
+        setError('');
+        try {
+          await api.removeAportarDocumentacion(client.id, documentCode);
+          await loadClient();
+          onSuccess();
+          showToast('Document removed successfully', 'success');
+          setConfirmDialog({ ...confirmDialog, isOpen: false });
+        } catch (error: any) {
+          setError(error.message || 'Failed to remove document');
+          showToast(error.message || 'Failed to remove document', 'error');
+          setConfirmDialog({ ...confirmDialog, isOpen: false });
+        }
+      },
+    });
+  };
+
+  const handleUploadRequerimiento = async (file: File) => {
+    setError('');
+    setUploadingRequerimientoDoc(true);
+    try {
+      await api.uploadRequerimiento(client.id, file);
+      await loadClient();
+      onSuccess();
+      showToast('Document uploaded successfully', 'success');
+    } catch (error: any) {
+      const errorMessage = error.message || 'Failed to upload document';
+      setError(errorMessage);
+      showToast(errorMessage, 'error');
+    } finally {
+      setUploadingRequerimientoDoc(false);
+    }
+  };
+
+  const handleRemoveRequerimiento = async (documentCode: string) => {
+    setConfirmDialog({
+      isOpen: true,
+      title: 'Remove Document',
+      message: 'Are you sure you want to remove this document?',
+      type: 'warning',
+      onConfirm: async () => {
+        setError('');
+        try {
+          await api.removeRequerimiento(client.id, documentCode);
+          await loadClient();
+          onSuccess();
+          showToast('Document removed successfully', 'success');
+          setConfirmDialog({ ...confirmDialog, isOpen: false });
+        } catch (error: any) {
+          setError(error.message || 'Failed to remove document');
+          showToast(error.message || 'Failed to remove document', 'error');
+          setConfirmDialog({ ...confirmDialog, isOpen: false });
+        }
+      },
+    });
+  };
+
+  const handleUploadResolucion = async (file: File) => {
+    setError('');
+    setUploadingResolucionDoc(true);
+    try {
+      await api.uploadResolucion(client.id, file);
+      await loadClient();
+      onSuccess();
+      showToast('Document uploaded successfully', 'success');
+    } catch (error: any) {
+      const errorMessage = error.message || 'Failed to upload document';
+      setError(errorMessage);
+      showToast(errorMessage, 'error');
+    } finally {
+      setUploadingResolucionDoc(false);
+    }
+  };
+
+  const handleRemoveResolucion = async (documentCode: string) => {
+    setConfirmDialog({
+      isOpen: true,
+      title: 'Remove Document',
+      message: 'Are you sure you want to remove this document?',
+      type: 'warning',
+      onConfirm: async () => {
+        setError('');
+        try {
+          await api.removeResolucion(client.id, documentCode);
+          await loadClient();
+          onSuccess();
+          showToast('Document removed successfully', 'success');
+          setConfirmDialog({ ...confirmDialog, isOpen: false });
+        } catch (error: any) {
+          setError(error.message || 'Failed to remove document');
+          showToast(error.message || 'Failed to remove document', 'error');
           setConfirmDialog({ ...confirmDialog, isOpen: false });
         }
       },
@@ -861,6 +984,342 @@ export default function ClientDetailsModal({ client, onClose, onSuccess }: Props
                 <FileText className="w-12 h-12 mx-auto mb-2 opacity-50" />
                 <p className="text-sm font-medium">No requested documents yet</p>
                 <p className="text-xs mt-1">Add documents requested by administration</p>
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* APORTAR DOCUMENTACIÓN Section */}
+        {clientData.submitted_to_immigration && (
+          <div className="mb-6 p-5 bg-gradient-to-br from-blue-50 to-cyan-50 rounded-xl border-2 border-blue-200 shadow-md">
+            <div className="flex items-center justify-between mb-4">
+              <div className="flex items-center space-x-3">
+                <div className="bg-blue-100 p-3 rounded-lg">
+                  <FilePlus className="w-6 h-6 text-blue-600" />
+                </div>
+                <div>
+                  <h3 className="font-semibold text-lg text-blue-900">APORTAR DOCUMENTACIÓN</h3>
+                  <p className="text-sm text-blue-700">Upload documents to add to the file</p>
+                </div>
+              </div>
+            </div>
+
+            {clientData.aportar_documentacion && clientData.aportar_documentacion.length > 0 ? (
+              <div className="space-y-3">
+                {clientData.aportar_documentacion.map((doc: RequestedDocument) => (
+                  <div key={doc.code} className="p-4 bg-white rounded-lg border border-blue-200">
+                    <div className="flex items-start justify-between">
+                      <div className="flex-1">
+                        <div className="flex items-center space-x-2 mb-2">
+                          <FileText className="w-5 h-5 text-blue-600" />
+                          <h4 className="font-semibold text-blue-900">{doc.name}</h4>
+                          {doc.submitted && (
+                            <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold bg-emerald-100 text-emerald-700">
+                              ✓ Uploaded
+                            </span>
+                          )}
+                        </div>
+                        {doc.description && (
+                          <p className="text-sm text-blue-700 mb-2">{doc.description}</p>
+                        )}
+                        {doc.uploadedAt && (
+                          <p className="text-xs text-emerald-600">
+                            Uploaded: {new Date(doc.uploadedAt).toLocaleDateString()}
+                          </p>
+                        )}
+                      </div>
+                      <div className="flex items-center space-x-2 ml-4">
+                        {doc.submitted && doc.fileUrl ? (
+                          <>
+                            <button
+                              onClick={() => window.open(doc.fileUrl, '_blank')}
+                              className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
+                              title="View document"
+                            >
+                              <Eye className="w-4 h-4" />
+                            </button>
+                            <a
+                              href={doc.fileUrl}
+                              download={doc.fileName}
+                              className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
+                              title="Download document"
+                            >
+                              <Download className="w-4 h-4" />
+                            </a>
+                          </>
+                        ) : (
+                          <label className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors cursor-pointer">
+                            <Upload className="w-4 h-4" />
+                            <input
+                              type="file"
+                              className="hidden"
+                              accept=".pdf,.doc,.docx,.jpg,.jpeg,.png"
+                              onChange={(e) => {
+                                const file = e.target.files?.[0];
+                                if (file) {
+                                  handleUploadAportarDocumentacion(file);
+                                }
+                              }}
+                              disabled={uploadingAportarDoc}
+                            />
+                          </label>
+                        )}
+                        <button
+                          onClick={() => handleRemoveAportarDocumentacion(doc.code)}
+                          className="p-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors"
+                          title="Remove document"
+                        >
+                          <Trash2 className="w-4 h-4" />
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <div className="text-center py-8 text-blue-600">
+                <FileText className="w-12 h-12 mx-auto mb-2 opacity-50" />
+                <p className="text-sm font-medium">No documents yet</p>
+                <label className="mt-4 inline-block px-4 py-2 bg-blue-600 text-white font-semibold rounded-lg hover:bg-blue-700 transition-colors cursor-pointer">
+                  <Upload className="w-4 h-4 inline mr-2" />
+                  Upload Document
+                  <input
+                    type="file"
+                    className="hidden"
+                    accept=".pdf,.doc,.docx,.jpg,.jpeg,.png"
+                    onChange={(e) => {
+                      const file = e.target.files?.[0];
+                      if (file) {
+                        handleUploadAportarDocumentacion(file);
+                      }
+                    }}
+                    disabled={uploadingAportarDoc}
+                  />
+                </label>
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* REQUERIMIENTO Section */}
+        {clientData.submitted_to_immigration && (
+          <div className="mb-6 p-5 bg-gradient-to-br from-amber-50 to-orange-50 rounded-xl border-2 border-amber-200 shadow-md">
+            <div className="flex items-center justify-between mb-4">
+              <div className="flex items-center space-x-3">
+                <div className="bg-amber-100 p-3 rounded-lg">
+                  <AlertCircle className="w-6 h-6 text-amber-600" />
+                </div>
+                <div>
+                  <h3 className="font-semibold text-lg text-amber-900">REQUERIMIENTO</h3>
+                  <p className="text-sm text-amber-700">Upload requirement documents</p>
+                </div>
+              </div>
+            </div>
+
+            {clientData.requerimiento && clientData.requerimiento.length > 0 ? (
+              <div className="space-y-3">
+                {clientData.requerimiento.map((doc: RequestedDocument) => (
+                  <div key={doc.code} className="p-4 bg-white rounded-lg border border-amber-200">
+                    <div className="flex items-start justify-between">
+                      <div className="flex-1">
+                        <div className="flex items-center space-x-2 mb-2">
+                          <FileText className="w-5 h-5 text-amber-600" />
+                          <h4 className="font-semibold text-amber-900">{doc.name}</h4>
+                          {doc.submitted && (
+                            <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold bg-emerald-100 text-emerald-700">
+                              ✓ Uploaded
+                            </span>
+                          )}
+                        </div>
+                        {doc.description && (
+                          <p className="text-sm text-amber-700 mb-2">{doc.description}</p>
+                        )}
+                        {doc.uploadedAt && (
+                          <p className="text-xs text-emerald-600">
+                            Uploaded: {new Date(doc.uploadedAt).toLocaleDateString()}
+                          </p>
+                        )}
+                      </div>
+                      <div className="flex items-center space-x-2 ml-4">
+                        {doc.submitted && doc.fileUrl ? (
+                          <>
+                            <button
+                              onClick={() => window.open(doc.fileUrl, '_blank')}
+                              className="p-2 text-amber-600 hover:bg-amber-50 rounded-lg transition-colors"
+                              title="View document"
+                            >
+                              <Eye className="w-4 h-4" />
+                            </button>
+                            <a
+                              href={doc.fileUrl}
+                              download={doc.fileName}
+                              className="p-2 text-amber-600 hover:bg-amber-50 rounded-lg transition-colors"
+                              title="Download document"
+                            >
+                              <Download className="w-4 h-4" />
+                            </a>
+                          </>
+                        ) : (
+                          <label className="p-2 text-amber-600 hover:bg-amber-50 rounded-lg transition-colors cursor-pointer">
+                            <Upload className="w-4 h-4" />
+                            <input
+                              type="file"
+                              className="hidden"
+                              accept=".pdf,.doc,.docx,.jpg,.jpeg,.png"
+                              onChange={(e) => {
+                                const file = e.target.files?.[0];
+                                if (file) {
+                                  handleUploadRequerimiento(file);
+                                }
+                              }}
+                              disabled={uploadingRequerimientoDoc}
+                            />
+                          </label>
+                        )}
+                        <button
+                          onClick={() => handleRemoveRequerimiento(doc.code)}
+                          className="p-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors"
+                          title="Remove document"
+                        >
+                          <Trash2 className="w-4 h-4" />
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <div className="text-center py-8 text-amber-600">
+                <FileText className="w-12 h-12 mx-auto mb-2 opacity-50" />
+                <p className="text-sm font-medium">No documents yet</p>
+                <label className="mt-4 inline-block px-4 py-2 bg-amber-600 text-white font-semibold rounded-lg hover:bg-amber-700 transition-colors cursor-pointer">
+                  <Upload className="w-4 h-4 inline mr-2" />
+                  Upload Document
+                  <input
+                    type="file"
+                    className="hidden"
+                    accept=".pdf,.doc,.docx,.jpg,.jpeg,.png"
+                    onChange={(e) => {
+                      const file = e.target.files?.[0];
+                      if (file) {
+                        handleUploadRequerimiento(file);
+                      }
+                    }}
+                    disabled={uploadingRequerimientoDoc}
+                  />
+                </label>
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* RESOLUCIÓN Section */}
+        {clientData.submitted_to_immigration && (
+          <div className="mb-6 p-5 bg-gradient-to-br from-green-50 to-emerald-50 rounded-xl border-2 border-green-200 shadow-md">
+            <div className="flex items-center justify-between mb-4">
+              <div className="flex items-center space-x-3">
+                <div className="bg-green-100 p-3 rounded-lg">
+                  <CheckCircle className="w-6 h-6 text-green-600" />
+                </div>
+                <div>
+                  <h3 className="font-semibold text-lg text-green-900">RESOLUCIÓN</h3>
+                  <p className="text-sm text-green-700">Upload resolution documents</p>
+                </div>
+              </div>
+            </div>
+
+            {clientData.resolucion && clientData.resolucion.length > 0 ? (
+              <div className="space-y-3">
+                {clientData.resolucion.map((doc: RequestedDocument) => (
+                  <div key={doc.code} className="p-4 bg-white rounded-lg border border-green-200">
+                    <div className="flex items-start justify-between">
+                      <div className="flex-1">
+                        <div className="flex items-center space-x-2 mb-2">
+                          <FileText className="w-5 h-5 text-green-600" />
+                          <h4 className="font-semibold text-green-900">{doc.name}</h4>
+                          {doc.submitted && (
+                            <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold bg-emerald-100 text-emerald-700">
+                              ✓ Uploaded
+                            </span>
+                          )}
+                        </div>
+                        {doc.description && (
+                          <p className="text-sm text-green-700 mb-2">{doc.description}</p>
+                        )}
+                        {doc.uploadedAt && (
+                          <p className="text-xs text-emerald-600">
+                            Uploaded: {new Date(doc.uploadedAt).toLocaleDateString()}
+                          </p>
+                        )}
+                      </div>
+                      <div className="flex items-center space-x-2 ml-4">
+                        {doc.submitted && doc.fileUrl ? (
+                          <>
+                            <button
+                              onClick={() => window.open(doc.fileUrl, '_blank')}
+                              className="p-2 text-green-600 hover:bg-green-50 rounded-lg transition-colors"
+                              title="View document"
+                            >
+                              <Eye className="w-4 h-4" />
+                            </button>
+                            <a
+                              href={doc.fileUrl}
+                              download={doc.fileName}
+                              className="p-2 text-green-600 hover:bg-green-50 rounded-lg transition-colors"
+                              title="Download document"
+                            >
+                              <Download className="w-4 h-4" />
+                            </a>
+                          </>
+                        ) : (
+                          <label className="p-2 text-green-600 hover:bg-green-50 rounded-lg transition-colors cursor-pointer">
+                            <Upload className="w-4 h-4" />
+                            <input
+                              type="file"
+                              className="hidden"
+                              accept=".pdf,.doc,.docx,.jpg,.jpeg,.png"
+                              onChange={(e) => {
+                                const file = e.target.files?.[0];
+                                if (file) {
+                                  handleUploadResolucion(file);
+                                }
+                              }}
+                              disabled={uploadingResolucionDoc}
+                            />
+                          </label>
+                        )}
+                        <button
+                          onClick={() => handleRemoveResolucion(doc.code)}
+                          className="p-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors"
+                          title="Remove document"
+                        >
+                          <Trash2 className="w-4 h-4" />
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <div className="text-center py-8 text-green-600">
+                <FileText className="w-12 h-12 mx-auto mb-2 opacity-50" />
+                <p className="text-sm font-medium">No documents yet</p>
+                <label className="mt-4 inline-block px-4 py-2 bg-green-600 text-white font-semibold rounded-lg hover:bg-green-700 transition-colors cursor-pointer">
+                  <Upload className="w-4 h-4 inline mr-2" />
+                  Upload Document
+                  <input
+                    type="file"
+                    className="hidden"
+                    accept=".pdf,.doc,.docx,.jpg,.jpeg,.png"
+                    onChange={(e) => {
+                      const file = e.target.files?.[0];
+                      if (file) {
+                        handleUploadResolucion(file);
+                      }
+                    }}
+                    disabled={uploadingResolucionDoc}
+                  />
+                </label>
               </div>
             )}
           </div>

@@ -553,5 +553,122 @@ router.put('/:id/requested-documents-last-reminder', async (req, res) => {
   }
 });
 
+// Helper function to handle document upload for different types
+async function handleDocumentUpload(
+  req: any,
+  res: any,
+  documentType: 'aportar_documentacion' | 'requerimiento' | 'resolucion'
+) {
+  try {
+    if (!req.file) {
+      return res.status(400).json({ error: 'No file uploaded' });
+    }
+
+    const client = await memoryDb.getClient(req.params.id);
+    if (!client) {
+      return res.status(404).json({ error: 'Client not found' });
+    }
+
+    if (!client.submitted_to_immigration) {
+      return res.status(400).json({ error: 'Client must be submitted to immigration' });
+    }
+
+    const documents = (client as any)[documentType] || [];
+    const file = req.file;
+    let fileUrl: string;
+    let fileName: string;
+
+    if (isUsingBucketStorage()) {
+      const ext = extname(file.originalname);
+      const uniqueSuffix = `${Date.now()}_${Math.round(Math.random() * 1E9)}`;
+      const name = file.originalname.replace(ext, '').replace(/[^a-zA-Z0-9]/g, '_');
+      fileName = `${name}_${uniqueSuffix}${ext}`;
+      fileUrl = await uploadFile(file.buffer, `clients/${req.params.id}/${documentType}/${fileName}`, file.mimetype);
+    } else {
+      fileName = file.filename || file.originalname;
+      fileUrl = `/uploads/${fileName}`;
+    }
+
+    const newDoc: any = {
+      code: `doc_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
+      name: file.originalname.replace(/\.[^/.]+$/, ''),
+      submitted: true,
+      fileUrl,
+      fileName: file.originalname,
+      fileSize: file.size,
+      uploadedAt: new Date().toISOString(),
+    };
+
+    documents.push(newDoc);
+
+    const updated = await memoryDb.updateClient(req.params.id, {
+      [documentType]: documents,
+    } as any);
+
+    res.json(updated);
+  } catch (error: any) {
+    res.status(500).json({ error: error.message || `Failed to upload ${documentType} document` });
+  }
+}
+
+// Helper function to handle document removal for different types
+async function handleDocumentRemove(
+  req: any,
+  res: any,
+  documentType: 'aportar_documentacion' | 'requerimiento' | 'resolucion'
+) {
+  try {
+    const client = await memoryDb.getClient(req.params.id);
+    if (!client) {
+      return res.status(404).json({ error: 'Client not found' });
+    }
+
+    const documents = ((client as any)[documentType] || []).filter(
+      (d: any) => d.code !== req.params.code
+    );
+
+    const docToRemove = ((client as any)[documentType] || []).find(
+      (d: any) => d.code === req.params.code
+    );
+    if (docToRemove && docToRemove.fileUrl && docToRemove.fileUrl.startsWith('/uploads/')) {
+      deleteFile(docToRemove.fileUrl).catch(err => {
+        console.error('Error deleting file:', err);
+      });
+    }
+
+    const updated = await memoryDb.updateClient(req.params.id, {
+      [documentType]: documents,
+    } as any);
+
+    res.json(updated);
+  } catch (error: any) {
+    res.status(500).json({ error: error.message || `Failed to remove ${documentType} document` });
+  }
+}
+
+// APORTAR DOCUMENTACIÓN routes
+router.post('/:id/aportar-documentacion/upload', upload.single('file'), (req, res) => 
+  handleDocumentUpload(req, res, 'aportar_documentacion')
+);
+router.delete('/:id/aportar-documentacion/:code', (req, res) => 
+  handleDocumentRemove(req, res, 'aportar_documentacion')
+);
+
+// REQUERIMIENTO routes
+router.post('/:id/requerimiento/upload', upload.single('file'), (req, res) => 
+  handleDocumentUpload(req, res, 'requerimiento')
+);
+router.delete('/:id/requerimiento/:code', (req, res) => 
+  handleDocumentRemove(req, res, 'requerimiento')
+);
+
+// RESOLUCIÓN routes
+router.post('/:id/resolucion/upload', upload.single('file'), (req, res) => 
+  handleDocumentUpload(req, res, 'resolucion')
+);
+router.delete('/:id/resolucion/:code', (req, res) => 
+  handleDocumentRemove(req, res, 'resolucion')
+);
+
 export default router;
 

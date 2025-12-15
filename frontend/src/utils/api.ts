@@ -275,6 +275,99 @@ export const api = {
     return response.json();
   },
 
+  // APORTAR DOCUMENTACIÓN
+  async uploadAportarDocumentacion(clientId: string, file: File) {
+    const formData = new FormData();
+    formData.append('file', file);
+    const headers = await getAuthHeaders();
+    delete (headers as any)['Content-Type'];
+    const response = await fetch(`${API_URL}/clients/${clientId}/aportar-documentacion/upload`, {
+      method: 'POST',
+      headers,
+      body: formData,
+    });
+    if (!response.ok) {
+      const error = await response.json().catch(() => ({ error: 'Failed to upload document' }));
+      throw new Error(error.error || 'Failed to upload document');
+    }
+    return response.json();
+  },
+
+  async removeAportarDocumentacion(clientId: string, documentCode: string) {
+    const headers = await getAuthHeaders();
+    const response = await fetch(`${API_URL}/clients/${clientId}/aportar-documentacion/${documentCode}`, {
+      method: 'DELETE',
+      headers,
+    });
+    if (!response.ok) {
+      const error = await response.json().catch(() => ({ error: 'Failed to remove document' }));
+      throw new Error(error.error || 'Failed to remove document');
+    }
+    return response.json();
+  },
+
+  // REQUERIMIENTO
+  async uploadRequerimiento(clientId: string, file: File) {
+    const formData = new FormData();
+    formData.append('file', file);
+    const headers = await getAuthHeaders();
+    delete (headers as any)['Content-Type'];
+    const response = await fetch(`${API_URL}/clients/${clientId}/requerimiento/upload`, {
+      method: 'POST',
+      headers,
+      body: formData,
+    });
+    if (!response.ok) {
+      const error = await response.json().catch(() => ({ error: 'Failed to upload document' }));
+      throw new Error(error.error || 'Failed to upload document');
+    }
+    return response.json();
+  },
+
+  async removeRequerimiento(clientId: string, documentCode: string) {
+    const headers = await getAuthHeaders();
+    const response = await fetch(`${API_URL}/clients/${clientId}/requerimiento/${documentCode}`, {
+      method: 'DELETE',
+      headers,
+    });
+    if (!response.ok) {
+      const error = await response.json().catch(() => ({ error: 'Failed to remove document' }));
+      throw new Error(error.error || 'Failed to remove document');
+    }
+    return response.json();
+  },
+
+  // RESOLUCIÓN
+  async uploadResolucion(clientId: string, file: File) {
+    const formData = new FormData();
+    formData.append('file', file);
+    const headers = await getAuthHeaders();
+    delete (headers as any)['Content-Type'];
+    const response = await fetch(`${API_URL}/clients/${clientId}/resolucion/upload`, {
+      method: 'POST',
+      headers,
+      body: formData,
+    });
+    if (!response.ok) {
+      const error = await response.json().catch(() => ({ error: 'Failed to upload document' }));
+      throw new Error(error.error || 'Failed to upload document');
+    }
+    return response.json();
+  },
+
+  async removeResolucion(clientId: string, documentCode: string) {
+    const headers = await getAuthHeaders();
+    const response = await fetch(`${API_URL}/clients/${clientId}/resolucion/${documentCode}`, {
+      method: 'DELETE',
+      headers,
+    });
+    if (!response.ok) {
+      const error = await response.json().catch(() => ({ error: 'Failed to remove document' }));
+      throw new Error(error.error || 'Failed to remove document');
+    }
+    return response.json();
+  },
+
   async submitToAdministrative(clientId: string) {
     return this.updateClient(clientId, {
       submitted_to_immigration: true,

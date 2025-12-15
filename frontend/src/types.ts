@@ -58,6 +58,9 @@ export interface Client {
   requested_documents_reminder_duration_days?: number; // Duration for requested documents (default 10)
   requested_documents_reminder_interval_days?: number; // Reminder interval for requested documents (default 3)
   requested_documents_last_reminder_date?: string; // Last reminder date for requested documents
+  aportar_documentacion?: RequestedDocument[]; // APORTAR DOCUMENTACIÓN documents
+  requerimiento?: RequestedDocument[]; // REQUERIMIENTO documents
+  resolucion?: RequestedDocument[]; // RESOLUCIÓN documents
   created_at: string;
   updated_at: string;
 }
