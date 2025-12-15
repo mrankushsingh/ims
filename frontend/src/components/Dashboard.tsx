@@ -169,7 +169,7 @@ export default function Dashboard() {
       </div>
 
       {/* Stats Cards */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-4 sm:gap-6">
+      <div className="grid grid-cols-5 gap-4 sm:gap-6">
         <div className="glass-gold rounded-2xl p-5 sm:p-6 glass-hover animate-slide-up">
           <div className="flex items-center justify-between mb-4">
             <div className="bg-gradient-to-br from-amber-100 to-amber-200 p-3 rounded-xl shadow-lg">
