@@ -107,7 +107,8 @@ export default function Clients() {
           {clients.map((client, index) => (
             <div
               key={client.id}
-              className="glass-gold rounded-xl sm:rounded-2xl p-4 sm:p-6 glass-hover animate-slide-up"
+              onClick={() => setSelectedClient(client)}
+              className="glass-gold rounded-xl sm:rounded-2xl p-4 sm:p-6 glass-hover animate-slide-up cursor-pointer transition-all duration-200 hover:shadow-xl"
               style={{ animationDelay: `${index * 0.1}s` }}
             >
               <div className="flex items-start justify-between mb-4">
@@ -117,7 +118,7 @@ export default function Clients() {
                   </h3>
                   <p className="text-sm text-amber-700/70 font-medium">{client.case_type || t('clients.noTemplate')}</p>
                 </div>
-                <div className="flex items-center space-x-2">
+                <div className="flex items-center space-x-2" onClick={(e) => e.stopPropagation()}>
                   <div className="bg-gradient-to-br from-amber-100 to-amber-200 p-2 rounded-lg shadow-md">
                     <Users className="w-5 h-5 text-amber-800" />
                   </div>

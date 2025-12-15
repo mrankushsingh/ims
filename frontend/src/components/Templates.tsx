@@ -106,7 +106,8 @@ export default function Templates() {
           {templates.map((template, index) => (
             <div
               key={template.id}
-              className="glass-gold rounded-xl sm:rounded-2xl p-4 sm:p-6 glass-hover animate-slide-up"
+              onClick={() => setEditingTemplate(template)}
+              className="glass-gold rounded-xl sm:rounded-2xl p-4 sm:p-6 glass-hover animate-slide-up cursor-pointer transition-all duration-200 hover:shadow-xl"
               style={{ animationDelay: `${index * 0.1}s` }}
             >
               <div className="flex justify-between items-start mb-4">
@@ -116,7 +117,7 @@ export default function Templates() {
                     <p className="text-sm text-amber-700/70 line-clamp-2 font-medium">{template.description}</p>
                   )}
                 </div>
-                <div className="flex space-x-1 ml-2">
+                <div className="flex space-x-1 ml-2" onClick={(e) => e.stopPropagation()}>
                   <button
                     onClick={() => setEditingTemplate(template)}
                     className="p-2 text-amber-700 hover:bg-amber-100 rounded-lg transition-colors"
