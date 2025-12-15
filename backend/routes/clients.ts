@@ -4,6 +4,7 @@ import { fileURLToPath } from 'url';
 import { dirname, join, extname } from 'path';
 import { db } from '../utils/database.js';
 import { uploadFile, deleteFile, isUsingBucketStorage } from '../utils/storage.js';
+import { AuthenticatedRequest } from '../middleware/auth.js';
 
 const memoryDb = db; // For backward compatibility
 
@@ -222,7 +223,7 @@ router.post('/:id/documents/:documentCode', upload.single('file'), async (req, r
           uploadedAt: new Date().toISOString(),
           fileName: file.originalname,
           fileSize: file.size,
-          uploadedBy: req.body.userName || undefined,
+          uploadedBy: userName,
         };
       }
       return doc;
@@ -413,11 +414,18 @@ router.post('/:id/requested-documents', async (req, res) => {
 });
 
 // Upload file for requested document
-router.post('/:id/requested-documents/:code/upload', upload.single('file'), async (req, res) => {
+router.post('/:id/requested-documents/:code/upload', upload.single('file'), async (req: AuthenticatedRequest, res) => {
   try {
     if (!req.file) {
       return res.status(400).json({ error: 'No file uploaded' });
     }
+    if (!req.user?.uid) {
+      return res.status(401).json({ error: 'User not authenticated' });
+    }
+
+    // Get user name from database
+    const user = await memoryDb.getUserByFirebaseUid(req.user.uid);
+    const userName = user?.name || user?.email || req.user.email || req.user.name || 'Unknown User';
 
     const client = await memoryDb.getClient(req.params.id);
     if (!client) {
@@ -468,7 +476,7 @@ router.post('/:id/requested-documents/:code/upload', upload.single('file'), asyn
       fileName: file.originalname,
       fileSize: file.size,
       uploadedAt: new Date().toISOString(),
-      uploadedBy: req.body.userName || undefined,
+      uploadedBy: userName,
     };
 
     const updated = await memoryDb.updateClient(req.params.id, {
@@ -557,7 +565,7 @@ router.put('/:id/requested-documents-last-reminder', async (req, res) => {
 
 // Helper function to handle document upload for different types
 async function handleDocumentUpload(
-  req: any,
+  req: AuthenticatedRequest,
   res: any,
   documentType: 'aportar_documentacion' | 'requerimiento' | 'resolucion'
 ) {
@@ -565,14 +573,18 @@ async function handleDocumentUpload(
     if (!req.file) {
       return res.status(400).json({ error: 'No file uploaded' });
     }
+    if (!req.user?.uid) {
+      return res.status(401).json({ error: 'User not authenticated' });
+    }
 
-    const { name, description, userName } = req.body;
+    const { name, description } = req.body;
     if (!name || !name.trim()) {
       return res.status(400).json({ error: 'Document name is required' });
     }
-    if (!userName || !userName.trim()) {
-      return res.status(400).json({ error: 'User name is required' });
-    }
+
+    // Get user name from database
+    const user = await memoryDb.getUserByFirebaseUid(req.user.uid);
+    const userName = user?.name || user?.email || req.user.email || req.user.name || 'Unknown User';
 
     const client = await memoryDb.getClient(req.params.id);
     if (!client) {
@@ -603,7 +615,7 @@ async function handleDocumentUpload(
       fileName: file.originalname,
       fileSize: file.size,
       uploadedAt: new Date().toISOString(),
-      uploadedBy: userName.trim(),
+      uploadedBy: userName,
     };
 
     documents.push(newDoc);
