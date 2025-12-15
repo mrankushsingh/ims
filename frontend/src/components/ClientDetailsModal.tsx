@@ -1044,6 +1044,9 @@ export default function ClientDetailsModal({ client, onClose, onSuccess }: Props
                         {doc.submitted && doc.uploadedAt && (
                           <p className="text-xs text-emerald-600 mt-1">
                             Uploaded: {new Date(doc.uploadedAt).toLocaleDateString()}
+                            {doc.uploadedBy && (
+                              <span className="ml-2">by <span className="font-medium">{doc.uploadedBy}</span></span>
+                            )}
                           </p>
                         )}
                       </div>
@@ -1484,6 +1487,9 @@ export default function ClientDetailsModal({ client, onClose, onSuccess }: Props
                         {doc.submitted && doc.uploadedAt && (
                           <p className="text-xs text-slate-500">
                             Uploaded: <span className="font-medium">{new Date(doc.uploadedAt).toLocaleDateString()}</span>
+                            {doc.uploadedBy && (
+                              <span className="ml-2">by <span className="font-medium">{doc.uploadedBy}</span></span>
+                            )}
                           </p>
                         )}
                         {doc.submitted && doc.fileName && (
@@ -1707,6 +1713,9 @@ export default function ClientDetailsModal({ client, onClose, onSuccess }: Props
                       </p>
                       <p className="text-xs text-gray-500 mt-1">
                         Uploaded: {new Date(doc.uploadedAt).toLocaleDateString()}
+                        {doc.uploadedBy && (
+                          <span className="ml-2">by <span className="font-medium">{doc.uploadedBy}</span></span>
+                        )}
                       </p>
                     </div>
                     <div className="flex items-center space-x-2 ml-4">
@@ -1853,6 +1862,9 @@ export default function ClientDetailsModal({ client, onClose, onSuccess }: Props
                       </p>
                       <p className="text-xs text-gray-500 mt-1">
                         Uploaded: {new Date(doc.uploadedAt).toLocaleDateString()}
+                        {doc.uploadedBy && (
+                          <span className="ml-2">by <span className="font-medium">{doc.uploadedBy}</span></span>
+                        )}
                       </p>
                     </div>
                     <div className="flex items-center space-x-2 ml-4">
@@ -1999,6 +2011,9 @@ export default function ClientDetailsModal({ client, onClose, onSuccess }: Props
                       </p>
                       <p className="text-xs text-gray-500 mt-1">
                         Uploaded: {new Date(doc.uploadedAt).toLocaleDateString()}
+                        {doc.uploadedBy && (
+                          <span className="ml-2">by <span className="font-medium">{doc.uploadedBy}</span></span>
+                        )}
                       </p>
                     </div>
                     <div className="flex items-center space-x-2 ml-4">
@@ -2145,6 +2160,9 @@ export default function ClientDetailsModal({ client, onClose, onSuccess }: Props
                       </p>
                       <p className="text-xs text-gray-500 mt-1">
                         Uploaded: {new Date(doc.uploadedAt).toLocaleDateString()}
+                        {doc.uploadedBy && (
+                          <span className="ml-2">by <span className="font-medium">{doc.uploadedBy}</span></span>
+                        )}
                       </p>
                     </div>
                     <div className="flex items-center space-x-2 ml-4">
