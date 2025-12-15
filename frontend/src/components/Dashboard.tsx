@@ -324,9 +324,6 @@ export default function Dashboard({ onNavigate }: DashboardProps) {
           </div>
           <p className="text-4xl font-bold bg-gradient-to-r from-red-950 to-red-800 bg-clip-text text-transparent mb-2">{urgentes.length}</p>
           <p className="text-sm text-red-900 font-medium leading-relaxed mb-2">{t('dashboard.urgentesDesc')}</p>
-          {urgentes.length > 0 && (
-            <p className="text-xs text-red-800 font-semibold">{t('dashboard.clickToView')}</p>
-          )}
         </div>
 
         {/* PAGOS Box */}
@@ -343,9 +340,6 @@ export default function Dashboard({ onNavigate }: DashboardProps) {
           </div>
           <p className="text-4xl font-bold bg-gradient-to-r from-amber-800 to-amber-600 bg-clip-text text-transparent mb-2">{pagos.length}</p>
           <p className="text-sm text-amber-700/70 font-medium leading-relaxed mb-2">{t('dashboard.pagosDesc')}</p>
-          {pagos.length > 0 && (
-            <p className="text-xs text-amber-600 font-semibold">{t('dashboard.clickToView')}</p>
-          )}
         </div>
       </div>
 
