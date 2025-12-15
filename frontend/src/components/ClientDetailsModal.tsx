@@ -19,7 +19,8 @@ export default function ClientDetailsModal({ client, onClose, onSuccess }: Props
   const [showPaymentForm, setShowPaymentForm] = useState(false);
   const [showAdditionalDocForm, setShowAdditionalDocForm] = useState(false);
   const [paymentForm, setPaymentForm] = useState({ amount: '', method: 'Cash', note: '' });
-  const [additionalDocForm, setAdditionalDocForm] = useState({ name: '', description: '', file: null as File | null });
+  const [additionalDocForm, setAdditionalDocForm] = useState({ name: '', description: '', file: null as File | null, userName: '' });
+  const [currentUserName, setCurrentUserName] = useState<string>('');
   const [notes, setNotes] = useState(client.notes || '');
   const [savingNotes, setSavingNotes] = useState(false);
   const [details, setDetails] = useState(client.details || '');
@@ -37,11 +38,13 @@ export default function ClientDetailsModal({ client, onClose, onSuccess }: Props
   const [showDurationModal, setShowDurationModal] = useState(false);
   const [durationDays, setDurationDays] = useState(client.requested_documents_reminder_duration_days || 10);
   const [showAportarDocForm, setShowAportarDocForm] = useState(false);
-  const [aportarDocForm, setAportarDocForm] = useState({ name: '', description: '', file: null as File | null });
+  const [aportarDocForm, setAportarDocForm] = useState({ name: '', description: '', file: null as File | null, userName: '' });
   const [showRequerimientoForm, setShowRequerimientoForm] = useState(false);
-  const [requerimientoForm, setRequerimientoForm] = useState({ name: '', description: '', file: null as File | null });
+  const [requerimientoForm, setRequerimientoForm] = useState({ name: '', description: '', file: null as File | null, userName: '' });
   const [showResolucionForm, setShowResolucionForm] = useState(false);
-  const [resolucionForm, setResolucionForm] = useState({ name: '', description: '', file: null as File | null });
+  const [resolucionForm, setResolucionForm] = useState({ name: '', description: '', file: null as File | null, userName: '' });
+  const [requiredDocUserName, setRequiredDocUserName] = useState<{ [key: string]: string }>({});
+  const [requestedDocUserName, setRequestedDocUserName] = useState<{ [key: string]: string }>({});
   const [confirmDialog, setConfirmDialog] = useState<{
     isOpen: boolean;
     title: string;
@@ -58,7 +61,17 @@ export default function ClientDetailsModal({ client, onClose, onSuccess }: Props
 
   useEffect(() => {
     loadClient();
+    loadCurrentUser();
   }, [client.id]);
+
+  const loadCurrentUser = async () => {
+    try {
+      const user = await api.getCurrentUser();
+      setCurrentUserName(user.name || user.email || '');
+    } catch (error) {
+      console.error('Failed to load current user:', error);
+    }
+  };
 
   useEffect(() => {
     setNotes(clientData.notes || '');
@@ -77,10 +90,17 @@ export default function ClientDetailsModal({ client, onClose, onSuccess }: Props
 
   const handleFileUpload = async (documentCode: string, file: File) => {
     setError('');
+    const userName = requiredDocUserName[documentCode] || currentUserName;
+    if (!userName.trim()) {
+      setError('User name is required');
+      showToast('Please enter your name before uploading', 'error');
+      return;
+    }
     setUploading(documentCode);
 
     try {
-      await api.uploadDocument(client.id, documentCode, file);
+      await api.uploadDocument(client.id, documentCode, file, userName);
+      setRequiredDocUserName({ ...requiredDocUserName, [documentCode]: '' });
       await loadClient();
       onSuccess();
       showToast('Document uploaded successfully', 'success');
@@ -164,9 +184,16 @@ export default function ClientDetailsModal({ client, onClose, onSuccess }: Props
 
   const handleUploadRequestedDocument = async (documentCode: string, file: File) => {
     setError('');
+    const userName = requestedDocUserName[documentCode] || currentUserName;
+    if (!userName.trim()) {
+      setError('User name is required');
+      showToast('Please enter your name before uploading', 'error');
+      return;
+    }
     setUploadingRequestedDoc(documentCode);
     try {
-      await api.uploadRequestedDocument(client.id, documentCode, file);
+      await api.uploadRequestedDocument(client.id, documentCode, file, userName);
+      setRequestedDocUserName({ ...requestedDocUserName, [documentCode]: '' });
       await loadClient();
       onSuccess();
       showToast('Requested document uploaded successfully', 'success');
@@ -216,15 +243,22 @@ export default function ClientDetailsModal({ client, onClose, onSuccess }: Props
       return;
     }
 
+    const userName = aportarDocForm.userName || currentUserName;
+    if (!userName.trim()) {
+      setError('User name is required');
+      return;
+    }
+
     setUploading('aportar');
     try {
       await api.uploadAportarDocumentacion(
         client.id,
         aportarDocForm.name,
         aportarDocForm.description,
-        aportarDocForm.file
+        aportarDocForm.file,
+        userName
       );
-      setAportarDocForm({ name: '', description: '', file: null });
+      setAportarDocForm({ name: '', description: '', file: null, userName: '' });
       setShowAportarDocForm(false);
       await loadClient();
       onSuccess();
@@ -276,15 +310,22 @@ export default function ClientDetailsModal({ client, onClose, onSuccess }: Props
       return;
     }
 
+    const userName = requerimientoForm.userName || currentUserName;
+    if (!userName.trim()) {
+      setError('User name is required');
+      return;
+    }
+
     setUploading('requerimiento');
     try {
       await api.uploadRequerimiento(
         client.id,
         requerimientoForm.name,
         requerimientoForm.description,
-        requerimientoForm.file
+        requerimientoForm.file,
+        userName
       );
-      setRequerimientoForm({ name: '', description: '', file: null });
+      setRequerimientoForm({ name: '', description: '', file: null, userName: '' });
       setShowRequerimientoForm(false);
       await loadClient();
       onSuccess();
@@ -335,15 +376,22 @@ export default function ClientDetailsModal({ client, onClose, onSuccess }: Props
       return;
     }
 
+    const userName = resolucionForm.userName || currentUserName;
+    if (!userName.trim()) {
+      setError('User name is required');
+      return;
+    }
+
     setUploading('resolucion');
     try {
       await api.uploadResolucion(
         client.id,
         resolucionForm.name,
         resolucionForm.description,
-        resolucionForm.file
+        resolucionForm.file,
+        userName
       );
-      setResolucionForm({ name: '', description: '', file: null });
+      setResolucionForm({ name: '', description: '', file: null, userName: '' });
       setShowResolucionForm(false);
       await loadClient();
       onSuccess();
@@ -510,15 +558,22 @@ export default function ClientDetailsModal({ client, onClose, onSuccess }: Props
       return;
     }
 
+    const userName = additionalDocForm.userName || currentUserName;
+    if (!userName.trim()) {
+      setError('User name is required');
+      return;
+    }
+
     setUploading('additional');
     try {
       await api.uploadAdditionalDocument(
         client.id,
         additionalDocForm.name,
         additionalDocForm.description,
-        additionalDocForm.file
+        additionalDocForm.file,
+        userName
       );
-      setAdditionalDocForm({ name: '', description: '', file: null });
+      setAdditionalDocForm({ name: '', description: '', file: null, userName: '' });
       setShowAdditionalDocForm(false);
       await loadClient();
       onSuccess();
@@ -1012,21 +1067,30 @@ export default function ClientDetailsModal({ client, onClose, onSuccess }: Props
                             </a>
                           </>
                         ) : (
-                          <label className="p-2 text-purple-600 hover:bg-purple-50 rounded-lg transition-colors cursor-pointer">
-                            <Upload className="w-4 h-4" />
+                          <div className="flex items-center space-x-2">
                             <input
-                              type="file"
-                              className="hidden"
-                              accept=".pdf,.doc,.docx,.jpg,.jpeg,.png"
-                              onChange={(e) => {
-                                const file = e.target.files?.[0];
-                                if (file) {
-                                  handleUploadRequestedDocument(doc.code, file);
-                                }
-                              }}
-                              disabled={uploadingRequestedDoc === doc.code}
+                              type="text"
+                              placeholder="Your name *"
+                              value={requestedDocUserName[doc.code] || currentUserName}
+                              onChange={(e) => setRequestedDocUserName({ ...requestedDocUserName, [doc.code]: e.target.value })}
+                              className="px-3 py-1.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500 outline-none text-sm w-32"
                             />
-                          </label>
+                            <label className="p-2 text-purple-600 hover:bg-purple-50 rounded-lg transition-colors cursor-pointer">
+                              <Upload className="w-4 h-4" />
+                              <input
+                                type="file"
+                                className="hidden"
+                                accept=".pdf,.doc,.docx,.jpg,.jpeg,.png"
+                                onChange={(e) => {
+                                  const file = e.target.files?.[0];
+                                  if (file) {
+                                    handleUploadRequestedDocument(doc.code, file);
+                                  }
+                                }}
+                                disabled={uploadingRequestedDoc === doc.code}
+                              />
+                            </label>
+                          </div>
                         )}
                         <button
                           onClick={() => handleRemoveRequestedDocument(doc.code)}
@@ -1479,38 +1543,47 @@ export default function ClientDetailsModal({ client, onClose, onSuccess }: Props
                           </button>
                         </>
                       ) : (
-                        <label className="cursor-pointer">
+                        <div className="space-y-2">
                           <input
-                            type="file"
-                            className="hidden"
-                            onChange={(e) => {
-                              const file = e.target.files?.[0];
-                              if (file) {
-                                handleFileUpload(doc.code, file);
-                              }
-                            }}
-                            disabled={uploading === doc.code}
+                            type="text"
+                            placeholder="Your name *"
+                            value={requiredDocUserName[doc.code] || currentUserName}
+                            onChange={(e) => setRequiredDocUserName({ ...requiredDocUserName, [doc.code]: e.target.value })}
+                            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-red-500 outline-none text-sm"
                           />
-                          <div
-                            className={`px-4 py-2.5 rounded-lg transition-all flex items-center space-x-2 font-medium text-sm ${
-                              uploading === doc.code
-                                ? 'bg-slate-100 text-slate-400 cursor-not-allowed border border-slate-200'
-                                : 'bg-red-600 text-white hover:bg-red-700 cursor-pointer shadow-md hover:shadow-lg border border-red-700'
-                            }`}
-                          >
-                            {uploading === doc.code ? (
-                              <>
-                                <div className="animate-spin rounded-full h-4 w-4 border-2 border-slate-400 border-t-transparent"></div>
-                                <span>Uploading...</span>
-                              </>
-                            ) : (
-                              <>
-                                <Upload className="w-4 h-4" />
-                                <span>Upload Document</span>
-                              </>
-                            )}
-                          </div>
-                        </label>
+                          <label className="cursor-pointer block">
+                            <input
+                              type="file"
+                              className="hidden"
+                              onChange={(e) => {
+                                const file = e.target.files?.[0];
+                                if (file) {
+                                  handleFileUpload(doc.code, file);
+                                }
+                              }}
+                              disabled={uploading === doc.code}
+                            />
+                            <div
+                              className={`px-4 py-2.5 rounded-lg transition-all flex items-center space-x-2 font-medium text-sm ${
+                                uploading === doc.code
+                                  ? 'bg-slate-100 text-slate-400 cursor-not-allowed border border-slate-200'
+                                  : 'bg-red-600 text-white hover:bg-red-700 cursor-pointer shadow-md hover:shadow-lg border border-red-700'
+                              }`}
+                            >
+                              {uploading === doc.code ? (
+                                <>
+                                  <div className="animate-spin rounded-full h-4 w-4 border-2 border-slate-400 border-t-transparent"></div>
+                                  <span>Uploading...</span>
+                                </>
+                              ) : (
+                                <>
+                                  <Upload className="w-4 h-4" />
+                                  <span>Upload Document</span>
+                                </>
+                              )}
+                            </div>
+                          </label>
+                        </div>
                       )}
                     </div>
                   </div>
@@ -1561,6 +1634,17 @@ export default function ClientDetailsModal({ client, onClose, onSuccess }: Props
                   />
                 </div>
                 <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Your Name *</label>
+                  <input
+                    type="text"
+                    required
+                    value={additionalDocForm.userName || currentUserName}
+                    onChange={(e) => setAdditionalDocForm({ ...additionalDocForm, userName: e.target.value })}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 outline-none"
+                    placeholder="Enter your name"
+                  />
+                </div>
+                <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">File *</label>
                   <input
                     type="file"
@@ -1580,7 +1664,7 @@ export default function ClientDetailsModal({ client, onClose, onSuccess }: Props
                   type="button"
                   onClick={() => {
                     setShowAdditionalDocForm(false);
-                    setAdditionalDocForm({ name: '', description: '', file: null });
+                    setAdditionalDocForm({ name: '', description: '', file: null, userName: '' });
                   }}
                   className="px-4 py-2 text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200 transition-colors text-sm"
                 >
@@ -1696,6 +1780,17 @@ export default function ClientDetailsModal({ client, onClose, onSuccess }: Props
                   />
                 </div>
                 <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Your Name *</label>
+                  <input
+                    type="text"
+                    required
+                    value={aportarDocForm.userName || currentUserName}
+                    onChange={(e) => setAportarDocForm({ ...aportarDocForm, userName: e.target.value })}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none"
+                    placeholder="Enter your name"
+                  />
+                </div>
+                <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">File *</label>
                   <input
                     type="file"
@@ -1715,7 +1810,7 @@ export default function ClientDetailsModal({ client, onClose, onSuccess }: Props
                   type="button"
                   onClick={() => {
                     setShowAportarDocForm(false);
-                    setAportarDocForm({ name: '', description: '', file: null });
+                    setAportarDocForm({ name: '', description: '', file: null, userName: '' });
                   }}
                   className="px-4 py-2 text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200 transition-colors text-sm"
                 >
@@ -1831,6 +1926,17 @@ export default function ClientDetailsModal({ client, onClose, onSuccess }: Props
                   />
                 </div>
                 <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Your Name *</label>
+                  <input
+                    type="text"
+                    required
+                    value={requerimientoForm.userName || currentUserName}
+                    onChange={(e) => setRequerimientoForm({ ...requerimientoForm, userName: e.target.value })}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-amber-500 outline-none"
+                    placeholder="Enter your name"
+                  />
+                </div>
+                <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">File *</label>
                   <input
                     type="file"
@@ -1850,7 +1956,7 @@ export default function ClientDetailsModal({ client, onClose, onSuccess }: Props
                   type="button"
                   onClick={() => {
                     setShowRequerimientoForm(false);
-                    setRequerimientoForm({ name: '', description: '', file: null });
+                    setRequerimientoForm({ name: '', description: '', file: null, userName: '' });
                   }}
                   className="px-4 py-2 text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200 transition-colors text-sm"
                 >
@@ -1966,6 +2072,17 @@ export default function ClientDetailsModal({ client, onClose, onSuccess }: Props
                   />
                 </div>
                 <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Your Name *</label>
+                  <input
+                    type="text"
+                    required
+                    value={resolucionForm.userName || currentUserName}
+                    onChange={(e) => setResolucionForm({ ...resolucionForm, userName: e.target.value })}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 outline-none"
+                    placeholder="Enter your name"
+                  />
+                </div>
+                <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">File *</label>
                   <input
                     type="file"
@@ -1985,7 +2102,7 @@ export default function ClientDetailsModal({ client, onClose, onSuccess }: Props
                   type="button"
                   onClick={() => {
                     setShowResolucionForm(false);
-                    setResolucionForm({ name: '', description: '', file: null });
+                    setResolucionForm({ name: '', description: '', file: null, userName: '' });
                   }}
                   className="px-4 py-2 text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200 transition-colors text-sm"
                 >

@@ -95,9 +95,10 @@ export const api = {
     return response.json();
   },
 
-  async uploadDocument(clientId: string, documentCode: string, file: File) {
+  async uploadDocument(clientId: string, documentCode: string, file: File, userName: string) {
     const formData = new FormData();
     formData.append('file', file);
+    formData.append('userName', userName);
 
     const token = await (await import('./firebase.js')).getIdToken();
     const headers: HeadersInit = {};
@@ -144,10 +145,11 @@ export const api = {
     return this.updateClient(clientId, { notes });
   },
 
-  async uploadAdditionalDocument(clientId: string, name: string, description: string, file: File) {
+  async uploadAdditionalDocument(clientId: string, name: string, description: string, file: File, userName: string) {
     const formData = new FormData();
     formData.append('file', file);
     formData.append('name', name);
+    formData.append('userName', userName);
     if (description) {
       formData.append('description', description);
     }
@@ -217,9 +219,10 @@ export const api = {
     return response.json();
   },
 
-  async uploadRequestedDocument(clientId: string, documentCode: string, file: File) {
+  async uploadRequestedDocument(clientId: string, documentCode: string, file: File, userName: string) {
     const formData = new FormData();
     formData.append('file', file);
+    formData.append('userName', userName);
     const headers = await getAuthHeaders();
     // Remove Content-Type header to let browser set it with boundary for FormData
     delete (headers as any)['Content-Type'];
@@ -276,10 +279,11 @@ export const api = {
   },
 
   // APORTAR DOCUMENTACIÓN
-  async uploadAportarDocumentacion(clientId: string, name: string, description: string, file: File) {
+  async uploadAportarDocumentacion(clientId: string, name: string, description: string, file: File, userName: string) {
     const formData = new FormData();
     formData.append('file', file);
     formData.append('name', name);
+    formData.append('userName', userName);
     if (description) {
       formData.append('description', description);
     }
@@ -314,10 +318,11 @@ export const api = {
   },
 
   // REQUERIMIENTO
-  async uploadRequerimiento(clientId: string, name: string, description: string, file: File) {
+  async uploadRequerimiento(clientId: string, name: string, description: string, file: File, userName: string) {
     const formData = new FormData();
     formData.append('file', file);
     formData.append('name', name);
+    formData.append('userName', userName);
     if (description) {
       formData.append('description', description);
     }
@@ -352,10 +357,11 @@ export const api = {
   },
 
   // RESOLUCIÓN
-  async uploadResolucion(clientId: string, name: string, description: string, file: File) {
+  async uploadResolucion(clientId: string, name: string, description: string, file: File, userName: string) {
     const formData = new FormData();
     formData.append('file', file);
     formData.append('name', name);
+    formData.append('userName', userName);
     if (description) {
       formData.append('description', description);
     }

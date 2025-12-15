@@ -19,6 +19,7 @@ export interface RequiredDocument {
   fileName?: string;
   fileSize?: number;
   isOptional?: boolean; // If true, document is optional for this client
+  uploadedBy?: string; // Name of the user who uploaded the file
 }
 
 export interface RequestedDocument {
@@ -31,6 +32,7 @@ export interface RequestedDocument {
   fileName?: string;
   fileSize?: number;
   requestedAt?: string; // When the document was requested by administration
+  uploadedBy?: string; // Name of the user who uploaded the file
 }
 
 export interface Client {
@@ -93,6 +95,7 @@ export interface AdditionalDocument {
   fileName: string;
   fileSize: number;
   uploadedAt: string;
+  uploadedBy?: string; // Name of the user who uploaded the file
 }
 
 export interface User {

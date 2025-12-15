@@ -222,6 +222,7 @@ router.post('/:id/documents/:documentCode', upload.single('file'), async (req, r
           uploadedAt: new Date().toISOString(),
           fileName: file.originalname,
           fileSize: file.size,
+          uploadedBy: req.body.userName || undefined,
         };
       }
       return doc;
@@ -467,6 +468,7 @@ router.post('/:id/requested-documents/:code/upload', upload.single('file'), asyn
       fileName: file.originalname,
       fileSize: file.size,
       uploadedAt: new Date().toISOString(),
+      uploadedBy: req.body.userName || undefined,
     };
 
     const updated = await memoryDb.updateClient(req.params.id, {
@@ -564,9 +566,12 @@ async function handleDocumentUpload(
       return res.status(400).json({ error: 'No file uploaded' });
     }
 
-    const { name, description } = req.body;
+    const { name, description, userName } = req.body;
     if (!name || !name.trim()) {
       return res.status(400).json({ error: 'Document name is required' });
+    }
+    if (!userName || !userName.trim()) {
+      return res.status(400).json({ error: 'User name is required' });
     }
 
     const client = await memoryDb.getClient(req.params.id);
@@ -598,6 +603,7 @@ async function handleDocumentUpload(
       fileName: file.originalname,
       fileSize: file.size,
       uploadedAt: new Date().toISOString(),
+      uploadedBy: userName.trim(),
     };
 
     documents.push(newDoc);
