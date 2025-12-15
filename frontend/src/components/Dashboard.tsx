@@ -9,7 +9,7 @@ interface DashboardProps {
   onNavigate?: (view: 'templates' | 'clients') => void;
 }
 
-export default function Dashboard({ onNavigate }: DashboardProps = {}) {
+export default function Dashboard({ onNavigate }: DashboardProps) {
   const [templates, setTemplates] = useState<CaseTemplate[]>([]);
   const [clients, setClients] = useState<Client[]>([]);
   const [loading, setLoading] = useState(true);
