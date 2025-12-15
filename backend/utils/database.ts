@@ -68,6 +68,7 @@ class DatabaseAdapter {
   private dataDir: string;
   private templatesFile: string;
   private clientsFile: string;
+  private usersFile: string;
   private uploadsDir: string;
   private templates: Map<string, CaseTemplate>;
   private clients: Map<string, Client>;
