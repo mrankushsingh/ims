@@ -4,7 +4,7 @@ import { fileURLToPath } from 'url';
 import { dirname, join, extname } from 'path';
 import { db } from '../utils/database.js';
 import { uploadFile, deleteFile, isUsingBucketStorage } from '../utils/storage.js';
-import { AuthenticatedRequest } from '../middleware/auth.js';
+import { AuthenticatedRequest, authenticateToken } from '../middleware/auth.js';
 
 const memoryDb = db; // For backward compatibility
 
@@ -12,6 +12,20 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 
 const router = Router();
+
+// Helper function to get user name from request (optional authentication)
+async function getUserName(req: any): Promise<string> {
+  try {
+    // Try to get user from authenticated request
+    if (req.user?.uid) {
+      const user = await memoryDb.getUserByFirebaseUid(req.user.uid);
+      return user?.name || user?.email || req.user.email || req.user.name || 'Unknown User';
+    }
+  } catch (error) {
+    console.error('Error getting user name:', error);
+  }
+  return 'Unknown User';
+}
 
 // Configure multer for file uploads
 // Use memory storage if Railway bucket is configured, otherwise use disk storage
@@ -177,18 +191,14 @@ router.delete('/:id', async (req, res) => {
 });
 
 // Upload required document
-router.post('/:id/documents/:documentCode', upload.single('file'), async (req: AuthenticatedRequest, res) => {
+router.post('/:id/documents/:documentCode', upload.single('file'), async (req: any, res) => {
   try {
     if (!req.file) {
       return res.status(400).json({ error: 'No file uploaded or file upload failed' });
     }
-    if (!req.user?.uid) {
-      return res.status(401).json({ error: 'User not authenticated' });
-    }
 
-    // Get user name from database
-    const user = await memoryDb.getUserByFirebaseUid(req.user.uid);
-    const userName = user?.name || user?.email || req.user.email || req.user.name || 'Unknown User';
+    // Get user name (optional - will use 'Unknown User' if not authenticated)
+    const userName = await getUserName(req);
 
     const file = req.file; // Store in const for TypeScript narrowing
     const client = await memoryDb.getClient(req.params.id);
@@ -254,11 +264,14 @@ router.post('/:id/documents/:documentCode', upload.single('file'), async (req: A
 });
 
 // Upload additional document
-router.post('/:id/additional-documents', upload.single('file'), async (req, res) => {
+router.post('/:id/additional-documents', upload.single('file'), async (req: any, res) => {
   try {
     if (!req.file) {
       return res.status(400).json({ error: 'No file uploaded or file upload failed' });
     }
+
+    // Get user name (optional - will use 'Unknown User' if not authenticated)
+    const userName = await getUserName(req);
 
     const file = req.file; // Store in const for TypeScript narrowing
     const client = await memoryDb.getClient(req.params.id);
@@ -293,6 +306,7 @@ router.post('/:id/additional-documents', upload.single('file'), async (req, res)
       fileName: file.originalname,
       fileSize: file.size,
       uploadedAt: new Date().toISOString(),
+      uploadedBy: userName,
     };
 
     const updatedAdditionalDocs = [...(client.additional_documents || []), newDocument];
@@ -421,18 +435,14 @@ router.post('/:id/requested-documents', async (req, res) => {
 });
 
 // Upload file for requested document
-router.post('/:id/requested-documents/:code/upload', upload.single('file'), async (req: AuthenticatedRequest, res) => {
+router.post('/:id/requested-documents/:code/upload', upload.single('file'), async (req: any, res) => {
   try {
     if (!req.file) {
       return res.status(400).json({ error: 'No file uploaded' });
     }
-    if (!req.user?.uid) {
-      return res.status(401).json({ error: 'User not authenticated' });
-    }
 
-    // Get user name from database
-    const user = await memoryDb.getUserByFirebaseUid(req.user.uid);
-    const userName = user?.name || user?.email || req.user.email || req.user.name || 'Unknown User';
+    // Get user name (optional - will use 'Unknown User' if not authenticated)
+    const userName = await getUserName(req);
 
     const client = await memoryDb.getClient(req.params.id);
     if (!client) {
@@ -572,7 +582,7 @@ router.put('/:id/requested-documents-last-reminder', async (req, res) => {
 
 // Helper function to handle document upload for different types
 async function handleDocumentUpload(
-  req: AuthenticatedRequest,
+  req: any,
   res: any,
   documentType: 'aportar_documentacion' | 'requerimiento' | 'resolucion'
 ) {
@@ -580,18 +590,14 @@ async function handleDocumentUpload(
     if (!req.file) {
       return res.status(400).json({ error: 'No file uploaded' });
     }
-    if (!req.user?.uid) {
-      return res.status(401).json({ error: 'User not authenticated' });
-    }
 
     const { name, description } = req.body;
     if (!name || !name.trim()) {
       return res.status(400).json({ error: 'Document name is required' });
     }
 
-    // Get user name from database
-    const user = await memoryDb.getUserByFirebaseUid(req.user.uid);
-    const userName = user?.name || user?.email || req.user.email || req.user.name || 'Unknown User';
+    // Get user name (optional - will use 'Unknown User' if not authenticated)
+    const userName = await getUserName(req);
 
     const client = await memoryDb.getClient(req.params.id);
     if (!client) {
@@ -681,7 +687,7 @@ async function handleDocumentRemove(
 }
 
 // APORTAR DOCUMENTACIÓN routes
-router.post('/:id/aportar-documentacion', upload.single('file'), (req, res) => 
+router.post('/:id/aportar-documentacion', upload.single('file'), (req: any, res) => 
   handleDocumentUpload(req, res, 'aportar_documentacion')
 );
 router.delete('/:id/aportar-documentacion/:docId', (req, res) => 
@@ -689,7 +695,7 @@ router.delete('/:id/aportar-documentacion/:docId', (req, res) =>
 );
 
 // REQUERIMIENTO routes
-router.post('/:id/requerimiento', upload.single('file'), (req, res) => 
+router.post('/:id/requerimiento', upload.single('file'), (req: any, res) => 
   handleDocumentUpload(req, res, 'requerimiento')
 );
 router.delete('/:id/requerimiento/:docId', (req, res) => 
@@ -697,7 +703,7 @@ router.delete('/:id/requerimiento/:docId', (req, res) =>
 );
 
 // RESOLUCIÓN routes
-router.post('/:id/resolucion', upload.single('file'), (req, res) => 
+router.post('/:id/resolucion', upload.single('file'), (req: any, res) => 
   handleDocumentUpload(req, res, 'resolucion')
 );
 router.delete('/:id/resolucion/:docId', (req, res) => 
