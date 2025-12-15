@@ -186,7 +186,6 @@ export default function Dashboard({ onNavigate }: DashboardProps) {
           </div>
           <p className="text-4xl font-bold bg-gradient-to-r from-amber-800 to-amber-600 bg-clip-text text-transparent mb-2">{templates.length}</p>
           <p className="text-sm text-amber-700/70 font-medium leading-relaxed">{t('dashboard.activeTemplates')}</p>
-          <p className="text-xs text-amber-600 font-semibold mt-2">{t('dashboard.clickToView')}</p>
         </div>
 
         <div 
@@ -202,7 +201,6 @@ export default function Dashboard({ onNavigate }: DashboardProps) {
           </div>
           <p className="text-4xl font-bold bg-gradient-to-r from-amber-800 to-amber-600 bg-clip-text text-transparent mb-2">{clients.length}</p>
           <p className="text-sm text-amber-700/70 font-medium leading-relaxed">{t('dashboard.totalClients')}</p>
-          <p className="text-xs text-amber-600 font-semibold mt-2">{t('dashboard.clickToView')}</p>
         </div>
 
         <div 
@@ -218,7 +216,6 @@ export default function Dashboard({ onNavigate }: DashboardProps) {
           </div>
           <p className="text-4xl font-bold bg-gradient-to-r from-amber-800 to-amber-600 bg-clip-text text-transparent mb-2">{awaitingSubmission.length}</p>
           <p className="text-sm text-amber-700/70 font-medium leading-relaxed mb-2">{t('dashboard.awaitingSubmission')}</p>
-          <p className="text-xs text-amber-600 font-semibold">{t('dashboard.clickToView')}</p>
         </div>
 
         <div 
@@ -240,9 +237,6 @@ export default function Dashboard({ onNavigate }: DashboardProps) {
           </div>
           <p className="text-4xl font-bold bg-gradient-to-r from-green-900 to-green-700 bg-clip-text text-transparent mb-2">{readyToSubmit.length}</p>
           <p className="text-sm text-green-800 font-medium leading-relaxed mb-2">{t('dashboard.readyToSubmitDesc')}</p>
-          {readyToSubmit.length > 0 && (
-            <p className="text-xs text-green-700 font-semibold">{t('dashboard.clickToView')}</p>
-          )}
         </div>
 
         <div 
@@ -260,7 +254,6 @@ export default function Dashboard({ onNavigate }: DashboardProps) {
           <p className="text-sm text-amber-700/70 font-medium leading-relaxed mb-2">
             {submittedToAdmin.length === 1 ? t('dashboard.caseSubmitted') : t('dashboard.casesSubmitted')}
           </p>
-          <p className="text-xs text-amber-600 font-semibold">{t('dashboard.clickToView')}</p>
         </div>
 
         {/* APORTAR DOCUMENTACIÓN Box */}
@@ -277,7 +270,6 @@ export default function Dashboard({ onNavigate }: DashboardProps) {
           </div>
           <p className="text-4xl font-bold bg-gradient-to-r from-amber-800 to-amber-600 bg-clip-text text-transparent mb-2">{aportarDocumentacion.length}</p>
           <p className="text-sm text-amber-700/70 font-medium leading-relaxed mb-2">{t('dashboard.aportarDocumentacionDesc')}</p>
-          <p className="text-xs text-amber-600 font-semibold">{t('dashboard.clickToView')}</p>
         </div>
 
         {/* REQUERIMIENTO Box */}
@@ -294,9 +286,6 @@ export default function Dashboard({ onNavigate }: DashboardProps) {
           </div>
           <p className="text-4xl font-bold bg-gradient-to-r from-amber-800 to-amber-600 bg-clip-text text-transparent mb-2">{requerimiento.length}</p>
           <p className="text-sm text-amber-700/70 font-medium leading-relaxed mb-2">{t('dashboard.requerimientoDesc')}</p>
-          {requerimiento.length > 0 && (
-            <p className="text-xs text-amber-600 font-semibold">{t('dashboard.clickToView')}</p>
-          )}
         </div>
 
         {/* RECURSO Box */}
@@ -313,9 +302,6 @@ export default function Dashboard({ onNavigate }: DashboardProps) {
           </div>
           <p className="text-4xl font-bold bg-gradient-to-r from-amber-800 to-amber-600 bg-clip-text text-transparent mb-2">{recurso.length}</p>
           <p className="text-sm text-amber-700/70 font-medium leading-relaxed mb-2">{t('dashboard.recursoDesc')}</p>
-          {recurso.length > 0 && (
-            <p className="text-xs text-amber-600 font-semibold">{t('dashboard.clickToView')}</p>
-          )}
         </div>
 
         {/* URGENTES Box */}
