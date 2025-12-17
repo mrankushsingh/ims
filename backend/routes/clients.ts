@@ -584,7 +584,7 @@ router.put('/:id/requested-documents-last-reminder', async (req, res) => {
 async function handleDocumentUpload(
   req: any,
   res: any,
-  documentType: 'aportar_documentacion' | 'requerimiento' | 'resolucion'
+  documentType: 'aportar_documentacion' | 'requerimiento' | 'resolucion' | 'justificante_presentacion'
 ) {
   try {
     if (!req.file) {
@@ -647,7 +647,7 @@ async function handleDocumentUpload(
 async function handleDocumentRemove(
   req: any,
   res: any,
-  documentType: 'aportar_documentacion' | 'requerimiento' | 'resolucion'
+  documentType: 'aportar_documentacion' | 'requerimiento' | 'resolucion' | 'justificante_presentacion'
 ) {
   try {
     const client = await memoryDb.getClient(req.params.id);
@@ -708,6 +708,14 @@ router.post('/:id/resolucion', upload.single('file'), (req: any, res) =>
 );
 router.delete('/:id/resolucion/:docId', (req, res) => 
   handleDocumentRemove(req, res, 'resolucion')
+);
+
+// JUSTIFICANTE DE PRESENTACION routes
+router.post('/:id/justificante-presentacion', upload.single('file'), (req: any, res) => 
+  handleDocumentUpload(req, res, 'justificante_presentacion')
+);
+router.delete('/:id/justificante-presentacion/:docId', (req, res) => 
+  handleDocumentRemove(req, res, 'justificante_presentacion')
 );
 
 export default router;

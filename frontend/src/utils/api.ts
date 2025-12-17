@@ -395,6 +395,45 @@ export const api = {
     return response.json();
   },
 
+  // JUSTIFICANTE DE PRESENTACION
+  async uploadJustificante(clientId: string, name: string, description: string, file: File, userName: string) {
+    const formData = new FormData();
+    formData.append('file', file);
+    formData.append('name', name);
+    formData.append('userName', userName);
+    if (description) {
+      formData.append('description', description);
+    }
+    const token = await (await import('./firebase.js')).getIdToken();
+    const headers: HeadersInit = {};
+    if (token) {
+      headers['Authorization'] = `Bearer ${token}`;
+    }
+    const response = await fetch(`${API_URL}/clients/${clientId}/justificante-presentacion`, {
+      method: 'POST',
+      headers,
+      body: formData,
+    });
+    if (!response.ok) {
+      const error = await response.json().catch(() => ({ error: 'Failed to upload document' }));
+      throw new Error(error.error || 'Failed to upload document');
+    }
+    return response.json();
+  },
+
+  async removeJustificante(clientId: string, documentId: string) {
+    const headers = await getAuthHeaders();
+    const response = await fetch(`${API_URL}/clients/${clientId}/justificante-presentacion/${documentId}`, {
+      method: 'DELETE',
+      headers,
+    });
+    if (!response.ok) {
+      const error = await response.json().catch(() => ({ error: 'Failed to remove document' }));
+      throw new Error(error.error || 'Failed to remove document');
+    }
+    return response.json();
+  },
+
   async submitToAdministrative(clientId: string) {
     return this.updateClient(clientId, {
       submitted_to_immigration: true,

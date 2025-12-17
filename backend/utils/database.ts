@@ -43,6 +43,7 @@ interface Client {
   aportar_documentacion?: any[];
   requerimiento?: any[];
   resolucion?: any[];
+  justificante_presentacion?: any[];
   created_at: string;
   updated_at: string;
 }
@@ -244,6 +245,14 @@ class DatabaseAdapter {
               WHERE table_name = 'clients' AND column_name = 'resolucion'
           ) THEN
             ALTER TABLE clients ADD COLUMN resolucion JSONB;
+          END IF;
+          
+          -- Add justificante_presentacion column if it doesn't exist
+          IF NOT EXISTS (
+            SELECT 1 FROM information_schema.columns
+            WHERE table_name = 'clients' AND column_name = 'justificante_presentacion'
+          ) THEN
+            ALTER TABLE clients ADD COLUMN justificante_presentacion JSONB;
           END IF;
         END $$;
       `);
@@ -518,9 +527,9 @@ class DatabaseAdapter {
         `INSERT INTO clients (id, first_name, last_name, parent_name, email, phone, case_template_id, case_type, details,
          required_documents, reminder_interval_days, administrative_silence_days, payment, 
          submitted_to_immigration, application_date, custom_reminder_date, notifications, additional_docs_required, 
-         notes, additional_documents, requested_documents, requested_documents_reminder_duration_days, 
+         notes, additional_documents, requested_documents,          requested_documents_reminder_duration_days, 
          requested_documents_reminder_interval_days, requested_documents_last_reminder_date, 
-         aportar_documentacion, requerimiento, resolucion, created_at, updated_at)
+         aportar_documentacion, requerimiento, resolucion, justificante_presentacion, created_at, updated_at)
          VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21, $22, $23, $24, $25, $26, $27, $28, $29)`,
         [
           client.id,
@@ -550,6 +559,7 @@ class DatabaseAdapter {
           JSON.stringify((client as any).aportar_documentacion || []),
           JSON.stringify((client as any).requerimiento || []),
           JSON.stringify((client as any).resolucion || []),
+          JSON.stringify((client as any).justificante_presentacion || []),
           client.created_at,
           client.updated_at,
         ]
@@ -656,6 +666,7 @@ class DatabaseAdapter {
         aportar_documentacion: (data as any).aportar_documentacion,
         requerimiento: (data as any).requerimiento,
         resolucion: (data as any).resolucion,
+        justificante_presentacion: (data as any).justificante_presentacion,
       };
 
       for (const [key, value] of Object.entries(fields)) {

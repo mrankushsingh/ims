@@ -43,6 +43,8 @@ export default function ClientDetailsModal({ client, onClose, onSuccess }: Props
   const [requerimientoForm, setRequerimientoForm] = useState({ name: '', description: '', file: null as File | null });
   const [showResolucionForm, setShowResolucionForm] = useState(false);
   const [resolucionForm, setResolucionForm] = useState({ name: '', description: '', file: null as File | null });
+  const [showJustificanteForm, setShowJustificanteForm] = useState(false);
+  const [justificanteForm, setJustificanteForm] = useState({ name: '', description: '', file: null as File | null });
   const [draggedIndex, setDraggedIndex] = useState<number | null>(null);
   const [dragOverIndex, setDragOverIndex] = useState<number | null>(null);
   const [confirmDialog, setConfirmDialog] = useState<{
@@ -457,6 +459,72 @@ export default function ClientDetailsModal({ client, onClose, onSuccess }: Props
         setError('');
         try {
           await api.removeResolucion(client.id, documentId);
+          await loadClient();
+          onSuccess();
+          showToast('Document removed successfully', 'success');
+          setConfirmDialog({ ...confirmDialog, isOpen: false });
+        } catch (error: any) {
+          setError(error.message || 'Failed to remove document');
+          showToast(error.message || 'Failed to remove document', 'error');
+          setConfirmDialog({ ...confirmDialog, isOpen: false });
+        }
+      },
+    });
+  };
+
+  const handleUploadJustificante = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setError('');
+
+    if (!justificanteForm.name.trim()) {
+      setError('Document name is required');
+      return;
+    }
+
+    if (!justificanteForm.file) {
+      setError('Please select a file');
+      return;
+    }
+
+    if (!currentUserName.trim()) {
+      setError('User account information not available');
+      showToast('Unable to identify user account. Please refresh the page.', 'error');
+      return;
+    }
+
+    setUploading('justificante');
+    try {
+      await api.uploadJustificante(
+        client.id,
+        justificanteForm.name,
+        justificanteForm.description,
+        justificanteForm.file,
+        currentUserName
+      );
+      setJustificanteForm({ name: '', description: '', file: null });
+      setShowJustificanteForm(false);
+      await loadClient();
+      onSuccess();
+      showToast('Document uploaded successfully', 'success');
+    } catch (error: any) {
+      const errorMessage = error.message || 'Failed to upload document';
+      setError(errorMessage);
+      showToast(errorMessage, 'error');
+    } finally {
+      setUploading(null);
+    }
+  };
+
+  const handleRemoveJustificante = async (documentId: string) => {
+    setConfirmDialog({
+      isOpen: true,
+      title: 'Remove Document',
+      message: 'Are you sure you want to remove this document?',
+      type: 'warning',
+      onConfirm: async () => {
+        setError('');
+        try {
+          await api.removeJustificante(client.id, documentId);
           await loadClient();
           onSuccess();
           showToast('Document removed successfully', 'success');
@@ -1735,6 +1803,144 @@ export default function ClientDetailsModal({ client, onClose, onSuccess }: Props
                       </button>
                       <button
                         onClick={() => handleRemoveAdditionalDocument(doc.id)}
+                        className="p-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors border border-red-200 hover:border-red-300"
+                        title="Remove"
+                      >
+                        <Trash2 className="w-4 h-4" />
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+
+        {/* JUSTIFICANTE DE PRESENTACION Section */}
+        <div className="mb-6 p-5 bg-gradient-to-br from-indigo-50/50 to-white rounded-xl border border-gray-200 shadow-sm">
+          <div className="flex justify-between items-center mb-4">
+            <h3 className="text-lg font-bold text-gray-900 flex items-center space-x-2">
+              <div className="w-1 h-6 bg-gradient-to-b from-indigo-600 to-purple-600 rounded-full"></div>
+              <span>JUSTIFICANTE DE PRESENTACION</span>
+            </h3>
+            <button
+              onClick={() => setShowJustificanteForm(!showJustificanteForm)}
+              className="px-4 py-2 bg-indigo-600 text-white text-sm rounded-lg hover:bg-indigo-700 transition-colors flex items-center space-x-2"
+            >
+              <Plus className="w-4 h-4" />
+              <span>Add Document</span>
+            </button>
+          </div>
+
+          {showJustificanteForm && (
+            <form onSubmit={handleUploadJustificante} className="mb-4 p-4 bg-indigo-50 rounded-lg border border-indigo-200">
+              <div className="space-y-3">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Document Name *</label>
+                  <input
+                    type="text"
+                    required
+                    value={justificanteForm.name}
+                    onChange={(e) => setJustificanteForm({ ...justificanteForm, name: e.target.value })}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 outline-none"
+                    placeholder="e.g., Justificante de Presentación"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Description (optional)</label>
+                  <input
+                    type="text"
+                    value={justificanteForm.description}
+                    onChange={(e) => setJustificanteForm({ ...justificanteForm, description: e.target.value })}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 outline-none"
+                    placeholder="Brief description"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">File *</label>
+                  <input
+                    type="file"
+                    required
+                    onChange={(e) => {
+                      const file = e.target.files?.[0];
+                      if (file) {
+                        setJustificanteForm({ ...justificanteForm, file });
+                      }
+                    }}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 outline-none"
+                  />
+                </div>
+              </div>
+              <div className="flex justify-end space-x-2 mt-3">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setShowJustificanteForm(false);
+                    setJustificanteForm({ name: '', description: '', file: null });
+                  }}
+                  className="px-4 py-2 text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200 transition-colors text-sm"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  disabled={uploading === 'justificante'}
+                  className="px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors text-sm disabled:opacity-50"
+                >
+                  {uploading === 'justificante' ? 'Uploading...' : 'Upload Document'}
+                </button>
+              </div>
+            </form>
+          )}
+
+          {!clientData.justificante_presentacion || clientData.justificante_presentacion.length === 0 ? (
+            <div className="text-center py-8 text-gray-500 bg-gray-50 rounded-lg border-2 border-dashed border-gray-300">
+              <FileText className="w-12 h-12 mx-auto mb-3 text-gray-400" />
+              <p>No documents uploaded yet.</p>
+            </div>
+          ) : (
+            <div className="space-y-3">
+              {clientData.justificante_presentacion.map((doc: AdditionalDocument) => (
+                <div
+                  key={doc.id}
+                  className="border-2 border-indigo-300 bg-gradient-to-br from-indigo-50 to-white rounded-xl p-4 shadow-sm hover:shadow-md transition-all"
+                >
+                  <div className="flex items-start justify-between">
+                    <div className="flex-1">
+                      <div className="flex items-center space-x-2 mb-2">
+                        <FileText className="w-5 h-5 text-indigo-600" />
+                        <h4 className="font-semibold text-gray-900">{doc.name}</h4>
+                      </div>
+                      {doc.description && (
+                        <p className="text-sm text-gray-600 mb-2">{doc.description}</p>
+                      )}
+                      <p className="text-xs text-gray-500">
+                        File: {doc.fileName} ({`${(doc.fileSize / 1024).toFixed(2)} KB`})
+                      </p>
+                      <p className="text-xs text-gray-500 mt-1">
+                        Uploaded: {new Date(doc.uploadedAt).toLocaleDateString()}
+                        {doc.uploadedBy && (
+                          <span className="ml-2">by <span className="font-medium">{doc.uploadedBy}</span></span>
+                        )}
+                      </p>
+                    </div>
+                    <div className="flex items-center space-x-2 ml-4">
+                      <button
+                        onClick={() => handleViewDocument(doc.fileUrl, doc.fileName)}
+                        className="p-2 text-green-600 hover:bg-green-50 rounded-lg transition-colors border border-green-200 hover:border-green-300"
+                        title="View Document"
+                      >
+                        <Eye className="w-4 h-4" />
+                      </button>
+                      <button
+                        onClick={() => handleDownload(doc.fileUrl, doc.fileName)}
+                        className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors border border-blue-200 hover:border-blue-300"
+                        title="Download"
+                      >
+                        <Download className="w-4 h-4" />
+                      </button>
+                      <button
+                        onClick={() => handleRemoveJustificante(doc.id)}
                         className="p-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors border border-red-200 hover:border-red-300"
                         title="Remove"
                       >

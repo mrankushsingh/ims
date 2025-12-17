@@ -63,6 +63,7 @@ export interface Client {
   aportar_documentacion?: AdditionalDocument[]; // APORTAR DOCUMENTACIÓN documents
   requerimiento?: AdditionalDocument[]; // REQUERIMIENTO documents
   resolucion?: AdditionalDocument[]; // RESOLUCIÓN documents
+  justificante_presentacion?: AdditionalDocument[]; // JUSTIFICANTE DE PRESENTACION documents
   created_at: string;
   updated_at: string;
 }
