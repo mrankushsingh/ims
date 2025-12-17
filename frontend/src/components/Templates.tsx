@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Plus, Trash2, Edit, FileText } from 'lucide-react';
+import { Plus, Trash2, Edit, FileText, Search, X } from 'lucide-react';
 import { api } from '../utils/api';
 import { CaseTemplate } from '../types';
 import CreateTemplateModal from './CreateTemplateModal';
@@ -13,6 +13,7 @@ export default function Templates() {
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [editingTemplate, setEditingTemplate] = useState<CaseTemplate | null>(null);
   const [deleteConfirm, setDeleteConfirm] = useState<{ templateId: string | null; templateName: string; isOpen: boolean }>({ templateId: null, templateName: '', isOpen: false });
+  const [searchQuery, setSearchQuery] = useState('');
   const [, forceUpdate] = useState({});
 
   useEffect(() => {
@@ -61,6 +62,15 @@ export default function Templates() {
     }
   };
 
+  const filteredTemplates = templates.filter((template) => {
+    if (!searchQuery.trim()) return true;
+    const query = searchQuery.toLowerCase();
+    const name = (template.name || '').toLowerCase();
+    const description = (template.description || '').toLowerCase();
+    
+    return name.includes(query) || description.includes(query);
+  });
+
   if (loading) {
     return (
       <div className="flex items-center justify-center h-64">
@@ -86,7 +96,49 @@ export default function Templates() {
         </button>
       </div>
 
-      {templates.length === 0 ? (
+      {/* Search Bar */}
+      <div className="relative">
+        <div className="relative">
+          <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 w-5 h-5 text-amber-600" />
+          <input
+            type="text"
+            placeholder="Search templates by name or description..."
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            className="w-full pl-12 pr-12 py-3 border-2 border-amber-200 rounded-xl focus:ring-2 focus:ring-amber-500 focus:border-amber-500 outline-none text-amber-900 placeholder-amber-400 bg-white/50 backdrop-blur-sm"
+          />
+          {searchQuery && (
+            <button
+              onClick={() => setSearchQuery('')}
+              className="absolute right-4 top-1/2 transform -translate-y-1/2 text-amber-600 hover:text-amber-800 transition-colors"
+            >
+              <X className="w-5 h-5" />
+            </button>
+          )}
+        </div>
+        {searchQuery && (
+          <p className="mt-2 text-sm text-amber-700/70">
+            Found {filteredTemplates.length} {filteredTemplates.length === 1 ? 'template' : 'templates'}
+          </p>
+        )}
+      </div>
+
+      {filteredTemplates.length === 0 && templates.length > 0 ? (
+        <div className="glass-gold rounded-xl sm:rounded-2xl p-8 sm:p-16 text-center animate-scale-in">
+          <div className="bg-gradient-to-br from-amber-100 to-amber-200 w-16 h-16 sm:w-20 sm:h-20 rounded-xl sm:rounded-2xl flex items-center justify-center mx-auto mb-4 sm:mb-6 shadow-lg">
+            <Search className="w-8 h-8 sm:w-10 sm:h-10 text-amber-800" />
+          </div>
+          <h3 className="text-xl sm:text-2xl font-bold bg-gradient-to-r from-amber-800 to-amber-700 bg-clip-text text-transparent mb-2">{t('templates.noTemplates')}</h3>
+          <p className="text-amber-700/70 mb-6 sm:mb-8 text-base sm:text-lg font-medium">Try adjusting your search query</p>
+          <button
+            onClick={() => setSearchQuery('')}
+            className="bg-gradient-to-r from-yellow-500 via-amber-500 to-yellow-600 text-amber-900 px-6 sm:px-8 py-3 sm:py-3.5 rounded-xl font-semibold hover:shadow-2xl transition-all shadow-xl"
+            style={{ boxShadow: '0 4px 20px rgba(245, 158, 11, 0.4)' }}
+          >
+            Clear Search
+          </button>
+        </div>
+      ) : templates.length === 0 ? (
         <div className="glass-gold rounded-xl sm:rounded-2xl p-8 sm:p-16 text-center animate-scale-in">
           <div className="bg-gradient-to-br from-amber-100 to-amber-200 w-16 h-16 sm:w-20 sm:h-20 rounded-xl sm:rounded-2xl flex items-center justify-center mx-auto mb-4 sm:mb-6 shadow-lg">
             <FileText className="w-8 h-8 sm:w-10 sm:h-10 text-amber-800" />
@@ -103,7 +155,7 @@ export default function Templates() {
         </div>
       ) : (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
-          {templates.map((template, index) => (
+          {filteredTemplates.map((template, index) => (
             <div
               key={template.id}
               onClick={() => setEditingTemplate(template)}
