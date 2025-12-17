@@ -625,6 +625,9 @@ class DatabaseAdapter {
       resolucion: typeof row.resolucion === 'string' 
         ? JSON.parse(row.resolucion) 
         : (row.resolucion || []),
+      justificante_presentacion: typeof row.justificante_presentacion === 'string' 
+        ? JSON.parse(row.justificante_presentacion) 
+        : (row.justificante_presentacion || []),
       application_date: row.application_date ? row.application_date.toISOString() : undefined,
       custom_reminder_date: row.custom_reminder_date ? row.custom_reminder_date.toISOString() : undefined,
       created_at: row.created_at.toISOString(),
