@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { X, Upload, CheckCircle, FileText, Download, Trash2, Plus, DollarSign, StickyNote, Archive, XCircle, AlertCircle, Send, Clock, Eye, ToggleLeft, ToggleRight, Calendar } from 'lucide-react';
+import { X, Upload, CheckCircle, FileText, Download, Trash2, Plus, DollarSign, StickyNote, Archive, XCircle, AlertCircle, Send, Clock, Eye, ToggleLeft, ToggleRight, Calendar, ChevronUp, ChevronDown } from 'lucide-react';
 import JSZip from 'jszip';
 import { api } from '../utils/api';
 import { Client, RequiredDocument, AdditionalDocument, RequestedDocument } from '../types';
@@ -130,6 +130,40 @@ export default function ClientDetailsModal({ client, onClose, onSuccess }: Props
         }
       },
     });
+  };
+
+  const handleReorderDocument = async (documentCode: string, direction: 'up' | 'down') => {
+    setError('');
+    try {
+      const documents = [...(clientData.required_documents || [])];
+      const currentIndex = documents.findIndex((doc: any) => doc.code === documentCode);
+      
+      if (currentIndex === -1) {
+        setError('Document not found');
+        return;
+      }
+
+      if (direction === 'up' && currentIndex === 0) {
+        return; // Already at the top
+      }
+      if (direction === 'down' && currentIndex === documents.length - 1) {
+        return; // Already at the bottom
+      }
+
+      const newIndex = direction === 'up' ? currentIndex - 1 : currentIndex + 1;
+      const [movedDoc] = documents.splice(currentIndex, 1);
+      documents.splice(newIndex, 0, movedDoc);
+
+      await api.updateClient(client.id, {
+        required_documents: documents,
+      });
+      await loadClient();
+      onSuccess();
+      showToast('Document order updated successfully', 'success');
+    } catch (error: any) {
+      setError(error.message || 'Failed to reorder document');
+      showToast(error.message || 'Failed to reorder document', 'error');
+    }
   };
 
   const handleToggleOptional = async (documentCode: string, currentOptional: boolean) => {
@@ -1494,6 +1528,32 @@ export default function ClientDetailsModal({ client, onClose, onSuccess }: Props
                       </div>
                     </div>
                     <div className="flex items-center space-x-2 ml-4">
+                      <div className="flex flex-col space-y-1">
+                        <button
+                          onClick={() => handleReorderDocument(doc.code, 'up')}
+                          disabled={index === 0}
+                          className={`p-1.5 rounded transition-colors ${
+                            index === 0
+                              ? 'text-gray-300 cursor-not-allowed'
+                              : 'text-gray-600 hover:bg-gray-100 hover:text-gray-900'
+                          }`}
+                          title="Move up"
+                        >
+                          <ChevronUp className="w-4 h-4" />
+                        </button>
+                        <button
+                          onClick={() => handleReorderDocument(doc.code, 'down')}
+                          disabled={index === (clientData.required_documents?.length || 0) - 1}
+                          className={`p-1.5 rounded transition-colors ${
+                            index === (clientData.required_documents?.length || 0) - 1
+                              ? 'text-gray-300 cursor-not-allowed'
+                              : 'text-gray-600 hover:bg-gray-100 hover:text-gray-900'
+                          }`}
+                          title="Move down"
+                        >
+                          <ChevronDown className="w-4 h-4" />
+                        </button>
+                      </div>
                       <button
                         onClick={() => handleToggleOptional(doc.code, doc.isOptional || false)}
                         className={`p-2 rounded-lg transition-colors border ${
