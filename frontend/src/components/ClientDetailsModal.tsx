@@ -43,6 +43,8 @@ export default function ClientDetailsModal({ client, onClose, onSuccess }: Props
   const [requerimientoForm, setRequerimientoForm] = useState({ name: '', description: '', file: null as File | null });
   const [showResolucionForm, setShowResolucionForm] = useState(false);
   const [resolucionForm, setResolucionForm] = useState({ name: '', description: '', file: null as File | null });
+  const [draggedIndex, setDraggedIndex] = useState<number | null>(null);
+  const [dragOverIndex, setDragOverIndex] = useState<number | null>(null);
   const [confirmDialog, setConfirmDialog] = useState<{
     isOpen: boolean;
     title: string;
@@ -1452,8 +1454,18 @@ export default function ClientDetailsModal({ client, onClose, onSuccess }: Props
               {clientData.required_documents.map((doc: RequiredDocument, index) => (
                 <div
                   key={doc.code || index}
-                  className={`border-2 rounded-xl p-5 transition-all shadow-sm hover:shadow-md ${
-                    doc.submitted
+                  draggable
+                  onDragStart={() => handleDragStart(index)}
+                  onDragOver={(e) => handleDragOver(e, index)}
+                  onDragLeave={handleDragLeave}
+                  onDrop={(e) => handleDrop(e, index)}
+                  onDragEnd={handleDragEnd}
+                  className={`border-2 rounded-xl p-5 transition-all shadow-sm hover:shadow-md cursor-move ${
+                    draggedIndex === index
+                      ? 'opacity-50 border-blue-400 bg-blue-50'
+                      : dragOverIndex === index
+                      ? 'border-blue-400 bg-blue-50 scale-105'
+                      : doc.submitted
                       ? 'border-emerald-300 bg-gradient-to-br from-emerald-50 to-white'
                       : doc.isOptional
                       ? 'border-gray-300 bg-gradient-to-br from-gray-50 to-white'
@@ -1461,6 +1473,9 @@ export default function ClientDetailsModal({ client, onClose, onSuccess }: Props
                   }`}
                 >
                   <div className="flex items-start justify-between">
+                    <div className="flex items-center mr-3 cursor-grab active:cursor-grabbing">
+                      <GripVertical className="w-5 h-5 text-gray-400 hover:text-gray-600" />
+                    </div>
                     <div className="flex-1">
                       <div className="flex items-center space-x-3 mb-3">
                         {doc.submitted ? (
@@ -1540,32 +1555,6 @@ export default function ClientDetailsModal({ client, onClose, onSuccess }: Props
                       </div>
                     </div>
                     <div className="flex items-center space-x-2 ml-4">
-                      <div className="flex flex-col space-y-1">
-                        <button
-                          onClick={() => handleReorderDocument(doc.code, 'up')}
-                          disabled={index === 0}
-                          className={`p-1.5 rounded transition-colors ${
-                            index === 0
-                              ? 'text-gray-300 cursor-not-allowed'
-                              : 'text-gray-600 hover:bg-gray-100 hover:text-gray-900'
-                          }`}
-                          title="Move up"
-                        >
-                          <ChevronUp className="w-4 h-4" />
-                        </button>
-                        <button
-                          onClick={() => handleReorderDocument(doc.code, 'down')}
-                          disabled={index === (clientData.required_documents?.length || 0) - 1}
-                          className={`p-1.5 rounded transition-colors ${
-                            index === (clientData.required_documents?.length || 0) - 1
-                              ? 'text-gray-300 cursor-not-allowed'
-                              : 'text-gray-600 hover:bg-gray-100 hover:text-gray-900'
-                          }`}
-                          title="Move down"
-                        >
-                          <ChevronDown className="w-4 h-4" />
-                        </button>
-                      </div>
                       <button
                         onClick={() => handleToggleOptional(doc.code, doc.isOptional || false)}
                         className={`p-2 rounded-lg transition-colors border ${
