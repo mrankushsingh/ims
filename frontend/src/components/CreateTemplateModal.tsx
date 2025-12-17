@@ -391,11 +391,11 @@ export default function CreateTemplateModal({ onClose, onSuccess, template }: Pr
                       <label className="block text-xs font-medium text-gray-600 mb-1">
                         Description (optional)
                       </label>
-                      <input
-                        type="text"
+                      <textarea
                         value={doc.description || ''}
                         onChange={(e) => updateDocument(index, 'description', e.target.value)}
-                        className="w-full px-2 py-1.5 text-sm border border-gray-300 rounded focus:ring-2 focus:ring-blue-500 outline-none"
+                        rows={4}
+                        className="w-full px-2 py-1.5 text-sm border border-gray-300 rounded focus:ring-2 focus:ring-blue-500 outline-none resize-y"
                         placeholder="Optional description"
                       />
                     </div>
