@@ -1367,32 +1367,6 @@ export default function ClientDetailsModal({ client, onClose, onSuccess }: Props
           })()}
         </div>
 
-        {/* Notes Section */}
-        <div className="mb-6 p-5 bg-gradient-to-br from-blue-50/50 to-white rounded-xl border border-gray-200 shadow-sm">
-          <div className="flex justify-between items-center mb-4">
-            <h3 className="text-lg font-bold text-gray-900 flex items-center space-x-2">
-              <div className="p-2 bg-blue-100 rounded-lg">
-                <StickyNote className="w-5 h-5 text-blue-700" />
-              </div>
-              <span>Important Notes</span>
-            </h3>
-            <button
-              onClick={handleSaveNotes}
-              disabled={savingNotes}
-              className="px-4 py-2 bg-blue-600 text-white text-sm rounded-lg hover:bg-blue-700 transition-colors disabled:opacity-50"
-            >
-              {savingNotes ? 'Saving...' : 'Save Notes'}
-            </button>
-          </div>
-          <textarea
-            value={notes}
-            onChange={(e) => setNotes(e.target.value)}
-            rows={4}
-            className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none resize-none"
-            placeholder="Add important notes about this client..."
-          />
-        </div>
-
         {/* Required Documents */}
         <div className="mb-6 p-5 bg-gradient-to-br from-amber-50/50 to-white rounded-xl border border-gray-200 shadow-sm">
           <div className="flex justify-between items-center mb-4">
@@ -2186,6 +2160,32 @@ export default function ClientDetailsModal({ client, onClose, onSuccess }: Props
               ))}
             </div>
           )}
+        </div>
+
+        {/* Notes Section - Moved to end after all documents */}
+        <div className="mb-6 p-5 bg-gradient-to-br from-blue-50/50 to-white rounded-xl border border-gray-200 shadow-sm">
+          <div className="flex justify-between items-center mb-4">
+            <h3 className="text-lg font-bold text-gray-900 flex items-center space-x-2">
+              <div className="p-2 bg-blue-100 rounded-lg">
+                <StickyNote className="w-5 h-5 text-blue-700" />
+              </div>
+              <span>Important Notes</span>
+            </h3>
+            <button
+              onClick={handleSaveNotes}
+              disabled={savingNotes}
+              className="px-4 py-2 bg-blue-600 text-white text-sm rounded-lg hover:bg-blue-700 transition-colors disabled:opacity-50"
+            >
+              {savingNotes ? 'Saving...' : 'Save Notes'}
+            </button>
+          </div>
+          <textarea
+            value={notes}
+            onChange={(e) => setNotes(e.target.value)}
+            rows={4}
+            className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none resize-none"
+            placeholder="Add important notes about this client..."
+          />
         </div>
           </div>
         </div>
