@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { X, Upload, CheckCircle, FileText, Download, Trash2, Plus, DollarSign, StickyNote, Archive, XCircle, AlertCircle, Send, Clock, Eye, ToggleLeft, ToggleRight, Calendar, ChevronUp, ChevronDown } from 'lucide-react';
+import { X, Upload, CheckCircle, FileText, Download, Trash2, Plus, DollarSign, StickyNote, Archive, XCircle, AlertCircle, Send, Clock, Eye, ToggleLeft, ToggleRight, Calendar, GripVertical } from 'lucide-react';
 import JSZip from 'jszip';
 import { api } from '../utils/api';
 import { Client, RequiredDocument, AdditionalDocument, RequestedDocument } from '../types';
@@ -132,27 +132,32 @@ export default function ClientDetailsModal({ client, onClose, onSuccess }: Props
     });
   };
 
-  const handleReorderDocument = async (documentCode: string, direction: 'up' | 'down') => {
-    setError('');
+  const handleDragStart = (index: number) => {
+    setDraggedIndex(index);
+  };
+
+  const handleDragOver = (e: React.DragEvent, index: number) => {
+    e.preventDefault();
+    setDragOverIndex(index);
+  };
+
+  const handleDragLeave = () => {
+    setDragOverIndex(null);
+  };
+
+  const handleDrop = async (e: React.DragEvent, dropIndex: number) => {
+    e.preventDefault();
+    setDragOverIndex(null);
+
+    if (draggedIndex === null || draggedIndex === dropIndex) {
+      setDraggedIndex(null);
+      return;
+    }
+
     try {
       const documents = [...(clientData.required_documents || [])];
-      const currentIndex = documents.findIndex((doc: any) => doc.code === documentCode);
-      
-      if (currentIndex === -1) {
-        setError('Document not found');
-        return;
-      }
-
-      if (direction === 'up' && currentIndex === 0) {
-        return; // Already at the top
-      }
-      if (direction === 'down' && currentIndex === documents.length - 1) {
-        return; // Already at the bottom
-      }
-
-      const newIndex = direction === 'up' ? currentIndex - 1 : currentIndex + 1;
-      const [movedDoc] = documents.splice(currentIndex, 1);
-      documents.splice(newIndex, 0, movedDoc);
+      const [draggedDoc] = documents.splice(draggedIndex, 1);
+      documents.splice(dropIndex, 0, draggedDoc);
 
       await api.updateClient(client.id, {
         required_documents: documents,
@@ -163,7 +168,14 @@ export default function ClientDetailsModal({ client, onClose, onSuccess }: Props
     } catch (error: any) {
       setError(error.message || 'Failed to reorder document');
       showToast(error.message || 'Failed to reorder document', 'error');
+    } finally {
+      setDraggedIndex(null);
     }
+  };
+
+  const handleDragEnd = () => {
+    setDraggedIndex(null);
+    setDragOverIndex(null);
   };
 
   const handleToggleOptional = async (documentCode: string, currentOptional: boolean) => {
