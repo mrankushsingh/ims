@@ -394,8 +394,9 @@ export default function CreateTemplateModal({ onClose, onSuccess, template }: Pr
                       <textarea
                         value={doc.description || ''}
                         onChange={(e) => updateDocument(index, 'description', e.target.value)}
-                        rows={4}
-                        className="w-full px-2 py-1.5 text-sm border border-gray-300 rounded focus:ring-2 focus:ring-blue-500 outline-none resize-y"
+                        rows={5}
+                        style={{ resize: 'vertical', minHeight: '100px' }}
+                        className="w-full px-2 py-1.5 text-sm border border-gray-300 rounded focus:ring-2 focus:ring-blue-500 outline-none"
                         placeholder="Optional description"
                       />
                     </div>
