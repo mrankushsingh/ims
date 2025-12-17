@@ -167,6 +167,7 @@ class DatabaseAdapter {
           aportar_documentacion JSONB,
           requerimiento JSONB,
           resolucion JSONB,
+          justificante_presentacion JSONB,
           created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
           updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
         )
