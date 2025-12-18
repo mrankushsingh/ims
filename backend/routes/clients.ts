@@ -143,6 +143,9 @@ router.post('/', async (req, res) => {
       additional_docs_required: false,
       notes: '',
       additional_documents: [],
+      aportar_documentacion: [],
+      requerimiento: [],
+      resolucion: [],
       justificante_presentacion: [],
     });
 
