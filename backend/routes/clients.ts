@@ -143,6 +143,7 @@ router.post('/', async (req, res) => {
       additional_docs_required: false,
       notes: '',
       additional_documents: [],
+      justificante_presentacion: [],
     });
 
     res.status(201).json(client);
