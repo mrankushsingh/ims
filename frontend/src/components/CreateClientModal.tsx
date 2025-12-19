@@ -1,5 +1,5 @@
-import { useState, useEffect } from 'react';
-import { X, UserPlus, AlertCircle } from 'lucide-react';
+import { useState, useEffect, useRef } from 'react';
+import { X, UserPlus, AlertCircle, Search, ChevronDown } from 'lucide-react';
 import { api } from '../utils/api';
 import { CaseTemplate } from '../types';
 import { showToast } from './Toast';
@@ -23,10 +23,41 @@ export default function CreateClientModal({ onClose, onSuccess }: Props) {
   const [templates, setTemplates] = useState<CaseTemplate[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+  const [templateSearchQuery, setTemplateSearchQuery] = useState('');
+  const [showTemplateDropdown, setShowTemplateDropdown] = useState(false);
+  const templateDropdownRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     loadTemplates();
   }, []);
+
+  // Close dropdown when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (templateDropdownRef.current && !templateDropdownRef.current.contains(event.target as Node)) {
+        setShowTemplateDropdown(false);
+      }
+    };
+
+    if (showTemplateDropdown) {
+      document.addEventListener('mousedown', handleClickOutside);
+    }
+
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, [showTemplateDropdown]);
+
+  const filteredTemplates = templates.filter((template) => {
+    if (!templateSearchQuery.trim()) return true;
+    const query = templateSearchQuery.toLowerCase();
+    const name = (template.name || '').toLowerCase();
+    const description = (template.description || '').toLowerCase();
+    
+    return name.startsWith(query) || description.startsWith(query);
+  });
+
+  const selectedTemplate = templates.find(t => t.id === formData.caseTemplateId);
 
   const loadTemplates = async () => {
     try {
@@ -203,20 +234,84 @@ export default function CreateClientModal({ onClose, onSuccess }: Props) {
                   <span>Case Information</span>
                 </h3>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                  <div>
+                  <div className="relative" ref={templateDropdownRef}>
                     <label className="block text-sm font-semibold text-gray-700 mb-2">Case Template</label>
-                    <select
-                      value={formData.caseTemplateId}
-                      onChange={(e) => setFormData({ ...formData, caseTemplateId: e.target.value })}
-                      className="w-full px-4 py-3 border-2 border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all shadow-sm hover:shadow-md bg-white"
-                    >
-                      <option value="">Select a template (optional)</option>
-                      {templates.map((template) => (
-                        <option key={template.id} value={template.id}>
-                          {template.name}
-                        </option>
-                      ))}
-                    </select>
+                    <div className="relative">
+                      <button
+                        type="button"
+                        onClick={() => setShowTemplateDropdown(!showTemplateDropdown)}
+                        className="w-full px-4 py-3 border-2 border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all shadow-sm hover:shadow-md bg-white text-left flex items-center justify-between"
+                      >
+                        <span className={selectedTemplate ? 'text-gray-900' : 'text-gray-500'}>
+                          {selectedTemplate ? selectedTemplate.name : 'Select a template (optional)'}
+                        </span>
+                        <ChevronDown className={`w-5 h-5 text-gray-400 transition-transform ${showTemplateDropdown ? 'transform rotate-180' : ''}`} />
+                      </button>
+                      
+                      {showTemplateDropdown && (
+                        <div className="absolute z-50 w-full mt-2 bg-white border-2 border-gray-300 rounded-xl shadow-xl max-h-64 overflow-hidden flex flex-col">
+                          {/* Search Input */}
+                          <div className="p-3 border-b border-gray-200">
+                            <div className="relative">
+                              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
+                              <input
+                                type="text"
+                                value={templateSearchQuery}
+                                onChange={(e) => setTemplateSearchQuery(e.target.value)}
+                                onClick={(e) => e.stopPropagation()}
+                                className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none text-sm"
+                                placeholder="Search templates..."
+                                autoFocus
+                              />
+                            </div>
+                          </div>
+                          
+                          {/* Template List */}
+                          <div className="overflow-y-auto max-h-48">
+                            {filteredTemplates.length === 0 ? (
+                              <div className="p-4 text-center text-gray-500 text-sm">
+                                No templates found
+                              </div>
+                            ) : (
+                              <>
+                                <button
+                                  type="button"
+                                  onClick={() => {
+                                    setFormData({ ...formData, caseTemplateId: '' });
+                                    setShowTemplateDropdown(false);
+                                    setTemplateSearchQuery('');
+                                  }}
+                                  className={`w-full px-4 py-2 text-left hover:bg-gray-50 transition-colors text-sm ${
+                                    !formData.caseTemplateId ? 'bg-blue-50 text-blue-700 font-medium' : 'text-gray-700'
+                                  }`}
+                                >
+                                  None (optional)
+                                </button>
+                                {filteredTemplates.map((template) => (
+                                  <button
+                                    key={template.id}
+                                    type="button"
+                                    onClick={() => {
+                                      setFormData({ ...formData, caseTemplateId: template.id });
+                                      setShowTemplateDropdown(false);
+                                      setTemplateSearchQuery('');
+                                    }}
+                                    className={`w-full px-4 py-2 text-left hover:bg-gray-50 transition-colors text-sm ${
+                                      formData.caseTemplateId === template.id ? 'bg-blue-50 text-blue-700 font-medium' : 'text-gray-700'
+                                    }`}
+                                  >
+                                    <div className="font-medium">{template.name}</div>
+                                    {template.description && (
+                                      <div className="text-xs text-gray-500 mt-0.5 truncate">{template.description}</div>
+                                    )}
+                                  </button>
+                                ))}
+                              </>
+                            )}
+                          </div>
+                        </div>
+                      )}
+                    </div>
                   </div>
                   <div>
                     <label className="block text-sm font-semibold text-gray-700 mb-2">Total Fee (€)</label>
