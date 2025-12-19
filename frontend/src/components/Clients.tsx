@@ -73,11 +73,11 @@ export default function Clients() {
     const parentName = (client.parent_name || '').toLowerCase();
     
     return (
-      fullName.includes(query) ||
-      email.includes(query) ||
-      phone.includes(query) ||
-      caseType.includes(query) ||
-      parentName.includes(query)
+      fullName.startsWith(query) ||
+      email.startsWith(query) ||
+      phone.startsWith(query) ||
+      caseType.startsWith(query) ||
+      parentName.startsWith(query)
     );
   });
 

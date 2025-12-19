@@ -68,7 +68,7 @@ export default function Templates() {
     const name = (template.name || '').toLowerCase();
     const description = (template.description || '').toLowerCase();
     
-    return name.includes(query) || description.includes(query);
+    return name.startsWith(query) || description.startsWith(query);
   });
 
   if (loading) {
