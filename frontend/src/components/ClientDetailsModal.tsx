@@ -120,15 +120,15 @@ export default function ClientDetailsModal({ client, onClose, onSuccess }: Props
       message: 'Are you sure you want to remove this document?',
       type: 'warning',
       onConfirm: async () => {
-        setError('');
-        try {
-          await api.removeDocument(client.id, documentCode);
-          await loadClient();
-          onSuccess();
+    setError('');
+    try {
+      await api.removeDocument(client.id, documentCode);
+      await loadClient();
+      onSuccess();
           showToast('Document removed successfully', 'success');
           setConfirmDialog({ ...confirmDialog, isOpen: false });
-        } catch (error: any) {
-          setError(error.message || 'Failed to remove document');
+    } catch (error: any) {
+      setError(error.message || 'Failed to remove document');
           showToast(error.message || 'Failed to remove document', 'error');
           setConfirmDialog({ ...confirmDialog, isOpen: false });
         }
@@ -704,18 +704,18 @@ export default function ClientDetailsModal({ client, onClose, onSuccess }: Props
       message: 'Are you sure you want to remove this document?',
       type: 'warning',
       onConfirm: async () => {
-        setError('');
-        try {
-          await api.removeAdditionalDocument(client.id, documentId);
-          await loadClient();
-          onSuccess();
+    setError('');
+    try {
+      await api.removeAdditionalDocument(client.id, documentId);
+      await loadClient();
+      onSuccess();
           showToast('Document removed successfully', 'success');
           setConfirmDialog({ ...confirmDialog, isOpen: false });
-        } catch (error: any) {
-          setError(error.message || 'Failed to remove document');
+    } catch (error: any) {
+      setError(error.message || 'Failed to remove document');
           showToast(error.message || 'Failed to remove document', 'error');
           setConfirmDialog({ ...confirmDialog, isOpen: false });
-        }
+    }
       },
     });
   };
@@ -810,18 +810,18 @@ export default function ClientDetailsModal({ client, onClose, onSuccess }: Props
       message: 'Are you sure you want to submit this case to the administrative authority? This will start the administrative silence timer.',
       type: 'info',
       onConfirm: async () => {
-        setError('');
-        try {
-          await api.submitToAdministrative(client.id);
-          await loadClient();
-          onSuccess();
+    setError('');
+    try {
+      await api.submitToAdministrative(client.id);
+      await loadClient();
+      onSuccess();
           showToast('Case submitted to administrative authority successfully', 'success');
           setConfirmDialog({ ...confirmDialog, isOpen: false });
-        } catch (error: any) {
-          setError(error.message || 'Failed to submit to administrative');
+    } catch (error: any) {
+      setError(error.message || 'Failed to submit to administrative');
           showToast(error.message || 'Failed to submit to administrative', 'error');
           setConfirmDialog({ ...confirmDialog, isOpen: false });
-        }
+    }
       },
     });
   };
@@ -835,20 +835,20 @@ export default function ClientDetailsModal({ client, onClose, onSuccess }: Props
       message: confirmMessage,
       type: 'danger',
       onConfirm: async () => {
-        setDeleting(true);
-        setError('');
-        try {
-          await api.deleteClient(client.id);
+    setDeleting(true);
+    setError('');
+    try {
+      await api.deleteClient(client.id);
           showToast(`Client ${clientData.first_name} ${clientData.last_name} deleted successfully`, 'success');
-          onSuccess();
-          onClose();
+      onSuccess();
+      onClose();
           setConfirmDialog({ ...confirmDialog, isOpen: false });
-        } catch (error: any) {
-          setError(error.message || 'Failed to delete client');
+    } catch (error: any) {
+      setError(error.message || 'Failed to delete client');
           showToast(error.message || 'Failed to delete client', 'error');
           setConfirmDialog({ ...confirmDialog, isOpen: false });
-          setDeleting(false);
-        }
+      setDeleting(false);
+    }
       },
     });
   };

@@ -114,7 +114,7 @@ function App() {
     } catch (error: any) {
       console.error('Logout error:', error);
       // Still set authenticated to false even if logout fails
-      setIsAuthenticated(false);
+    setIsAuthenticated(false);
     }
   };
 
@@ -204,13 +204,13 @@ function App() {
                       currentView === 'users'
                         ? 'bg-gradient-to-r from-yellow-500 to-amber-500 text-amber-900 shadow-lg shadow-yellow-500/30 scale-105'
                         : 'text-white/80 hover:bg-white/10 hover:text-white'
-                    }`}
-                  >
-                    <div className="flex items-center space-x-2">
+                  }`}
+                >
+                  <div className="flex items-center space-x-2">
                       <UserCog className="w-4 h-4" />
                       <span>{t('users.title')}</span>
-                    </div>
-                  </button>
+                  </div>
+                </button>
                 )}
               </nav>
               <LanguageSelector />
@@ -243,49 +243,49 @@ function App() {
             </div>
           </div>
 
-                {/* Mobile Navigation */}
-                {mobileMenuOpen && (
+          {/* Mobile Navigation */}
+          {mobileMenuOpen && (
                   <div className="md:hidden border-t border-white/10 pt-4 pb-4 animate-fade-in">
-                    <nav className="flex flex-col space-y-2">
-                      <button
-                        onClick={() => {
-                          setCurrentView('dashboard');
-                          setMobileMenuOpen(false);
-                        }}
-                        className={`w-full px-4 py-3 rounded-lg font-semibold text-sm transition-all duration-200 text-left ${
-                          currentView === 'dashboard'
+              <nav className="flex flex-col space-y-2">
+                <button
+                  onClick={() => {
+                    setCurrentView('dashboard');
+                    setMobileMenuOpen(false);
+                  }}
+                  className={`w-full px-4 py-3 rounded-lg font-semibold text-sm transition-all duration-200 text-left ${
+                    currentView === 'dashboard'
                             ? 'bg-gradient-to-r from-yellow-500 to-amber-500 text-amber-900 shadow-lg'
                             : 'text-white/80 hover:bg-white/10'
-                        }`}
-                      >
-                        <div className="flex items-center space-x-3">
-                          <LayoutDashboard className="w-5 h-5" />
+                  }`}
+                >
+                  <div className="flex items-center space-x-3">
+                    <LayoutDashboard className="w-5 h-5" />
                           <span>{t('common.dashboard')}</span>
-                        </div>
-                      </button>
-                      <button
-                        onClick={() => {
-                          setCurrentView('templates');
-                          setMobileMenuOpen(false);
-                        }}
-                        className={`w-full px-4 py-3 rounded-lg font-semibold text-sm transition-all duration-200 text-left ${
-                          currentView === 'templates'
+                  </div>
+                </button>
+                <button
+                  onClick={() => {
+                    setCurrentView('templates');
+                    setMobileMenuOpen(false);
+                  }}
+                  className={`w-full px-4 py-3 rounded-lg font-semibold text-sm transition-all duration-200 text-left ${
+                    currentView === 'templates'
                             ? 'bg-gradient-to-r from-yellow-500 to-amber-500 text-amber-900 shadow-lg'
                             : 'text-white/80 hover:bg-white/10'
-                        }`}
-                      >
-                        <div className="flex items-center space-x-3">
-                          <FileText className="w-5 h-5" />
+                  }`}
+                >
+                  <div className="flex items-center space-x-3">
+                    <FileText className="w-5 h-5" />
                           <span>{t('common.templates')}</span>
-                        </div>
-                      </button>
-                      <button
-                        onClick={() => {
-                          setCurrentView('clients');
-                          setMobileMenuOpen(false);
-                        }}
-                        className={`w-full px-4 py-3 rounded-lg font-semibold text-sm transition-all duration-200 text-left ${
-                          currentView === 'clients'
+                  </div>
+                </button>
+                <button
+                  onClick={() => {
+                    setCurrentView('clients');
+                    setMobileMenuOpen(false);
+                  }}
+                  className={`w-full px-4 py-3 rounded-lg font-semibold text-sm transition-all duration-200 text-left ${
+                    currentView === 'clients'
                             ? 'bg-gradient-to-r from-yellow-500 to-amber-500 text-amber-900 shadow-lg'
                             : 'text-white/80 hover:bg-white/10'
                         }`}
@@ -305,29 +305,29 @@ function App() {
                         currentView === 'users'
                           ? 'bg-gradient-to-r from-yellow-500 to-amber-500 text-amber-900 shadow-lg'
                           : 'text-white/80 hover:bg-white/10'
-                      }`}
-                    >
-                      <div className="flex items-center space-x-3">
+                  }`}
+                >
+                  <div className="flex items-center space-x-3">
                         <UserCog className="w-5 h-5" />
                         <span>{t('users.title')}</span>
-                      </div>
-                    </button>
+                  </div>
+                </button>
                   )}
                       <div className="pt-2 border-t border-white/10 mt-2">
-                        <button
-                          onClick={() => {
-                            handleLogout();
-                            setMobileMenuOpen(false);
-                          }}
+                  <button
+                    onClick={() => {
+                      handleLogout();
+                      setMobileMenuOpen(false);
+                    }}
                           className="w-full px-4 py-3 rounded-lg font-semibold text-sm transition-all duration-200 text-left text-red-300 hover:bg-red-900/30 flex items-center space-x-3"
-                        >
-                          <LogOut className="w-5 h-5" />
+                  >
+                    <LogOut className="w-5 h-5" />
                           <span>{t('common.signOut')}</span>
-                        </button>
-                      </div>
-                    </nav>
-                  </div>
-                )}
+                  </button>
+                </div>
+              </nav>
+            </div>
+          )}
         </div>
       </header>
 

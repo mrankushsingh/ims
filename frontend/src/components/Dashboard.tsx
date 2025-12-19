@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { FileText, Users, CheckCircle, Clock, Send, X, AlertCircle, AlertTriangle, Gavel, DollarSign, FilePlus } from 'lucide-react';
+import { FileText, Users, CheckCircle, Clock, Send, X, AlertCircle, AlertTriangle, Gavel, DollarSign, FilePlus, Lock, Unlock } from 'lucide-react';
 import { api } from '../utils/api';
 import { CaseTemplate, Client } from '../types';
 import ClientDetailsModal from './ClientDetailsModal';
@@ -22,6 +22,10 @@ export default function Dashboard({ onNavigate }: DashboardProps) {
   const [showRecursoModal, setShowRecursoModal] = useState(false);
   const [showUrgentesModal, setShowUrgentesModal] = useState(false);
   const [showPagosModal, setShowPagosModal] = useState(false);
+  const [paymentsUnlocked, setPaymentsUnlocked] = useState(false);
+  const [showPasscodeModal, setShowPasscodeModal] = useState(false);
+  const [passcodeInput, setPasscodeInput] = useState('');
+  const [passcodeError, setPasscodeError] = useState('');
   const [, forceUpdate] = useState({});
   
   // Explicitly reference modal states to satisfy TypeScript
@@ -30,6 +34,34 @@ export default function Dashboard({ onNavigate }: DashboardProps) {
   void showRecursoModal;
   void showUrgentesModal;
   void showPagosModal;
+
+  // Payment passcode - should be set via environment variable or config
+  const PAYMENT_PASSCODE = import.meta.env.VITE_PAYMENT_PASSCODE || '1234';
+
+  const handlePaymentsClick = () => {
+    if (paymentsUnlocked) {
+      setShowPagosModal(true);
+    } else {
+      setShowPasscodeModal(true);
+      setPasscodeInput('');
+      setPasscodeError('');
+    }
+  };
+
+  const handlePasscodeSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    setPasscodeError('');
+    
+    if (passcodeInput === PAYMENT_PASSCODE) {
+      setPaymentsUnlocked(true);
+      setShowPasscodeModal(false);
+      setShowPagosModal(true);
+      setPasscodeInput('');
+    } else {
+      setPasscodeError('Incorrect passcode. Please try again.');
+      setPasscodeInput('');
+    }
+  };
 
   useEffect(() => {
     loadData();
@@ -328,18 +360,34 @@ export default function Dashboard({ onNavigate }: DashboardProps) {
 
         {/* PAGOS Box */}
         <div 
-          onClick={() => setShowPagosModal(true)}
-          className="glass-gold rounded-2xl p-5 sm:p-6 glass-hover animate-slide-up cursor-pointer transition-all duration-200 hover:shadow-xl"
+          onClick={handlePaymentsClick}
+          className="glass-gold rounded-2xl p-5 sm:p-6 glass-hover animate-slide-up cursor-pointer transition-all duration-200 hover:shadow-xl relative"
           style={{ animationDelay: '0.8s' }}
         >
+          {!paymentsUnlocked && (
+            <div className="absolute inset-0 bg-black/50 backdrop-blur-sm rounded-2xl flex items-center justify-center z-10">
+              <div className="text-center">
+                <Lock className="w-8 h-8 sm:w-10 sm:h-10 text-white mx-auto mb-2" />
+                <p className="text-white text-sm font-semibold">Locked</p>
+              </div>
+            </div>
+          )}
           <div className="flex items-center justify-between mb-4">
             <div className="bg-gradient-to-br from-amber-100 to-amber-200 p-3 rounded-xl shadow-lg">
-              <DollarSign className="w-6 h-6 text-amber-800" />
+              {paymentsUnlocked ? (
+                <Unlock className="w-6 h-6 text-amber-800" />
+              ) : (
+                <Lock className="w-6 h-6 text-amber-800" />
+              )}
             </div>
             <span className="text-xs font-semibold text-amber-700/70 uppercase tracking-wider">{t('dashboard.pagos')}</span>
           </div>
-          <p className="text-4xl font-bold bg-gradient-to-r from-amber-800 to-amber-600 bg-clip-text text-transparent mb-2">{pagos.length}</p>
-          <p className="text-sm text-amber-700/70 font-medium leading-relaxed mb-2">{t('dashboard.pagosDesc')}</p>
+          <p className="text-4xl font-bold bg-gradient-to-r from-amber-800 to-amber-600 bg-clip-text text-transparent mb-2">
+            {paymentsUnlocked ? pagos.length : '🔒'}
+          </p>
+          <p className="text-sm text-amber-700/70 font-medium leading-relaxed mb-2">
+            {paymentsUnlocked ? t('dashboard.pagosDesc') : 'Enter passcode to view'}
+          </p>
         </div>
       </div>
 
@@ -699,8 +747,98 @@ export default function Dashboard({ onNavigate }: DashboardProps) {
         </div>
       )}
 
+      {/* Passcode Modal */}
+      {showPasscodeModal && (
+        <div 
+          className="fixed inset-0 z-[110] flex items-center justify-center p-4 animate-fade-in"
+          onClick={(e) => {
+            if (e.target === e.currentTarget) {
+              setShowPasscodeModal(false);
+              setPasscodeInput('');
+              setPasscodeError('');
+            }
+          }}
+          style={{
+            background: 'linear-gradient(135deg, rgba(15, 23, 42, 0.85) 0%, rgba(30, 41, 59, 0.9) 50%, rgba(15, 23, 42, 0.85) 100%)',
+            backdropFilter: 'blur(20px) saturate(180%)',
+            WebkitBackdropFilter: 'blur(20px) saturate(180%)',
+          }}
+        >
+          <div 
+            className="bg-white rounded-xl shadow-2xl max-w-md w-full p-6 animate-scale-in"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="flex items-center justify-between mb-6">
+              <div className="flex items-center space-x-3">
+                <div className="p-3 bg-gradient-to-br from-amber-100 to-amber-200 rounded-xl">
+                  <Lock className="w-6 h-6 text-amber-800" />
+                </div>
+                <div>
+                  <h2 className="text-2xl font-bold text-gray-900">Payment Access</h2>
+                  <p className="text-sm text-gray-600 mt-0.5">Enter passcode to view payments</p>
+                </div>
+              </div>
+              <button
+                onClick={() => {
+                  setShowPasscodeModal(false);
+                  setPasscodeInput('');
+                  setPasscodeError('');
+                }}
+                className="p-2 text-gray-400 hover:text-gray-600 rounded-lg transition-colors"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            <form onSubmit={handlePasscodeSubmit} className="space-y-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">Passcode</label>
+                <input
+                  type="password"
+                  value={passcodeInput}
+                  onChange={(e) => {
+                    setPasscodeInput(e.target.value);
+                    setPasscodeError('');
+                  }}
+                  className="w-full px-4 py-3 border-2 border-gray-300 rounded-xl focus:ring-2 focus:ring-amber-500 focus:border-amber-500 outline-none text-center text-2xl tracking-widest font-mono"
+                  placeholder="••••"
+                  autoFocus
+                  maxLength={10}
+                />
+                {passcodeError && (
+                  <p className="mt-2 text-sm text-red-600 flex items-center space-x-1">
+                    <AlertCircle className="w-4 h-4" />
+                    <span>{passcodeError}</span>
+                  </p>
+                )}
+              </div>
+
+              <div className="flex space-x-3 pt-2">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setShowPasscodeModal(false);
+                    setPasscodeInput('');
+                    setPasscodeError('');
+                  }}
+                  className="flex-1 px-4 py-3 text-gray-700 bg-gray-100 rounded-xl hover:bg-gray-200 transition-colors font-semibold"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  className="flex-1 px-4 py-3 bg-gradient-to-r from-amber-600 to-amber-700 text-white rounded-xl hover:shadow-xl transition-all font-semibold shadow-lg"
+                >
+                  Unlock
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
       {/* PAGOS Modal */}
-      {showPagosModal && (
+      {showPagosModal && paymentsUnlocked && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
           <div className="bg-white rounded-2xl max-w-4xl w-full max-h-[90vh] overflow-hidden flex flex-col">
             <div className="p-6 border-b border-gray-200 bg-gradient-to-r from-amber-50 to-amber-100">
