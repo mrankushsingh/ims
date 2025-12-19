@@ -35,9 +35,6 @@ export default function Dashboard({ onNavigate }: DashboardProps) {
   void showUrgentesModal;
   void showPagosModal;
 
-  // Payment passcode - should be set via environment variable or config
-  const PAYMENT_PASSCODE = import.meta.env.VITE_PAYMENT_PASSCODE || '1234';
-
   const handlePaymentsClick = () => {
     if (paymentsUnlocked) {
       setShowPagosModal(true);
@@ -48,17 +45,23 @@ export default function Dashboard({ onNavigate }: DashboardProps) {
     }
   };
 
-  const handlePasscodeSubmit = (e: React.FormEvent) => {
+  const handlePasscodeSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setPasscodeError('');
     
-    if (passcodeInput === PAYMENT_PASSCODE) {
-      setPaymentsUnlocked(true);
-      setShowPasscodeModal(false);
-      setShowPagosModal(true);
-      setPasscodeInput('');
-    } else {
-      setPasscodeError('Incorrect passcode. Please try again.');
+    try {
+      const result = await api.verifyPaymentPasscode(passcodeInput);
+      if (result.valid) {
+        setPaymentsUnlocked(true);
+        setShowPasscodeModal(false);
+        setShowPagosModal(true);
+        setPasscodeInput('');
+      } else {
+        setPasscodeError('Incorrect passcode. Please try again.');
+        setPasscodeInput('');
+      }
+    } catch (error: any) {
+      setPasscodeError(error.message || 'Failed to verify passcode. Please try again.');
       setPasscodeInput('');
     }
   };

@@ -186,6 +186,15 @@ class DatabaseAdapter {
           updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
         )
       `);
+
+      await this.pool.query(`
+        CREATE TABLE IF NOT EXISTS settings (
+          key VARCHAR(255) PRIMARY KEY,
+          value TEXT NOT NULL,
+          updated_by VARCHAR(255),
+          updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        )
+      `);
       
       // Add custom_reminder_date column if it doesn't exist (for existing databases)
       // Use DO block to handle cases where column might already exist
@@ -938,6 +947,51 @@ class DatabaseAdapter {
       this.saveUsers();
     }
     return deleted;
+  }
+
+  // Settings methods
+  async getSetting(key: string): Promise<string | null> {
+    await this.ensureInitialized();
+    if (this.usePostgres && this.pool) {
+      const result = await this.pool.query('SELECT value FROM settings WHERE key = $1', [key]);
+      if (result.rows.length === 0) return null;
+      return result.rows[0].value;
+    }
+    // For file-based storage, we'll use a simple JSON file
+    const settingsFile = join(this.dataDir, 'settings.json');
+    if (!existsSync(settingsFile)) return null;
+    try {
+      const settings = JSON.parse(readFileSync(settingsFile, 'utf-8'));
+      return settings[key] || null;
+    } catch {
+      return null;
+    }
+  }
+
+  async setSetting(key: string, value: string, updatedBy?: string): Promise<void> {
+    await this.ensureInitialized();
+    if (this.usePostgres && this.pool) {
+      await this.pool.query(
+        `INSERT INTO settings (key, value, updated_by, updated_at) 
+         VALUES ($1, $2, $3, CURRENT_TIMESTAMP)
+         ON CONFLICT (key) 
+         DO UPDATE SET value = $2, updated_by = $3, updated_at = CURRENT_TIMESTAMP`,
+        [key, value, updatedBy || null]
+      );
+    } else {
+      // For file-based storage
+      const settingsFile = join(this.dataDir, 'settings.json');
+      let settings: Record<string, string> = {};
+      if (existsSync(settingsFile)) {
+        try {
+          settings = JSON.parse(readFileSync(settingsFile, 'utf-8'));
+        } catch {
+          settings = {};
+        }
+      }
+      settings[key] = value;
+      writeFileSync(settingsFile, JSON.stringify(settings, null, 2), 'utf-8');
+    }
   }
 
   async close() {

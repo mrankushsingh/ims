@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Plus, Users as UsersIcon, Trash2, Edit2, Shield, User as UserIcon, Mail, Calendar, CheckCircle, XCircle } from 'lucide-react';
+import { Plus, Users as UsersIcon, Trash2, Edit2, Shield, User as UserIcon, Mail, Calendar, CheckCircle, XCircle, Lock, Settings } from 'lucide-react';
 import { api } from '../utils/api';
 import { User } from '../types';
 import ConfirmDialog from './ConfirmDialog';
@@ -15,6 +15,9 @@ export default function Users() {
   const [deleteConfirm, setDeleteConfirm] = useState<{ user: User | null; isOpen: boolean }>({ user: null, isOpen: false });
   const [userForm, setUserForm] = useState({ email: '', name: '', role: 'user' as 'admin' | 'user', firebase_uid: '' });
   const [saving, setSaving] = useState(false);
+  const [passcodeForm, setPasscodeForm] = useState({ passcode: '', confirmPasscode: '' });
+  const [savingPasscode, setSavingPasscode] = useState(false);
+  const [passcodeError, setPasscodeError] = useState('');
   const [, forceUpdate] = useState({});
 
   useEffect(() => {
@@ -152,6 +155,39 @@ export default function Users() {
   const isAdmin = currentUser?.role === 'admin';
   const hasAdmin = users.some(u => u.role === 'admin');
   const canChangeRoles = isAdmin || (!hasAdmin && currentUser?.firebase_uid); // Allow if admin, or if no admins exist
+
+  const handleSetPaymentPasscode = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setPasscodeError('');
+    
+    if (!passcodeForm.passcode.trim()) {
+      setPasscodeError('Passcode is required');
+      return;
+    }
+
+    if (passcodeForm.passcode.length < 4) {
+      setPasscodeError('Passcode must be at least 4 characters');
+      return;
+    }
+
+    if (passcodeForm.passcode !== passcodeForm.confirmPasscode) {
+      setPasscodeError('Passcodes do not match');
+      return;
+    }
+
+    setSavingPasscode(true);
+    try {
+      await api.setPaymentPasscode(passcodeForm.passcode);
+      showToast('Payment passcode updated successfully', 'success');
+      setPasscodeForm({ passcode: '', confirmPasscode: '' });
+      setPasscodeError('');
+    } catch (error: any) {
+      setPasscodeError(error.message || 'Failed to set payment passcode');
+      showToast(error.message || 'Failed to set payment passcode', 'error');
+    } finally {
+      setSavingPasscode(false);
+    }
+  };
 
   if (loading) {
     return (
@@ -446,6 +482,81 @@ export default function Users() {
               </div>
             </form>
           </div>
+        </div>
+      )}
+
+      {/* Payment Passcode Settings (Admin Only) */}
+      {isAdmin && (
+        <div className="glass-gold rounded-xl sm:rounded-2xl p-5 sm:p-6 border-2 border-amber-200/50 animate-slide-up">
+          <div className="flex items-center space-x-3 mb-4">
+            <div className="p-2.5 bg-gradient-to-br from-amber-100 to-amber-200 rounded-xl">
+              <Settings className="w-5 h-5 text-amber-800" />
+            </div>
+            <div>
+              <h3 className="text-lg font-bold text-gray-900">Payment Passcode Settings</h3>
+              <p className="text-sm text-gray-600">Set the passcode required to access payment information</p>
+            </div>
+          </div>
+
+          <form onSubmit={handleSetPaymentPasscode} className="space-y-4">
+            <div>
+              <label className="block text-sm font-semibold text-gray-700 mb-2">
+                New Passcode <span className="text-red-500">*</span>
+              </label>
+              <input
+                type="password"
+                value={passcodeForm.passcode}
+                onChange={(e) => {
+                  setPasscodeForm({ ...passcodeForm, passcode: e.target.value });
+                  setPasscodeError('');
+                }}
+                className="w-full px-4 py-3 border-2 border-gray-300 rounded-xl focus:ring-2 focus:ring-amber-500 focus:border-amber-500 outline-none transition-all"
+                placeholder="Enter new passcode (min 4 characters)"
+                minLength={4}
+              />
+            </div>
+
+            <div>
+              <label className="block text-sm font-semibold text-gray-700 mb-2">
+                Confirm Passcode <span className="text-red-500">*</span>
+              </label>
+              <input
+                type="password"
+                value={passcodeForm.confirmPasscode}
+                onChange={(e) => {
+                  setPasscodeForm({ ...passcodeForm, confirmPasscode: e.target.value });
+                  setPasscodeError('');
+                }}
+                className="w-full px-4 py-3 border-2 border-gray-300 rounded-xl focus:ring-2 focus:ring-amber-500 focus:border-amber-500 outline-none transition-all"
+                placeholder="Confirm new passcode"
+                minLength={4}
+              />
+            </div>
+
+            {passcodeError && (
+              <div className="p-3 bg-red-50 border-l-4 border-red-500 text-red-700 text-sm rounded">
+                {passcodeError}
+              </div>
+            )}
+
+            <button
+              type="submit"
+              disabled={savingPasscode}
+              className="w-full px-4 py-3 bg-gradient-to-r from-amber-600 to-amber-700 text-white rounded-xl hover:shadow-xl transition-all font-semibold disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center space-x-2"
+            >
+              {savingPasscode ? (
+                <>
+                  <div className="animate-spin rounded-full h-4 w-4 border-2 border-white border-t-transparent"></div>
+                  <span>Saving...</span>
+                </>
+              ) : (
+                <>
+                  <Lock className="w-4 h-4" />
+                  <span>Update Payment Passcode</span>
+                </>
+              )}
+            </button>
+          </form>
         </div>
       )}
 

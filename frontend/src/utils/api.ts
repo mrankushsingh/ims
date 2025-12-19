@@ -537,5 +537,47 @@ export const api = {
     }
     return response.json();
   },
+
+  // Settings API
+  async getPaymentPasscodeStatus() {
+    const headers = await getAuthHeaders();
+    const response = await fetch(`${API_URL}/settings/payment-passcode`, {
+      method: 'GET',
+      headers,
+    });
+    if (!response.ok) {
+      const error = await response.json().catch(() => ({ error: 'Failed to get payment passcode status' }));
+      throw new Error(error.error || 'Failed to get payment passcode status');
+    }
+    return response.json();
+  },
+
+  async setPaymentPasscode(passcode: string) {
+    const headers = await getAuthHeaders();
+    const response = await fetch(`${API_URL}/settings/payment-passcode`, {
+      method: 'POST',
+      headers,
+      body: JSON.stringify({ passcode }),
+    });
+    if (!response.ok) {
+      const error = await response.json().catch(() => ({ error: 'Failed to set payment passcode' }));
+      throw new Error(error.error || 'Failed to set payment passcode');
+    }
+    return response.json();
+  },
+
+  async verifyPaymentPasscode(passcode: string) {
+    const headers = await getAuthHeaders();
+    const response = await fetch(`${API_URL}/settings/payment-passcode/verify`, {
+      method: 'POST',
+      headers,
+      body: JSON.stringify({ passcode }),
+    });
+    if (!response.ok) {
+      const error = await response.json().catch(() => ({ error: 'Failed to verify passcode' }));
+      throw new Error(error.error || 'Failed to verify passcode');
+    }
+    return response.json();
+  },
 };
 
