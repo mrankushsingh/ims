@@ -22,6 +22,7 @@ function App() {
   const navigate = useNavigate();
   const location = useLocation();
   const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [isAuthChecking, setIsAuthChecking] = useState(true); // Loading state for auth check
   const [currentView, setCurrentView] = useState<View>('dashboard');
   const [selectedClient, setSelectedClient] = useState<Client | null>(null);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
@@ -60,10 +61,22 @@ function App() {
     if (!isFirebaseAvailable()) {
       console.error('Firebase Authentication is not configured. Please set Firebase environment variables.');
       // Don't set authenticated - user must configure Firebase
+      setIsAuthChecking(false);
       return;
     }
 
-    // Listen to Firebase auth state changes
+    // Check initial auth state first (synchronous check)
+    const user = getCurrentUser();
+    if (user) {
+      setIsAuthenticated(true);
+      loadCurrentUserRole().finally(() => {
+        setIsAuthChecking(false);
+      });
+    } else {
+      setIsAuthChecking(false);
+    }
+
+    // Listen to Firebase auth state changes (async)
     const unsubscribe = onAuthChange((user) => {
       setIsAuthenticated(!!user);
       if (user) {
@@ -71,14 +84,9 @@ function App() {
       } else {
         setCurrentUserRole(null);
       }
+      // Auth check is complete after first auth state change
+      setIsAuthChecking(false);
     });
-
-    // Check initial auth state
-    const user = getCurrentUser();
-    if (user) {
-      setIsAuthenticated(true);
-      loadCurrentUserRole();
-    }
 
     return () => unsubscribe();
   }, []);
@@ -168,6 +176,18 @@ function App() {
       navigate('/dashboard', { replace: true });
     }
   }, [location.pathname, isAuthenticated, navigate]);
+
+  // Show loading state while checking authentication
+  if (isAuthChecking) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-black via-gray-900 to-black">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-yellow-500 mx-auto mb-4"></div>
+          <p className="text-white/70 text-sm">Loading...</p>
+        </div>
+      </div>
+    );
+  }
 
   // Auth Guard: Show login if not authenticated
   if (!isAuthenticated) {
