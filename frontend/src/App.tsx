@@ -31,20 +31,24 @@ function App() {
 
   // Sync route with currentView (only for dashboard)
   useEffect(() => {
+    if (!isAuthenticated) return;
+    
     const path = location.pathname;
     if (path === '/dashboard' && currentView !== 'dashboard') {
       setCurrentView('dashboard');
-    } else if (path === '/' && isAuthenticated) {
+    } else if (path === '/' || path === '/login') {
       navigate('/dashboard', { replace: true });
     }
   }, [location.pathname, isAuthenticated, navigate, currentView]);
 
   // Sync currentView with route (only for dashboard)
   useEffect(() => {
+    if (!isAuthenticated) return;
+    
     if (currentView === 'dashboard' && location.pathname !== '/dashboard') {
       navigate('/dashboard', { replace: true });
     }
-  }, [currentView, navigate, location.pathname]);
+  }, [currentView, navigate, location.pathname, isAuthenticated]);
 
   useEffect(() => {
     // Check if Firebase is available
@@ -119,25 +123,40 @@ function App() {
   const handleLoginSuccess = async () => {
     setIsAuthenticated(true);
     await loadCurrentUserRole();
+    // Redirect to dashboard after successful login
+    navigate('/dashboard', { replace: true });
   };
 
   const handleLogout = async () => {
     if (!isFirebaseAvailable()) {
       console.error('Firebase is not configured');
       setIsAuthenticated(false);
+      navigate('/', { replace: true });
       return;
     }
 
     try {
       await firebaseLogout();
       setIsAuthenticated(false);
+      navigate('/', { replace: true });
     } catch (error: any) {
       console.error('Logout error:', error);
       // Still set authenticated to false even if logout fails
-    setIsAuthenticated(false);
+      setIsAuthenticated(false);
+      navigate('/', { replace: true });
     }
   };
 
+  // Auth Guard: Redirect unauthenticated users to login
+  useEffect(() => {
+    if (!isAuthenticated && location.pathname === '/dashboard') {
+      // User is not authenticated but trying to access dashboard
+      // The Login component will be shown by the if statement below
+      return;
+    }
+  }, [location.pathname, isAuthenticated]);
+
+  // Auth Guard: Show login if not authenticated
   if (!isAuthenticated) {
     return <Login onLoginSuccess={handleLoginSuccess} />;
   }
