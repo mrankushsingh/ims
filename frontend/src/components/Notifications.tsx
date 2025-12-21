@@ -206,8 +206,9 @@ export default function Notifications({ onClientClick, onReminderClick }: Props)
               : `Reminder for ${reminder.client_name} ${reminder.client_surname} is in ${daysUntilReminder} day(s)`;
 
             // Create a minimal client object for the reminder
+            // Use a special prefix to identify RECORDATORIO reminders
             const reminderClient: Client = {
-              id: reminder.client_id || reminder.id,
+              id: `reminder_${reminder.id}`, // Special prefix to identify RECORDATORIO reminders
               first_name: reminder.client_name,
               last_name: reminder.client_surname,
               phone: reminder.phone,
