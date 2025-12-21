@@ -515,7 +515,12 @@ export default function Notifications({ onClientClick, onReminderClick }: Props)
       {/* Reminder Details Modal */}
       {showReminderDetails && selectedReminder && (
         <div 
-          className="fixed inset-0 z-[60] flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm animate-fade-in"
+          className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm animate-fade-in"
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+          }}
           onClick={(e) => {
             if (e.target === e.currentTarget) {
               setShowReminderDetails(false);
@@ -525,6 +530,9 @@ export default function Notifications({ onClientClick, onReminderClick }: Props)
         >
           <div 
             className="bg-white rounded-2xl max-w-md w-full p-6 animate-scale-in shadow-2xl"
+            style={{
+              margin: 'auto',
+            }}
             onClick={(e) => e.stopPropagation()}
           >
             <div className="flex items-center justify-between mb-6">
