@@ -406,7 +406,29 @@ function App() {
       <main className="max-w-7xl mx-auto px-3 sm:px-4 md:px-6 lg:px-8 py-3 sm:py-4 md:py-6 lg:py-8">
         <div className="animate-fade-in">
           <Routes>
-            <Route path="/dashboard" element={<Dashboard onNavigate={setCurrentView} />} />
+            <Route 
+              path="/dashboard" 
+              element={
+                currentView === 'dashboard' ? (
+                  <Dashboard onNavigate={setCurrentView} />
+                ) : (
+                  <>
+                    {currentView === 'templates' && <Templates />}
+                    {currentView === 'clients' && <Clients />}
+                    {currentView === 'users' && currentUserRole === 'admin' && <Users />}
+                    {currentView === 'users' && currentUserRole !== 'admin' && (
+                      <div className="flex items-center justify-center h-64">
+                        <div className="text-center">
+                          <Shield className="w-16 h-16 text-red-500 mx-auto mb-4" />
+                          <h2 className="text-2xl font-bold text-gray-900 mb-2">{t('users.accessDenied')}</h2>
+                          <p className="text-gray-600">{t('users.adminOnly')}</p>
+                        </div>
+                      </div>
+                    )}
+                  </>
+                )
+              } 
+            />
             <Route path="*" element={
               <>
                 {currentView === 'templates' && <Templates />}
