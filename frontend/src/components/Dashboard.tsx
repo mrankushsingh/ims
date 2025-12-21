@@ -384,7 +384,10 @@ export default function Dashboard({ onNavigate }: DashboardProps) {
 
         {/* URGENTES Box */}
         <div 
-          onClick={() => setShowUrgentesModal(true)}
+          onClick={() => {
+            setShowRecordatorioModal(true);
+            setShowUrgentesModal(false);
+          }}
           className="rounded-xl sm:rounded-2xl p-4 sm:p-5 md:p-6 animate-slide-up cursor-pointer transition-all duration-200 hover:shadow-xl border-2 border-red-500 active:scale-95"
           style={{ 
             animationDelay: '0.8s',
@@ -789,7 +792,26 @@ export default function Dashboard({ onNavigate }: DashboardProps) {
                     return (
                       <div
                         key={reminder.id}
-                        className="p-4 border-2 border-red-400 rounded-xl bg-gradient-to-br from-red-50 to-white"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setShowUrgentesModal(false);
+                          setShowRecordatorioModal(true);
+                          setEditingReminder(reminder);
+                          const dateStr = reminder.reminder_date;
+                          const date = new Date(dateStr);
+                          const localDate = new Date(date.getTime() - date.getTimezoneOffset() * 60000);
+                          const formattedDate = localDate.toISOString().slice(0, 16);
+                          setReminderForm({
+                            client_id: reminder.client_id || '',
+                            client_name: reminder.client_name || '',
+                            client_surname: reminder.client_surname || '',
+                            phone: reminder.phone || '',
+                            reminder_date: formattedDate,
+                            notes: reminder.notes || '',
+                          });
+                          setShowReminderForm(true);
+                        }}
+                        className="p-4 border-2 border-red-400 rounded-xl bg-gradient-to-br from-red-50 to-white cursor-pointer hover:border-red-500 hover:shadow-md transition-all"
                       >
                         <div className="flex items-center justify-between">
                           <div className="flex-1">
