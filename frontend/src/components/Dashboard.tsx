@@ -4,6 +4,8 @@ import { api } from '../utils/api';
 import { CaseTemplate, Client, Reminder } from '../types';
 import ClientDetailsModal from './ClientDetailsModal';
 import { t } from '../utils/i18n';
+import { showToast } from './Toast';
+import ConfirmDialog from './ConfirmDialog';
 
 interface DashboardProps {
   onNavigate?: (view: 'templates' | 'clients') => void;
@@ -39,6 +41,13 @@ export default function Dashboard({ onNavigate }: DashboardProps) {
   const [passcodeInput, setPasscodeInput] = useState('');
   const [passcodeError, setPasscodeError] = useState('');
   const [, forceUpdate] = useState({});
+  const [deleteConfirm, setDeleteConfirm] = useState<{
+    isOpen: boolean;
+    reminder: Reminder | null;
+  }>({
+    isOpen: false,
+    reminder: null,
+  });
   
   // Explicitly reference modal states to satisfy TypeScript
   void showAportarDocumentacionModal;
@@ -966,15 +975,11 @@ export default function Dashboard({ onNavigate }: DashboardProps) {
                               <Edit2 className="w-4 h-4" />
                             </button>
                             <button
-                              onClick={async () => {
-                                if (confirm('¿Está seguro de que desea eliminar este recordatorio?')) {
-                                  try {
-                                    await api.deleteReminder(reminder.id);
-                                    await loadData();
-                                  } catch (error: any) {
-                                    alert('Error al eliminar recordatorio: ' + error.message);
-                                  }
-                                }
+                              onClick={() => {
+                                setDeleteConfirm({
+                                  isOpen: true,
+                                  reminder: reminder,
+                                });
                               }}
                               className="p-2 text-red-600 hover:bg-red-100 rounded-lg transition-colors"
                               title="Delete"
@@ -1668,6 +1673,32 @@ export default function Dashboard({ onNavigate }: DashboardProps) {
           </div>
         </div>
       )}
+
+      {/* Delete Confirmation Dialog */}
+      <ConfirmDialog
+        isOpen={deleteConfirm.isOpen}
+        title="Eliminar Recordatorio"
+        message={`¿Está seguro de que desea eliminar el recordatorio para ${deleteConfirm.reminder ? `${deleteConfirm.reminder.client_name} ${deleteConfirm.reminder.client_surname}` : 'este cliente'}?`}
+        type="danger"
+        confirmText="Eliminar"
+        cancelText="Cancelar"
+        onConfirm={async () => {
+          if (deleteConfirm.reminder) {
+            try {
+              await api.deleteReminder(deleteConfirm.reminder.id);
+              await loadData();
+              showToast('Recordatorio eliminado exitosamente', 'success');
+              setDeleteConfirm({ isOpen: false, reminder: null });
+            } catch (error: any) {
+              showToast('Error al eliminar recordatorio: ' + error.message, 'error');
+              setDeleteConfirm({ isOpen: false, reminder: null });
+            }
+          }
+        }}
+        onCancel={() => {
+          setDeleteConfirm({ isOpen: false, reminder: null });
+        }}
+      />
     </div>
   );
 }
