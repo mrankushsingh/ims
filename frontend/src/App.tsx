@@ -11,7 +11,7 @@ import Login from './components/Login';
 import Logo from './components/Logo';
 import LanguageSelector from './components/LanguageSelector';
 import { ToastContainer, subscribeToToasts, Toast } from './components/Toast';
-import { onAuthChange, getCurrentUser, logout as firebaseLogout, isFirebaseAvailable } from './utils/firebase';
+import { onAuthChange, logout as firebaseLogout, isFirebaseAvailable } from './utils/firebase';
 import { Client } from './types';
 import { t } from './utils/i18n';
 import { api } from './utils/api';
@@ -65,18 +65,10 @@ function App() {
       return;
     }
 
-    // Check initial auth state first (synchronous check)
-    const user = getCurrentUser();
-    if (user) {
-      setIsAuthenticated(true);
-      loadCurrentUserRole().finally(() => {
-        setIsAuthChecking(false);
-      });
-    } else {
-      setIsAuthChecking(false);
-    }
+    let isFirstAuthCheck = true;
 
     // Listen to Firebase auth state changes (async)
+    // This is the reliable way to check auth state - it waits for Firebase to restore session
     const unsubscribe = onAuthChange((user) => {
       setIsAuthenticated(!!user);
       if (user) {
@@ -84,8 +76,13 @@ function App() {
       } else {
         setCurrentUserRole(null);
       }
+      
       // Auth check is complete after first auth state change
-      setIsAuthChecking(false);
+      // This ensures we wait for Firebase to restore the session before showing login/dashboard
+      if (isFirstAuthCheck) {
+        isFirstAuthCheck = false;
+        setIsAuthChecking(false);
+      }
     });
 
     return () => unsubscribe();
