@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Bell, X, Clock, AlertCircle, CheckCircle, XCircle } from 'lucide-react';
 import { api } from '../utils/api';
-import { Client } from '../types';
+import { Client, Reminder as ReminderType } from '../types';
 
 interface Reminder {
   client: Client;
@@ -31,7 +31,10 @@ export default function Notifications({ onClientClick }: Props) {
   const loadReminders = async () => {
     try {
       setLoading(true);
-      const clients = await api.getClients();
+      const [clients, recordatorioReminders] = await Promise.all([
+        api.getClients(),
+        api.getReminders(),
+      ]);
       const newReminders: Reminder[] = [];
 
       clients.forEach((client: Client) => {
@@ -171,6 +174,65 @@ export default function Notifications({ onClientClick }: Props) {
         }
       });
 
+      // Add RECORDATORIO reminders (standalone reminders)
+      recordatorioReminders.forEach((reminder: ReminderType) => {
+        const reminderDate = new Date(reminder.reminder_date);
+        const now = new Date();
+        const days3 = 3 * 24 * 60 * 60 * 1000; // 3 days in milliseconds
+        const timeDiff = reminderDate.getTime() - now.getTime();
+        const daysUntilReminder = Math.ceil(timeDiff / (1000 * 60 * 60 * 24));
+
+        // Show reminder if it's within 3 days (urgent) or overdue
+        if (timeDiff <= days3) {
+          let priority: 'high' | 'medium' | 'low';
+          if (timeDiff < 0) {
+            // Overdue
+            priority = daysUntilReminder <= -7 ? 'high' : daysUntilReminder <= -3 ? 'medium' : 'low';
+          } else if (timeDiff <= days3) {
+            // Within 3 days (urgent)
+            priority = daysUntilReminder === 0 ? 'high' : daysUntilReminder === 1 ? 'high' : 'medium';
+          } else {
+            // More than 3 days away
+            priority = 'low';
+          }
+
+          // Only show if within 7 days (past or future)
+          if (Math.abs(daysUntilReminder) <= 7) {
+            const message = daysUntilReminder < 0
+              ? `Reminder for ${reminder.client_name} ${reminder.client_surname} is overdue by ${Math.abs(daysUntilReminder)} day(s)`
+              : daysUntilReminder === 0
+              ? `Reminder for ${reminder.client_name} ${reminder.client_surname} is due today`
+              : `Reminder for ${reminder.client_name} ${reminder.client_surname} is in ${daysUntilReminder} day(s)`;
+
+            // Create a minimal client object for the reminder
+            const reminderClient: Client = {
+              id: reminder.client_id || reminder.id,
+              first_name: reminder.client_name,
+              last_name: reminder.client_surname,
+              phone: reminder.phone,
+              email: '',
+              required_documents: [],
+              reminder_interval_days: 10,
+              administrative_silence_days: 60,
+              payment: { totalFee: 0, paidAmount: 0, payments: [] },
+              submitted_to_immigration: false,
+              notifications: [],
+              additional_docs_required: false,
+              created_at: reminder.created_at,
+              updated_at: reminder.updated_at,
+            };
+
+            newReminders.push({
+              client: reminderClient,
+              type: 'reminder',
+              message,
+              priority,
+              daysRemaining: daysUntilReminder,
+            });
+          }
+        }
+      });
+
       // Filter out read reminders
       const unreadReminders = newReminders.filter(reminder => {
         const reminderKey = `${reminder.client.id}-${reminder.type}`;
@@ -285,7 +347,10 @@ export default function Notifications({ onClientClick }: Props) {
                           // Mark reminder as read
                           const reminderKey = `${reminder.client.id}-${reminder.type}`;
                           setReadReminders(prev => new Set([...prev, reminderKey]));
-                          onClientClick(reminder.client);
+                          // Only navigate to client if it's a real client (has valid client data)
+                          if (reminder.client.id && reminder.client.id.startsWith('client_')) {
+                            onClientClick(reminder.client);
+                          }
                           setIsOpen(false);
                         }}
                         className={`p-4 cursor-pointer hover:bg-slate-50 transition-colors border-l-4 ${
@@ -367,7 +432,10 @@ export default function Notifications({ onClientClick }: Props) {
                   // Mark reminder as read
                   const reminderKey = `${reminder.client.id}-${reminder.type}`;
                   setReadReminders(prev => new Set([...prev, reminderKey]));
-                  onClientClick(reminder.client);
+                  // Only navigate to client if it's a real client (has valid client data)
+                  if (reminder.client.id && reminder.client.id.startsWith('client_')) {
+                    onClientClick(reminder.client);
+                  }
                   setShowPopups(false);
                 }}
                 className="bg-white rounded-xl shadow-2xl border-2 border-red-200 p-4 animate-slide-up professional-shadow-xl cursor-pointer hover:border-red-300 transition-colors"
