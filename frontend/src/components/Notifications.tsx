@@ -237,16 +237,15 @@ export default function Notifications({ onClientClick, onReminderClick }: Props)
         }
       });
 
-      // Filter out read reminders
-      const unreadReminders = newReminders.filter(reminder => {
-        const reminderKey = `${reminder.client.id}-${reminder.type}`;
-        return !readReminders.has(reminderKey);
-      });
-
-      setReminders(unreadReminders);
+      // Keep all reminders visible (don't filter out read ones)
+      setReminders(newReminders);
       
       // Show pop-ups for high priority reminders (excluding overdue payment reminders)
-      const highPriorityReminders = unreadReminders.filter(r => 
+      // Only show popups for unread reminders
+      const highPriorityReminders = newReminders.filter(r => {
+        const reminderKey = `${r.client.id}-${r.type}`;
+        return !readReminders.has(reminderKey);
+      }).filter(r => 
         r.priority === 'high' && 
         !(r.type === 'reminder' && r.daysRemaining !== undefined && r.daysRemaining < 0)
       );
@@ -262,7 +261,11 @@ export default function Notifications({ onClientClick, onReminderClick }: Props)
     }
   };
 
-  const unreadCount = reminders.length;
+  // Count only unread reminders for the badge
+  const unreadCount = reminders.filter(reminder => {
+    const reminderKey = `${reminder.client.id}-${reminder.type}`;
+    return !readReminders.has(reminderKey);
+  }).length;
 
   const getIcon = (type: string) => {
     switch (type) {
@@ -319,7 +322,7 @@ export default function Notifications({ onClientClick, onReminderClick }: Props)
                   <div>
                     <h3 className="font-bold text-slate-900 text-lg">Notifications</h3>
                     <p className="text-xs text-slate-500 mt-0.5">
-                      {unreadCount} {unreadCount === 1 ? 'reminder' : 'reminders'}
+                      {unreadCount} {unreadCount === 1 ? 'unread reminder' : 'unread reminders'}
                     </p>
                   </div>
                   <button
@@ -336,6 +339,12 @@ export default function Notifications({ onClientClick, onReminderClick }: Props)
                   <div className="p-8 text-center">
                     <div className="animate-spin rounded-full h-8 w-8 border-2 border-slate-200 border-t-slate-700 mx-auto"></div>
                   </div>
+                ) : unreadCount === 0 && reminders.length > 0 ? (
+                  <div className="p-8 text-center">
+                    <CheckCircle className="w-12 h-12 text-emerald-400 mx-auto mb-3" />
+                    <p className="text-slate-500 font-medium">All caught up!</p>
+                    <p className="text-sm text-slate-400 mt-1">All reminders have been read</p>
+                  </div>
                 ) : reminders.length === 0 ? (
                   <div className="p-8 text-center">
                     <CheckCircle className="w-12 h-12 text-emerald-400 mx-auto mb-3" />
@@ -348,14 +357,9 @@ export default function Notifications({ onClientClick, onReminderClick }: Props)
                       <div
                         key={`${reminder.client.id}-${reminder.type}-${index}`}
                         onClick={async () => {
-                          // Mark reminder as read immediately
+                          // Mark reminder as read (but keep it visible)
                           const reminderKey = `${reminder.client.id}-${reminder.type}`;
                           setReadReminders(prev => new Set([...prev, reminderKey]));
-                          // Remove from display immediately
-                          setReminders(prev => prev.filter(r => {
-                            const key = `${r.client.id}-${r.type}`;
-                            return key !== reminderKey;
-                          }));
                           
                           // Check if it's a RECORDATORIO reminder (standalone reminder)
                           if (reminder.client.id && reminder.client.id.startsWith('reminder_')) {
@@ -383,6 +387,10 @@ export default function Notifications({ onClientClick, onReminderClick }: Props)
                           setIsOpen(false);
                         }}
                         className={`p-4 cursor-pointer hover:bg-slate-50 transition-colors border-l-4 ${
+                          readReminders.has(`${reminder.client.id}-${reminder.type}`)
+                            ? 'opacity-60 bg-gray-50'
+                            : ''
+                        } ${
                           reminder.priority === 'high'
                             ? 'border-l-red-500'
                             : reminder.priority === 'medium'
@@ -458,14 +466,9 @@ export default function Notifications({ onClientClick, onReminderClick }: Props)
               <div
                 key={`popup-${reminder.client.id}-${reminder.type}-${index}`}
                 onClick={async () => {
-                  // Mark reminder as read immediately
+                  // Mark reminder as read (but keep it visible)
                   const reminderKey = `${reminder.client.id}-${reminder.type}`;
                   setReadReminders(prev => new Set([...prev, reminderKey]));
-                  // Remove from display immediately
-                  setReminders(prev => prev.filter(r => {
-                    const key = `${r.client.id}-${r.type}`;
-                    return key !== reminderKey;
-                  }));
                   
                   // Check if it's a RECORDATORIO reminder (standalone reminder)
                   if (reminder.client.id && reminder.client.id.startsWith('reminder_')) {
