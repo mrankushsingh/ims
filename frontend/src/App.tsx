@@ -214,7 +214,16 @@ function App() {
                 )}
               </nav>
               <LanguageSelector />
-              <Notifications onClientClick={setSelectedClient} />
+              <Notifications 
+                onClientClick={setSelectedClient}
+                onReminderClick={() => {
+                  setCurrentView('dashboard');
+                  // Trigger opening RECORDATORIO modal via custom event
+                  setTimeout(() => {
+                    window.dispatchEvent(new CustomEvent('openRecordatorioModal'));
+                  }, 100);
+                }}
+              />
               {/* Logout Button */}
               <button
                 onClick={handleLogout}
@@ -228,7 +237,17 @@ function App() {
             {/* Mobile Menu Button */}
             <div className="md:hidden flex items-center space-x-2">
               <LanguageSelector />
-              <Notifications onClientClick={setSelectedClient} />
+              <Notifications 
+                onClientClick={setSelectedClient}
+                onReminderClick={() => {
+                  setCurrentView('dashboard');
+                  setMobileMenuOpen(false);
+                  // Trigger opening RECORDATORIO modal via custom event
+                  setTimeout(() => {
+                    window.dispatchEvent(new CustomEvent('openRecordatorioModal'));
+                  }, 100);
+                }}
+              />
               <button
                 onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
                 className="p-2 text-white/80 hover:bg-white/10 rounded-lg transition-colors"

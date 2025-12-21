@@ -13,9 +13,10 @@ interface Reminder {
 
 interface Props {
   onClientClick: (client: Client) => void;
+  onReminderClick?: () => void; // Optional callback for RECORDATORIO reminder clicks
 }
 
-export default function Notifications({ onClientClick }: Props) {
+export default function Notifications({ onClientClick, onReminderClick }: Props) {
   const [isOpen, setIsOpen] = useState(false);
   const [reminders, setReminders] = useState<Reminder[]>([]);
   const [loading, setLoading] = useState(true);
@@ -347,8 +348,14 @@ export default function Notifications({ onClientClick }: Props) {
                           // Mark reminder as read
                           const reminderKey = `${reminder.client.id}-${reminder.type}`;
                           setReadReminders(prev => new Set([...prev, reminderKey]));
-                          // Only navigate to client if it's a real client (has valid client data)
-                          if (reminder.client.id && reminder.client.id.startsWith('client_')) {
+                          // Check if it's a RECORDATORIO reminder (standalone reminder)
+                          if (reminder.client.id && reminder.client.id.startsWith('reminder_')) {
+                            // It's a RECORDATORIO reminder - open RECORDATORIO modal
+                            if (onReminderClick) {
+                              onReminderClick();
+                            }
+                          } else if (reminder.client.id && reminder.client.id.startsWith('client_')) {
+                            // It's a real client - open client details
                             onClientClick(reminder.client);
                           }
                           setIsOpen(false);
@@ -432,8 +439,14 @@ export default function Notifications({ onClientClick }: Props) {
                   // Mark reminder as read
                   const reminderKey = `${reminder.client.id}-${reminder.type}`;
                   setReadReminders(prev => new Set([...prev, reminderKey]));
-                  // Only navigate to client if it's a real client (has valid client data)
-                  if (reminder.client.id && reminder.client.id.startsWith('client_')) {
+                  // Check if it's a RECORDATORIO reminder (standalone reminder)
+                  if (reminder.client.id && reminder.client.id.startsWith('reminder_')) {
+                    // It's a RECORDATORIO reminder - open RECORDATORIO modal
+                    if (onReminderClick) {
+                      onReminderClick();
+                    }
+                  } else if (reminder.client.id && reminder.client.id.startsWith('client_')) {
+                    // It's a real client - open client details
                     onClientClick(reminder.client);
                   }
                   setShowPopups(false);

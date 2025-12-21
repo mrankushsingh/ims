@@ -93,6 +93,17 @@ export default function Dashboard({ onNavigate }: DashboardProps) {
     };
   }, []);
 
+  useEffect(() => {
+    // Listen for custom event to open RECORDATORIO modal
+    const handleOpenRecordatorioModal = () => {
+      setShowRecordatorioModal(true);
+    };
+    window.addEventListener('openRecordatorioModal', handleOpenRecordatorioModal);
+    return () => {
+      window.removeEventListener('openRecordatorioModal', handleOpenRecordatorioModal);
+    };
+  }, []);
+
   const loadData = async () => {
     try {
       const [templatesData, clientsData, remindersData] = await Promise.all([
