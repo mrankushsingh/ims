@@ -195,6 +195,20 @@ class DatabaseAdapter {
           updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
         )
       `);
+
+      await this.pool.query(`
+        CREATE TABLE IF NOT EXISTS reminders (
+          id VARCHAR(255) PRIMARY KEY,
+          client_id VARCHAR(255) NOT NULL,
+          client_name VARCHAR(255) NOT NULL,
+          client_surname VARCHAR(255) NOT NULL,
+          phone VARCHAR(255),
+          reminder_date TIMESTAMP NOT NULL,
+          notes TEXT,
+          created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+          updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        )
+      `);
       
       // Add custom_reminder_date column if it doesn't exist (for existing databases)
       // Use DO block to handle cases where column might already exist
@@ -991,6 +1005,170 @@ class DatabaseAdapter {
       }
       settings[key] = value;
       writeFileSync(settingsFile, JSON.stringify(settings, null, 2), 'utf-8');
+    }
+  }
+
+  // Reminders methods
+  async insertReminder(reminder: {
+    client_id: string;
+    client_name: string;
+    client_surname: string;
+    phone?: string;
+    reminder_date: string;
+    notes?: string;
+  }): Promise<any> {
+    await this.ensureInitialized();
+    const id = `reminder_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+    const now = new Date().toISOString();
+
+    if (this.usePostgres && this.pool) {
+      await this.pool.query(
+        `INSERT INTO reminders (id, client_id, client_name, client_surname, phone, reminder_date, notes, created_at, updated_at)
+         VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)`,
+        [
+          id,
+          reminder.client_id,
+          reminder.client_name,
+          reminder.client_surname,
+          reminder.phone || null,
+          reminder.reminder_date,
+          reminder.notes || null,
+          now,
+          now,
+        ]
+      );
+    } else {
+      // File-based storage
+      const remindersFile = join(this.dataDir, 'reminders.json');
+      let reminders: any[] = [];
+      if (existsSync(remindersFile)) {
+        try {
+          reminders = JSON.parse(readFileSync(remindersFile, 'utf-8'));
+        } catch {
+          reminders = [];
+        }
+      }
+      const newReminder = {
+        id,
+        ...reminder,
+        created_at: now,
+        updated_at: now,
+      };
+      reminders.push(newReminder);
+      writeFileSync(remindersFile, JSON.stringify(reminders, null, 2), 'utf-8');
+    }
+
+    return {
+      id,
+      ...reminder,
+      created_at: now,
+      updated_at: now,
+    };
+  }
+
+  async getReminders(): Promise<any[]> {
+    await this.ensureInitialized();
+    if (this.usePostgres && this.pool) {
+      const result = await this.pool.query('SELECT * FROM reminders ORDER BY reminder_date ASC');
+      return result.rows;
+    } else {
+      const remindersFile = join(this.dataDir, 'reminders.json');
+      if (!existsSync(remindersFile)) return [];
+      try {
+        return JSON.parse(readFileSync(remindersFile, 'utf-8'));
+      } catch {
+        return [];
+      }
+    }
+  }
+
+  async updateReminder(id: string, reminder: {
+    client_id?: string;
+    client_name?: string;
+    client_surname?: string;
+    phone?: string;
+    reminder_date?: string;
+    notes?: string;
+  }): Promise<boolean> {
+    await this.ensureInitialized();
+    const now = new Date().toISOString();
+
+    if (this.usePostgres && this.pool) {
+      const updates: string[] = [];
+      const values: any[] = [];
+      let paramIndex = 1;
+
+      if (reminder.client_id !== undefined) {
+        updates.push(`client_id = $${paramIndex++}`);
+        values.push(reminder.client_id);
+      }
+      if (reminder.client_name !== undefined) {
+        updates.push(`client_name = $${paramIndex++}`);
+        values.push(reminder.client_name);
+      }
+      if (reminder.client_surname !== undefined) {
+        updates.push(`client_surname = $${paramIndex++}`);
+        values.push(reminder.client_surname);
+      }
+      if (reminder.phone !== undefined) {
+        updates.push(`phone = $${paramIndex++}`);
+        values.push(reminder.phone || null);
+      }
+      if (reminder.reminder_date !== undefined) {
+        updates.push(`reminder_date = $${paramIndex++}`);
+        values.push(reminder.reminder_date);
+      }
+      if (reminder.notes !== undefined) {
+        updates.push(`notes = $${paramIndex++}`);
+        values.push(reminder.notes || null);
+      }
+
+      updates.push(`updated_at = $${paramIndex++}`);
+      values.push(now);
+      values.push(id);
+
+      if (updates.length === 1) return false; // Only updated_at
+
+      const query = `UPDATE reminders SET ${updates.join(', ')} WHERE id = $${paramIndex}`;
+      const result = await this.pool.query(query, values);
+      return (result.rowCount ?? 0) > 0;
+    } else {
+      const remindersFile = join(this.dataDir, 'reminders.json');
+      if (!existsSync(remindersFile)) return false;
+      try {
+        const reminders = JSON.parse(readFileSync(remindersFile, 'utf-8'));
+        const index = reminders.findIndex((r: any) => r.id === id);
+        if (index === -1) return false;
+        reminders[index] = {
+          ...reminders[index],
+          ...reminder,
+          updated_at: now,
+        };
+        writeFileSync(remindersFile, JSON.stringify(reminders, null, 2), 'utf-8');
+        return true;
+      } catch {
+        return false;
+      }
+    }
+  }
+
+  async deleteReminder(id: string): Promise<boolean> {
+    await this.ensureInitialized();
+    if (this.usePostgres && this.pool) {
+      const result = await this.pool.query('DELETE FROM reminders WHERE id = $1', [id]);
+      return (result.rowCount ?? 0) > 0;
+    } else {
+      const remindersFile = join(this.dataDir, 'reminders.json');
+      if (!existsSync(remindersFile)) return false;
+      try {
+        const reminders = JSON.parse(readFileSync(remindersFile, 'utf-8'));
+        const filtered = reminders.filter((r: any) => r.id !== id);
+        if (filtered.length === reminders.length) return false;
+        writeFileSync(remindersFile, JSON.stringify(filtered, null, 2), 'utf-8');
+        return true;
+      } catch {
+        return false;
+      }
     }
   }
 

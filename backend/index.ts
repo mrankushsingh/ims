@@ -6,6 +6,7 @@ import caseTemplatesRoutes from './routes/caseTemplates.js';
 import clientsRoutes from './routes/clients.js';
 import usersRoutes from './routes/users.js';
 import settingsRoutes from './routes/settings.js';
+import remindersRoutes from './routes/reminders.js';
 import { db } from './utils/database.js';
 import { isUsingBucketStorage, getFileUrl } from './utils/storage.js';
 import { initializeFirebaseAdmin, getFirebaseAdmin } from './utils/firebase.js';
@@ -104,6 +105,7 @@ app.use('/api/case-templates', caseTemplatesRoutes);
 app.use('/api/clients', clientsRoutes);
 app.use('/api/users', usersRoutes);
 app.use('/api/settings', settingsRoutes);
+app.use('/api/reminders', remindersRoutes);
 
 // Serve frontend static files
 const frontendDist = join(__dirname, '../../frontend/dist');

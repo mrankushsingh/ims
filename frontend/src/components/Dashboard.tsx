@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
-import { FileText, Users, CheckCircle, Clock, Send, X, AlertCircle, AlertTriangle, Gavel, DollarSign, FilePlus, Lock, Unlock } from 'lucide-react';
+import { FileText, Users, CheckCircle, Clock, Send, X, AlertCircle, AlertTriangle, Gavel, DollarSign, FilePlus, Lock, Unlock, Bell, Plus, Trash2, Edit2 } from 'lucide-react';
 import { api } from '../utils/api';
-import { CaseTemplate, Client } from '../types';
+import { CaseTemplate, Client, Reminder } from '../types';
 import ClientDetailsModal from './ClientDetailsModal';
 import { t } from '../utils/i18n';
 
@@ -12,6 +12,7 @@ interface DashboardProps {
 export default function Dashboard({ onNavigate }: DashboardProps) {
   const [templates, setTemplates] = useState<CaseTemplate[]>([]);
   const [clients, setClients] = useState<Client[]>([]);
+  const [reminders, setReminders] = useState<Reminder[]>([]);
   const [loading, setLoading] = useState(true);
   const [selectedClient, setSelectedClient] = useState<Client | null>(null);
   const [showReadyToSubmitModal, setShowReadyToSubmitModal] = useState(false);
@@ -22,6 +23,17 @@ export default function Dashboard({ onNavigate }: DashboardProps) {
   const [showRecursoModal, setShowRecursoModal] = useState(false);
   const [showUrgentesModal, setShowUrgentesModal] = useState(false);
   const [showPagosModal, setShowPagosModal] = useState(false);
+  const [showRecordatorioModal, setShowRecordatorioModal] = useState(false);
+  const [showReminderForm, setShowReminderForm] = useState(false);
+  const [editingReminder, setEditingReminder] = useState<Reminder | null>(null);
+  const [reminderForm, setReminderForm] = useState({
+    client_id: '',
+    client_name: '',
+    client_surname: '',
+    phone: '',
+    reminder_date: '',
+    notes: '',
+  });
   const [paymentsUnlocked, setPaymentsUnlocked] = useState(false);
   const [showPasscodeModal, setShowPasscodeModal] = useState(false);
   const [passcodeInput, setPasscodeInput] = useState('');
@@ -83,12 +95,14 @@ export default function Dashboard({ onNavigate }: DashboardProps) {
 
   const loadData = async () => {
     try {
-      const [templatesData, clientsData] = await Promise.all([
+      const [templatesData, clientsData, remindersData] = await Promise.all([
         api.getCaseTemplates(),
         api.getClients(),
+        api.getReminders(),
       ]);
       setTemplates(templatesData);
       setClients(clientsData);
+      setReminders(remindersData);
     } catch (error) {
       console.error('Failed to load data:', error);
     } finally {
@@ -146,16 +160,16 @@ export default function Dashboard({ onNavigate }: DashboardProps) {
     return now > silenceEndDate;
   });
   
-  // URGENTES: Clients with urgent deadlines within 72 hours
+  // URGENTES: Clients with urgent deadlines within 3 days (72 hours)
   const urgentes = clients.filter((client) => {
     const now = new Date();
-    const hours72 = 72 * 60 * 60 * 1000; // 72 hours in milliseconds
+    const days3 = 3 * 24 * 60 * 60 * 1000; // 3 days in milliseconds
     
     // Check custom reminder date
     if (client.custom_reminder_date) {
       const reminderDate = new Date(client.custom_reminder_date);
       const timeDiff = reminderDate.getTime() - now.getTime();
-      if (timeDiff > 0 && timeDiff <= hours72) return true;
+      if (timeDiff > 0 && timeDiff <= days3) return true;
     }
     
     // Check requested documents deadline
@@ -173,7 +187,7 @@ export default function Dashboard({ onNavigate }: DashboardProps) {
           const deadline = new Date(lastRequestDate);
           deadline.setDate(deadline.getDate() + durationDays);
           const timeDiff = deadline.getTime() - now.getTime();
-          if (timeDiff > 0 && timeDiff <= hours72) return true;
+          if (timeDiff > 0 && timeDiff <= days3) return true;
         }
       }
     }
@@ -185,12 +199,21 @@ export default function Dashboard({ onNavigate }: DashboardProps) {
       const silenceEndDate = new Date(appDate);
       silenceEndDate.setDate(silenceEndDate.getDate() + silenceDays);
       const timeDiff = silenceEndDate.getTime() - now.getTime();
-      if (timeDiff > 0 && timeDiff <= hours72) return true;
+      if (timeDiff > 0 && timeDiff <= days3) return true;
     }
     
     return false;
   });
-  
+
+  // Also add reminders that are within 3 days to urgent list
+  const urgentReminders = reminders.filter((reminder) => {
+    const now = new Date();
+    const reminderDate = new Date(reminder.reminder_date);
+    const days3 = 3 * 24 * 60 * 60 * 1000; // 3 days in milliseconds
+    const timeDiff = reminderDate.getTime() - now.getTime();
+    return timeDiff > 0 && timeDiff <= days3;
+  });
+
   // PAGOS: Clients with pending payments
   const pagos = clients.filter((client) => {
     const totalFee = client.payment?.totalFee || 0;
@@ -357,8 +380,24 @@ export default function Dashboard({ onNavigate }: DashboardProps) {
             </div>
             <span className="text-xs font-semibold text-red-900 uppercase tracking-wider">{t('dashboard.urgentes')}</span>
           </div>
-          <p className="text-4xl font-bold bg-gradient-to-r from-red-950 to-red-800 bg-clip-text text-transparent mb-2">{urgentes.length}</p>
+          <p className="text-4xl font-bold bg-gradient-to-r from-red-950 to-red-800 bg-clip-text text-transparent mb-2">{urgentes.length + urgentReminders.length}</p>
           <p className="text-sm text-red-900 font-medium leading-relaxed mb-2">{t('dashboard.urgentesDesc')}</p>
+        </div>
+
+        {/* RECORDATORIO Box */}
+        <div 
+          onClick={() => setShowRecordatorioModal(true)}
+          className="glass-gold rounded-2xl p-5 sm:p-6 glass-hover animate-slide-up cursor-pointer transition-all duration-200 hover:shadow-xl"
+          style={{ animationDelay: '0.9s' }}
+        >
+          <div className="flex items-center justify-between mb-4">
+            <div className="bg-gradient-to-br from-amber-100 to-amber-200 p-3 rounded-xl shadow-lg">
+              <Bell className="w-6 h-6 text-amber-800" />
+            </div>
+            <span className="text-xs font-semibold text-amber-700/70 uppercase tracking-wider">{t('dashboard.recordatorio')}</span>
+          </div>
+          <p className="text-4xl font-bold bg-gradient-to-r from-amber-800 to-amber-600 bg-clip-text text-transparent mb-2">{reminders.length}</p>
+          <p className="text-sm text-amber-700/70 font-medium leading-relaxed mb-2">{t('dashboard.recordatorioDesc')}</p>
         </div>
 
         {/* PAGOS Box */}
@@ -716,7 +755,7 @@ export default function Dashboard({ onNavigate }: DashboardProps) {
               </div>
             </div>
             <div className="flex-1 overflow-y-auto p-6">
-              {urgentes.length === 0 ? (
+              {urgentes.length === 0 && urgentReminders.length === 0 ? (
                 <div className="text-center py-12">
                   <AlertTriangle className="w-16 h-16 mx-auto text-red-400 mb-4" />
                   <p className="text-gray-500 font-medium text-lg">No hay trámites urgentes</p>
@@ -724,6 +763,46 @@ export default function Dashboard({ onNavigate }: DashboardProps) {
                 </div>
               ) : (
                 <div className="space-y-4">
+                  {/* Urgent Reminders */}
+                  {urgentReminders.map((reminder) => {
+                    const reminderDate = new Date(reminder.reminder_date);
+                    return (
+                      <div
+                        key={reminder.id}
+                        className="p-4 border-2 border-red-400 rounded-xl bg-gradient-to-br from-red-50 to-white"
+                      >
+                        <div className="flex items-center justify-between">
+                          <div className="flex-1">
+                            <div className="flex items-center space-x-2 mb-1">
+                              <Bell className="w-4 h-4 text-red-600" />
+                              <h3 className="font-bold text-red-900 text-lg">
+                                {reminder.client_name} {reminder.client_surname}
+                              </h3>
+                              <span className="px-2 py-0.5 bg-red-500 text-white text-xs font-semibold rounded-full">
+                                RECORDATORIO
+                              </span>
+                            </div>
+                            {reminder.phone && (
+                              <p className="text-sm text-red-700">Tel: {reminder.phone}</p>
+                            )}
+                            <p className="text-sm text-red-700">
+                              Fecha: {reminderDate.toLocaleDateString('es-ES', {
+                                year: 'numeric',
+                                month: 'long',
+                                day: 'numeric',
+                                hour: '2-digit',
+                                minute: '2-digit',
+                              })}
+                            </p>
+                            {reminder.notes && (
+                              <p className="text-sm text-gray-600 mt-1">{reminder.notes}</p>
+                            )}
+                          </div>
+                        </div>
+                      </div>
+                    );
+                  })}
+                  {/* Urgent Clients */}
                   {urgentes.map((client) => (
                     <div
                       key={client.id}
@@ -746,6 +825,312 @@ export default function Dashboard({ onNavigate }: DashboardProps) {
                 </div>
               )}
             </div>
+          </div>
+        </div>
+      )}
+
+      {/* RECORDATORIO Modal */}
+      {showRecordatorioModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
+          <div className="bg-white rounded-2xl max-w-4xl w-full max-h-[90vh] overflow-hidden flex flex-col">
+            <div className="p-6 border-b border-gray-200 bg-gradient-to-r from-amber-50 to-amber-100">
+              <div className="flex items-center justify-between">
+                <div>
+                  <h2 className="text-2xl font-bold text-amber-900">{t('dashboard.recordatorio')}</h2>
+                  <p className="text-amber-700 mt-1">{t('dashboard.recordatorioDesc')}</p>
+                </div>
+                <div className="flex items-center space-x-2">
+                  <button
+                    onClick={() => {
+                      setShowReminderForm(true);
+                      setEditingReminder(null);
+                      setReminderForm({
+                        client_id: '',
+                        client_name: '',
+                        client_surname: '',
+                        phone: '',
+                        reminder_date: '',
+                        notes: '',
+                      });
+                    }}
+                    className="p-2 bg-amber-600 text-white rounded-lg hover:bg-amber-700 transition-colors"
+                    title="Add Reminder"
+                  >
+                    <Plus className="w-5 h-5" />
+                  </button>
+                  <button
+                    onClick={() => setShowRecordatorioModal(false)}
+                    className="p-2 text-gray-400 hover:text-gray-600 rounded-lg transition-colors"
+                  >
+                    <X className="w-6 h-6" />
+                  </button>
+                </div>
+              </div>
+            </div>
+            <div className="flex-1 overflow-y-auto p-6">
+              {reminders.length === 0 ? (
+                <div className="text-center py-12">
+                  <Bell className="w-16 h-16 mx-auto text-amber-400 mb-4" />
+                  <p className="text-gray-500 font-medium text-lg">No hay recordatorios</p>
+                  <p className="text-sm text-gray-400 mt-1">Agregue recordatorios para hacer seguimiento</p>
+                </div>
+              ) : (
+                <div className="space-y-4">
+                  {reminders.map((reminder) => {
+                    const reminderDate = new Date(reminder.reminder_date);
+                    const now = new Date();
+                    const days3 = 3 * 24 * 60 * 60 * 1000;
+                    const timeDiff = reminderDate.getTime() - now.getTime();
+                    const isUrgent = timeDiff > 0 && timeDiff <= days3;
+                    const isOverdue = timeDiff < 0;
+
+                    return (
+                      <div
+                        key={reminder.id}
+                        className={`p-4 border-2 rounded-xl transition-all ${
+                          isUrgent
+                            ? 'border-red-300 bg-red-50'
+                            : isOverdue
+                            ? 'border-orange-300 bg-orange-50'
+                            : 'border-amber-200 bg-gradient-to-br from-amber-50 to-white'
+                        }`}
+                      >
+                        <div className="flex items-start justify-between">
+                          <div className="flex-1">
+                            <div className="flex items-center space-x-2 mb-2">
+                              <h3 className="font-bold text-amber-900 text-lg">
+                                {reminder.client_name} {reminder.client_surname}
+                              </h3>
+                              {isUrgent && (
+                                <span className="px-2 py-0.5 bg-red-500 text-white text-xs font-semibold rounded-full">
+                                  URGENTE
+                                </span>
+                              )}
+                              {isOverdue && (
+                                <span className="px-2 py-0.5 bg-orange-500 text-white text-xs font-semibold rounded-full">
+                                  VENCIDO
+                                </span>
+                              )}
+                            </div>
+                            {reminder.phone && (
+                              <p className="text-sm text-amber-700 mb-1">
+                                <span className="font-semibold">Teléfono:</span> {reminder.phone}
+                              </p>
+                            )}
+                            <p className="text-sm text-amber-700 mb-1">
+                              <span className="font-semibold">Fecha:</span>{' '}
+                              {reminderDate.toLocaleDateString('es-ES', {
+                                year: 'numeric',
+                                month: 'long',
+                                day: 'numeric',
+                                hour: '2-digit',
+                                minute: '2-digit',
+                              })}
+                            </p>
+                            {reminder.notes && (
+                              <p className="text-sm text-gray-600 mt-2">{reminder.notes}</p>
+                            )}
+                          </div>
+                          <div className="flex items-center space-x-2 ml-4">
+                            <button
+                              onClick={() => {
+                                setEditingReminder(reminder);
+                                const dateStr = reminder.reminder_date;
+                                const date = new Date(dateStr);
+                                const localDate = new Date(date.getTime() - date.getTimezoneOffset() * 60000);
+                                const formattedDate = localDate.toISOString().slice(0, 16);
+                                setReminderForm({
+                                  client_id: reminder.client_id,
+                                  client_name: reminder.client_name,
+                                  client_surname: reminder.client_surname,
+                                  phone: reminder.phone || '',
+                                  reminder_date: formattedDate,
+                                  notes: reminder.notes || '',
+                                });
+                                setShowReminderForm(true);
+                              }}
+                              className="p-2 text-amber-600 hover:bg-amber-100 rounded-lg transition-colors"
+                              title="Edit"
+                            >
+                              <Edit2 className="w-4 h-4" />
+                            </button>
+                            <button
+                              onClick={async () => {
+                                if (confirm('¿Está seguro de que desea eliminar este recordatorio?')) {
+                                  try {
+                                    await api.deleteReminder(reminder.id);
+                                    await loadData();
+                                  } catch (error: any) {
+                                    alert('Error al eliminar recordatorio: ' + error.message);
+                                  }
+                                }
+                              }}
+                              className="p-2 text-red-600 hover:bg-red-100 rounded-lg transition-colors"
+                              title="Delete"
+                            >
+                              <Trash2 className="w-4 h-4" />
+                            </button>
+                          </div>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Reminder Form Modal */}
+      {showReminderForm && (
+        <div className="fixed inset-0 z-[60] flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
+          <div className="bg-white rounded-2xl max-w-2xl w-full p-6">
+            <div className="flex items-center justify-between mb-6">
+              <h3 className="text-2xl font-bold text-amber-900">
+                {editingReminder ? 'Editar Recordatorio' : 'Nuevo Recordatorio'}
+              </h3>
+              <button
+                onClick={() => {
+                  setShowReminderForm(false);
+                  setEditingReminder(null);
+                  setReminderForm({
+                    client_id: '',
+                    client_name: '',
+                    client_surname: '',
+                    phone: '',
+                    reminder_date: '',
+                    notes: '',
+                  });
+                }}
+                className="p-2 text-gray-400 hover:text-gray-600 rounded-lg transition-colors"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            <form
+              onSubmit={async (e) => {
+                e.preventDefault();
+                try {
+                  const reminderDate = new Date(reminderForm.reminder_date);
+                  const reminderData = {
+                    ...reminderForm,
+                    reminder_date: reminderDate.toISOString(),
+                  };
+                  if (editingReminder) {
+                    await api.updateReminder(editingReminder.id, reminderData);
+                  } else {
+                    await api.createReminder(reminderData);
+                  }
+                  await loadData();
+                  setShowReminderForm(false);
+                  setEditingReminder(null);
+                  setReminderForm({
+                    client_id: '',
+                    client_name: '',
+                    client_surname: '',
+                    phone: '',
+                    reminder_date: '',
+                    notes: '',
+                  });
+                } catch (error: any) {
+                  alert('Error al guardar recordatorio: ' + error.message);
+                }
+              }}
+              className="space-y-4"
+            >
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-semibold text-gray-700 mb-2">
+                    Nombre <span className="text-red-500">*</span>
+                  </label>
+                  <input
+                    type="text"
+                    required
+                    value={reminderForm.client_name}
+                    onChange={(e) => setReminderForm({ ...reminderForm, client_name: e.target.value })}
+                    className="w-full px-4 py-2 border-2 border-gray-300 rounded-xl focus:ring-2 focus:ring-amber-500 focus:border-amber-500 outline-none"
+                    placeholder="Nombre del cliente"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-semibold text-gray-700 mb-2">
+                    Apellido <span className="text-red-500">*</span>
+                  </label>
+                  <input
+                    type="text"
+                    required
+                    value={reminderForm.client_surname}
+                    onChange={(e) => setReminderForm({ ...reminderForm, client_surname: e.target.value })}
+                    className="w-full px-4 py-2 border-2 border-gray-300 rounded-xl focus:ring-2 focus:ring-amber-500 focus:border-amber-500 outline-none"
+                    placeholder="Apellido del cliente"
+                  />
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-sm font-semibold text-gray-700 mb-2">Teléfono</label>
+                <input
+                  type="tel"
+                  value={reminderForm.phone}
+                  onChange={(e) => setReminderForm({ ...reminderForm, phone: e.target.value })}
+                  className="w-full px-4 py-2 border-2 border-gray-300 rounded-xl focus:ring-2 focus:ring-amber-500 focus:border-amber-500 outline-none"
+                  placeholder="Número de teléfono"
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-semibold text-gray-700 mb-2">
+                  Fecha y Hora del Recordatorio <span className="text-red-500">*</span>
+                </label>
+                <input
+                  type="datetime-local"
+                  required
+                  value={reminderForm.reminder_date}
+                  onChange={(e) => setReminderForm({ ...reminderForm, reminder_date: e.target.value })}
+                  className="w-full px-4 py-2 border-2 border-gray-300 rounded-xl focus:ring-2 focus:ring-amber-500 focus:border-amber-500 outline-none"
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-semibold text-gray-700 mb-2">Notas</label>
+                <textarea
+                  value={reminderForm.notes}
+                  onChange={(e) => setReminderForm({ ...reminderForm, notes: e.target.value })}
+                  className="w-full px-4 py-2 border-2 border-gray-300 rounded-xl focus:ring-2 focus:ring-amber-500 focus:border-amber-500 outline-none"
+                  rows={4}
+                  placeholder="Notas adicionales sobre el recordatorio"
+                />
+              </div>
+
+              <div className="flex justify-end space-x-3 pt-4">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setShowReminderForm(false);
+                    setEditingReminder(null);
+                    setReminderForm({
+                      client_id: '',
+                      client_name: '',
+                      client_surname: '',
+                      phone: '',
+                      reminder_date: '',
+                      notes: '',
+                    });
+                  }}
+                  className="px-6 py-2 text-gray-700 bg-gray-100 rounded-xl hover:bg-gray-200 transition-colors font-semibold"
+                >
+                  Cancelar
+                </button>
+                <button
+                  type="submit"
+                  className="px-6 py-2 bg-gradient-to-r from-amber-600 to-amber-700 text-white rounded-xl hover:shadow-xl transition-all font-semibold"
+                >
+                  {editingReminder ? 'Actualizar' : 'Crear'} Recordatorio
+                </button>
+              </div>
+            </form>
           </div>
         </div>
       )}

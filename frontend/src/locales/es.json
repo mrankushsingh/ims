@@ -83,6 +83,8 @@
     "recursoDesc": "Pendiente Presentar recurso de Reposición o Contencioso",
     "urgentes": "URGENTES",
     "urgentesDesc": "Trámites que se deben hacer en 72h max",
+    "recordatorio": "RECORDATORIO",
+    "recordatorioDesc": "Recordatorios y seguimientos de clientes",
     "pagos": "PAGOS",
     "pagosDesc": "Pagos pendientes",
     "aportarDocumentacion": "APORTAR DOCUMENTACIÓN",

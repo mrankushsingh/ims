@@ -111,3 +111,15 @@ export interface User {
   updated_at: string;
 }
 
+export interface Reminder {
+  id: string;
+  client_id: string;
+  client_name: string;
+  client_surname: string;
+  phone?: string;
+  reminder_date: string; // ISO date string
+  notes?: string;
+  created_at: string;
+  updated_at: string;
+}
+

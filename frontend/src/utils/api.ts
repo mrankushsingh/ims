@@ -579,5 +579,80 @@ export const api = {
     }
     return response.json();
   },
+
+  // Reminders API
+  async getReminders() {
+    const headers = await getAuthHeaders();
+    const response = await fetch(`${API_URL}/reminders`, {
+      method: 'GET',
+      headers,
+    });
+    if (!response.ok) {
+      const error = await response.json().catch(() => ({ error: 'Failed to get reminders' }));
+      throw new Error(error.error || 'Failed to get reminders');
+    }
+    return response.json();
+  },
+
+  async createReminder(data: {
+    client_id: string;
+    client_name: string;
+    client_surname: string;
+    phone?: string;
+    reminder_date: string;
+    notes?: string;
+  }) {
+    const headers = await getAuthHeaders();
+    const response = await fetch(`${API_URL}/reminders`, {
+      method: 'POST',
+      headers: {
+        ...headers,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(data),
+    });
+    if (!response.ok) {
+      const error = await response.json().catch(() => ({ error: 'Failed to create reminder' }));
+      throw new Error(error.error || 'Failed to create reminder');
+    }
+    return response.json();
+  },
+
+  async updateReminder(id: string, data: {
+    client_id?: string;
+    client_name?: string;
+    client_surname?: string;
+    phone?: string;
+    reminder_date?: string;
+    notes?: string;
+  }) {
+    const headers = await getAuthHeaders();
+    const response = await fetch(`${API_URL}/reminders/${id}`, {
+      method: 'PUT',
+      headers: {
+        ...headers,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(data),
+    });
+    if (!response.ok) {
+      const error = await response.json().catch(() => ({ error: 'Failed to update reminder' }));
+      throw new Error(error.error || 'Failed to update reminder');
+    }
+    return response.json();
+  },
+
+  async deleteReminder(id: string) {
+    const headers = await getAuthHeaders();
+    const response = await fetch(`${API_URL}/reminders/${id}`, {
+      method: 'DELETE',
+      headers,
+    });
+    if (!response.ok) {
+      const error = await response.json().catch(() => ({ error: 'Failed to delete reminder' }));
+      throw new Error(error.error || 'Failed to delete reminder');
+    }
+    return response.json();
+  },
 };
 
