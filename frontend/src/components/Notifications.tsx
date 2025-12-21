@@ -426,10 +426,25 @@ export default function Notifications({ onClientClick, onReminderClick }: Props)
                             {getIcon(reminder.type)}
                           </div>
                           <div className="flex-1 min-w-0">
-                            <p className="text-sm font-semibold text-slate-900">
-                              {reminder.client.first_name} {reminder.client.last_name}
-                            </p>
-                            <p className="text-xs text-slate-600 mt-1">{reminder.message}</p>
+                            <div className="flex items-start justify-between">
+                              <div className="flex-1">
+                                <p className="text-sm font-semibold text-slate-900">
+                                  {reminder.client.first_name} {reminder.client.last_name}
+                                </p>
+                                <p className="text-xs text-slate-600 mt-1">{reminder.message}</p>
+                              </div>
+                              <button
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  const reminderKey = `${reminder.client.id}-${reminder.type}`;
+                                  setReadReminders(prev => new Set([...prev, reminderKey]));
+                                }}
+                                className="ml-2 p-1.5 text-slate-400 hover:text-slate-600 hover:bg-slate-100 rounded-lg transition-colors flex-shrink-0"
+                                title="Mark as read"
+                              >
+                                <X className="w-4 h-4" />
+                              </button>
+                            </div>
                             {reminder.type === 'reminder' && reminder.daysRemaining !== undefined && (
                               <p className={`text-xs font-medium mt-1 ${
                                 reminder.daysRemaining < 0
@@ -530,15 +545,29 @@ export default function Notifications({ onClientClick, onReminderClick }: Props)
                       <h4 className="font-bold text-slate-900 text-sm">
                         {reminder.client.first_name} {reminder.client.last_name}
                       </h4>
-                    <button
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        setShowPopups(false);
-                      }}
-                      className="text-slate-400 hover:text-slate-600"
-                    >
-                      <X className="w-4 h-4" />
-                    </button>
+                      <div className="flex items-center space-x-1">
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            const reminderKey = `${reminder.client.id}-${reminder.type}`;
+                            setReadReminders(prev => new Set([...prev, reminderKey]));
+                            setShowPopups(false);
+                          }}
+                          className="p-1 text-slate-400 hover:text-slate-600 hover:bg-slate-100 rounded transition-colors"
+                          title="Mark as read"
+                        >
+                          <CheckCircle className="w-3.5 h-3.5" />
+                        </button>
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setShowPopups(false);
+                          }}
+                          className="text-slate-400 hover:text-slate-600"
+                        >
+                          <X className="w-4 h-4" />
+                        </button>
+                      </div>
                     </div>
                     <p className="text-xs text-slate-700">{reminder.message}</p>
                     {reminder.type === 'reminder' && reminder.daysRemaining !== undefined && (
