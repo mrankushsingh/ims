@@ -380,10 +380,6 @@ export default function Notifications({ onClientClick, onReminderClick }: Props)
                       <div
                         key={`${reminder.client.id}-${reminder.type}-${index}`}
                         onClick={async () => {
-                          // Mark reminder as read (but keep it visible)
-                          const reminderKey = `${reminder.client.id}-${reminder.type}`;
-                          setReadReminders(prev => new Set([...prev, reminderKey]));
-                          
                           // Check if it's a RECORDATORIO reminder (standalone reminder)
                           if (reminder.client.id && reminder.client.id.startsWith('reminder_')) {
                             // It's a RECORDATORIO reminder - fetch full reminder details and show modal
@@ -504,10 +500,6 @@ export default function Notifications({ onClientClick, onReminderClick }: Props)
               <div
                 key={`popup-${reminder.client.id}-${reminder.type}-${index}`}
                 onClick={async () => {
-                  // Mark reminder as read (but keep it visible)
-                  const reminderKey = `${reminder.client.id}-${reminder.type}`;
-                  setReadReminders(prev => new Set([...prev, reminderKey]));
-                  
                   // Check if it's a RECORDATORIO reminder (standalone reminder)
                   if (reminder.client.id && reminder.client.id.startsWith('reminder_')) {
                     // It's a RECORDATORIO reminder - fetch full reminder details and show modal
