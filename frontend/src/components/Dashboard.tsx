@@ -384,10 +384,7 @@ export default function Dashboard({ onNavigate }: DashboardProps) {
 
         {/* URGENTES Box */}
         <div 
-          onClick={() => {
-            setShowRecordatorioModal(true);
-            setShowUrgentesModal(false);
-          }}
+          onClick={() => setShowUrgentesModal(true)}
           className="rounded-xl sm:rounded-2xl p-4 sm:p-5 md:p-6 animate-slide-up cursor-pointer transition-all duration-200 hover:shadow-xl border-2 border-red-500 active:scale-95"
           style={{ 
             animationDelay: '0.8s',
