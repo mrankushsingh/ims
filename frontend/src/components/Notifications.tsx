@@ -22,8 +22,8 @@ export default function Notifications({ onClientClick, onReminderClick }: Props)
   const [loading, setLoading] = useState(true);
   const [showPopups, setShowPopups] = useState(true);
   
-  // Load read reminders from localStorage on mount
-  const [readReminders, setReadReminders] = useState<Set<string>>(() => {
+  // Load read reminders from localStorage on mount (kept for unread count calculation)
+  const [readReminders] = useState<Set<string>>(() => {
     try {
       const saved = localStorage.getItem('readReminders');
       if (saved) {
@@ -32,6 +32,20 @@ export default function Notifications({ onClientClick, onReminderClick }: Props)
       }
     } catch (error) {
       console.error('Failed to load read reminders from localStorage:', error);
+    }
+    return new Set();
+  });
+
+  // Load dismissed reminders from localStorage on mount
+  const [dismissedReminders, setDismissedReminders] = useState<Set<string>>(() => {
+    try {
+      const saved = localStorage.getItem('dismissedReminders');
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        return new Set(Array.isArray(parsed) ? parsed : []);
+      }
+    } catch (error) {
+      console.error('Failed to load dismissed reminders from localStorage:', error);
     }
     return new Set();
   });
@@ -47,6 +61,15 @@ export default function Notifications({ onClientClick, onReminderClick }: Props)
       console.error('Failed to save read reminders to localStorage:', error);
     }
   }, [readReminders]);
+
+  // Save dismissed reminders to localStorage whenever it changes
+  useEffect(() => {
+    try {
+      localStorage.setItem('dismissedReminders', JSON.stringify(Array.from(dismissedReminders)));
+    } catch (error) {
+      console.error('Failed to save dismissed reminders to localStorage:', error);
+    }
+  }, [dismissedReminders]);
 
   useEffect(() => {
     loadReminders();
@@ -284,8 +307,14 @@ export default function Notifications({ onClientClick, onReminderClick }: Props)
     }
   };
 
+  // Filter out dismissed reminders
+  const visibleReminders = reminders.filter(reminder => {
+    const reminderKey = `${reminder.client.id}-${reminder.type}`;
+    return !dismissedReminders.has(reminderKey);
+  });
+
   // Count only unread reminders for the badge
-  const unreadCount = reminders.filter(reminder => {
+  const unreadCount = visibleReminders.filter(reminder => {
     const reminderKey = `${reminder.client.id}-${reminder.type}`;
     return !readReminders.has(reminderKey);
   }).length;
@@ -348,12 +377,28 @@ export default function Notifications({ onClientClick, onReminderClick }: Props)
                       {unreadCount} {unreadCount === 1 ? 'unread reminder' : 'unread reminders'}
                     </p>
                   </div>
-                  <button
-                    onClick={() => setIsOpen(false)}
-                    className="p-1.5 text-slate-600 hover:bg-slate-200 rounded-lg transition-colors"
-                  >
-                    <X className="w-4 h-4" />
-                  </button>
+                  <div className="flex items-center space-x-2">
+                    {visibleReminders.length > 0 && (
+                      <button
+                        onClick={() => {
+                          // Dismiss all visible reminders
+                          const allKeys = visibleReminders.map(r => `${r.client.id}-${r.type}`);
+                          setDismissedReminders(prev => new Set([...prev, ...allKeys]));
+                        }}
+                        className="px-3 py-1.5 text-xs font-semibold text-slate-700 bg-slate-200 hover:bg-slate-300 rounded-lg transition-colors flex items-center space-x-1"
+                        title="Dismiss all notifications"
+                      >
+                        <X className="w-3.5 h-3.5" />
+                        <span>Clear All</span>
+                      </button>
+                    )}
+                    <button
+                      onClick={() => setIsOpen(false)}
+                      className="p-1.5 text-slate-600 hover:bg-slate-200 rounded-lg transition-colors"
+                    >
+                      <X className="w-4 h-4" />
+                    </button>
+                  </div>
                 </div>
               </div>
 
@@ -362,13 +407,13 @@ export default function Notifications({ onClientClick, onReminderClick }: Props)
                   <div className="p-8 text-center">
                     <div className="animate-spin rounded-full h-8 w-8 border-2 border-slate-200 border-t-slate-700 mx-auto"></div>
                   </div>
-                ) : unreadCount === 0 && reminders.length > 0 ? (
+                ) : unreadCount === 0 && visibleReminders.length > 0 ? (
                   <div className="p-8 text-center">
                     <CheckCircle className="w-12 h-12 text-emerald-400 mx-auto mb-3" />
                     <p className="text-slate-500 font-medium">All caught up!</p>
                     <p className="text-sm text-slate-400 mt-1">All reminders have been read</p>
                   </div>
-                ) : reminders.length === 0 ? (
+                ) : visibleReminders.length === 0 ? (
                   <div className="p-8 text-center">
                     <CheckCircle className="w-12 h-12 text-emerald-400 mx-auto mb-3" />
                     <p className="text-slate-500 font-medium">All caught up!</p>
@@ -376,7 +421,7 @@ export default function Notifications({ onClientClick, onReminderClick }: Props)
                   </div>
                 ) : (
                   <div className="divide-y divide-gray-100">
-                    {reminders.map((reminder, index) => (
+                    {visibleReminders.map((reminder, index) => (
                       <div
                         key={`${reminder.client.id}-${reminder.type}-${index}`}
                         onClick={async () => {
@@ -406,10 +451,6 @@ export default function Notifications({ onClientClick, onReminderClick }: Props)
                           setIsOpen(false);
                         }}
                         className={`p-4 cursor-pointer hover:bg-slate-50 transition-colors border-l-4 ${
-                          readReminders.has(`${reminder.client.id}-${reminder.type}`)
-                            ? 'opacity-60 bg-gray-50'
-                            : ''
-                        } ${
                           reminder.priority === 'high'
                             ? 'border-l-red-500'
                             : reminder.priority === 'medium'
@@ -433,10 +474,10 @@ export default function Notifications({ onClientClick, onReminderClick }: Props)
                                 onClick={(e) => {
                                   e.stopPropagation();
                                   const reminderKey = `${reminder.client.id}-${reminder.type}`;
-                                  setReadReminders(prev => new Set([...prev, reminderKey]));
+                                  setDismissedReminders(prev => new Set([...prev, reminderKey]));
                                 }}
                                 className="ml-2 p-1.5 text-slate-400 hover:text-slate-600 hover:bg-slate-100 rounded-lg transition-colors flex-shrink-0"
-                                title="Mark as read"
+                                title="Dismiss notification"
                               >
                                 <X className="w-4 h-4" />
                               </button>
@@ -485,16 +526,20 @@ export default function Notifications({ onClientClick, onReminderClick }: Props)
       </div>
 
       {/* Pop-up Notifications for High Priority (excluding overdue payment reminders) */}
-      {showPopups && reminders.filter(r => 
-        r.priority === 'high' && 
-        !(r.type === 'reminder' && r.daysRemaining !== undefined && r.daysRemaining < 0)
-      ).length > 0 && (
+      {showPopups && reminders.filter(r => {
+        const reminderKey = `${r.client.id}-${r.type}`;
+        return !dismissedReminders.has(reminderKey) &&
+          r.priority === 'high' && 
+          !(r.type === 'reminder' && r.daysRemaining !== undefined && r.daysRemaining < 0);
+      }).length > 0 && (
         <div className="fixed bottom-4 right-4 z-50 space-y-3 max-w-md">
           {reminders
-            .filter(r => 
-              r.priority === 'high' && 
-              !(r.type === 'reminder' && r.daysRemaining !== undefined && r.daysRemaining < 0)
-            )
+            .filter(r => {
+              const reminderKey = `${r.client.id}-${r.type}`;
+              return !dismissedReminders.has(reminderKey) &&
+                r.priority === 'high' && 
+                !(r.type === 'reminder' && r.daysRemaining !== undefined && r.daysRemaining < 0);
+            })
             .slice(0, 3)
             .map((reminder, index) => (
               <div
@@ -542,13 +587,13 @@ export default function Notifications({ onClientClick, onReminderClick }: Props)
                           onClick={(e) => {
                             e.stopPropagation();
                             const reminderKey = `${reminder.client.id}-${reminder.type}`;
-                            setReadReminders(prev => new Set([...prev, reminderKey]));
+                            setDismissedReminders(prev => new Set([...prev, reminderKey]));
                             setShowPopups(false);
                           }}
                           className="p-1 text-slate-400 hover:text-slate-600 hover:bg-slate-100 rounded transition-colors"
-                          title="Mark as read"
+                          title="Dismiss notification"
                         >
-                          <CheckCircle className="w-3.5 h-3.5" />
+                          <X className="w-3.5 h-3.5" />
                         </button>
                         <button
                           onClick={(e) => {
