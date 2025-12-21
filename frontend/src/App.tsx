@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Routes, Route, useNavigate, useLocation, Navigate } from 'react-router-dom';
+import { Routes, Route, useNavigate, useLocation } from 'react-router-dom';
 import { FileText, Users as UsersIcon, LayoutDashboard, Menu, X, LogOut, UserCog, Shield } from 'lucide-react';
 import Dashboard from './components/Dashboard';
 import Templates from './components/Templates';
@@ -29,32 +29,20 @@ function App() {
   const [, forceUpdate] = useState({});
   const [currentUserRole, setCurrentUserRole] = useState<'admin' | 'user' | null>(null);
 
-  // Sync route with currentView
+  // Sync route with currentView (only for dashboard)
   useEffect(() => {
     const path = location.pathname;
     if (path === '/dashboard' && currentView !== 'dashboard') {
       setCurrentView('dashboard');
-    } else if (path === '/templates' && currentView !== 'templates') {
-      setCurrentView('templates');
-    } else if (path === '/clients' && currentView !== 'clients') {
-      setCurrentView('clients');
-    } else if (path === '/users' && currentView !== 'users') {
-      setCurrentView('users');
     } else if (path === '/' && isAuthenticated) {
       navigate('/dashboard', { replace: true });
     }
   }, [location.pathname, isAuthenticated, navigate, currentView]);
 
-  // Sync currentView with route
+  // Sync currentView with route (only for dashboard)
   useEffect(() => {
     if (currentView === 'dashboard' && location.pathname !== '/dashboard') {
       navigate('/dashboard', { replace: true });
-    } else if (currentView === 'templates' && location.pathname !== '/templates') {
-      navigate('/templates', { replace: true });
-    } else if (currentView === 'clients' && location.pathname !== '/clients') {
-      navigate('/clients', { replace: true });
-    } else if (currentView === 'users' && location.pathname !== '/users') {
-      navigate('/users', { replace: true });
     }
   }, [currentView, navigate, location.pathname]);
 
@@ -387,14 +375,12 @@ function App() {
         <div className="animate-fade-in">
           <Routes>
             <Route path="/dashboard" element={<Dashboard onNavigate={setCurrentView} />} />
-            <Route path="/templates" element={<Templates />} />
-            <Route path="/clients" element={<Clients />} />
-            <Route 
-              path="/users" 
-              element={
-                currentUserRole === 'admin' ? (
-                  <Users />
-                ) : (
+            <Route path="*" element={
+              <>
+                {currentView === 'templates' && <Templates />}
+                {currentView === 'clients' && <Clients />}
+                {currentView === 'users' && currentUserRole === 'admin' && <Users />}
+                {currentView === 'users' && currentUserRole !== 'admin' && (
                   <div className="flex items-center justify-center h-64">
                     <div className="text-center">
                       <Shield className="w-16 h-16 text-red-500 mx-auto mb-4" />
@@ -402,10 +388,9 @@ function App() {
                       <p className="text-gray-600">{t('users.adminOnly')}</p>
                     </div>
                   </div>
-                )
-              } 
-            />
-            <Route path="/" element={<Navigate to="/dashboard" replace />} />
+                )}
+              </>
+            } />
           </Routes>
         </div>
       </main>
