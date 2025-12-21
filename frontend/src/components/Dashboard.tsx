@@ -1015,8 +1015,12 @@ export default function Dashboard({ onNavigate }: DashboardProps) {
                 try {
                   const reminderDate = new Date(reminderForm.reminder_date);
                   const reminderData = {
-                    ...reminderForm,
+                    client_id: reminderForm.client_id || '', // Optional, can be empty for standalone reminders
+                    client_name: reminderForm.client_name.trim(),
+                    client_surname: reminderForm.client_surname.trim(),
+                    phone: reminderForm.phone.trim() || undefined,
                     reminder_date: reminderDate.toISOString(),
+                    notes: reminderForm.notes.trim() || undefined,
                   };
                   if (editingReminder) {
                     await api.updateReminder(editingReminder.id, reminderData);

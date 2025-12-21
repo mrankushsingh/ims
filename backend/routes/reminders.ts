@@ -23,8 +23,9 @@ router.post('/', async (req: AuthenticatedRequest, res) => {
   try {
     const { client_id, client_name, client_surname, phone, reminder_date, notes } = req.body;
 
-    if (!client_id || !client_name || !client_surname || !reminder_date) {
-      return res.status(400).json({ error: 'client_id, client_name, client_surname, and reminder_date are required' });
+    // client_id is optional (for standalone reminders), but name, surname, and date are required
+    if (!client_name || !client_surname || !reminder_date) {
+      return res.status(400).json({ error: 'client_name, client_surname, and reminder_date are required' });
     }
 
     const reminder = await memoryDb.insertReminder({

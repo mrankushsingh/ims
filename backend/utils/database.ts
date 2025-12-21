@@ -199,7 +199,7 @@ class DatabaseAdapter {
       await this.pool.query(`
         CREATE TABLE IF NOT EXISTS reminders (
           id VARCHAR(255) PRIMARY KEY,
-          client_id VARCHAR(255) NOT NULL,
+          client_id VARCHAR(255),
           client_name VARCHAR(255) NOT NULL,
           client_surname VARCHAR(255) NOT NULL,
           phone VARCHAR(255),
@@ -208,6 +208,21 @@ class DatabaseAdapter {
           created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
           updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
         )
+      `);
+      
+      // Add migration to make client_id nullable if it exists as NOT NULL
+      await this.pool.query(`
+        DO $$ 
+        BEGIN
+          IF EXISTS (
+            SELECT 1 FROM information_schema.columns 
+            WHERE table_name = 'reminders' 
+            AND column_name = 'client_id' 
+            AND is_nullable = 'NO'
+          ) THEN
+            ALTER TABLE reminders ALTER COLUMN client_id DROP NOT NULL;
+          END IF;
+        END $$;
       `);
       
       // Add custom_reminder_date column if it doesn't exist (for existing databases)
@@ -1027,7 +1042,7 @@ class DatabaseAdapter {
          VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)`,
         [
           id,
-          reminder.client_id,
+          reminder.client_id || null,
           reminder.client_name,
           reminder.client_surname,
           reminder.phone || null,
