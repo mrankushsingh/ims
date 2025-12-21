@@ -251,54 +251,54 @@ export default function Dashboard({ onNavigate }: DashboardProps) {
       </div>
 
       {/* Stats Cards */}
-      <div className="grid grid-cols-5 gap-4 sm:gap-6">
+      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3 sm:gap-4 md:gap-5 lg:gap-6">
         <div 
           onClick={() => onNavigate?.('templates')}
-          className="glass-gold rounded-2xl p-5 sm:p-6 glass-hover animate-slide-up cursor-pointer transition-all duration-200 hover:shadow-xl"
+          className="glass-gold rounded-xl sm:rounded-2xl p-4 sm:p-5 md:p-6 glass-hover animate-slide-up cursor-pointer transition-all duration-200 hover:shadow-xl active:scale-95"
         >
           <div className="flex items-center justify-between mb-4">
             <div className="bg-gradient-to-br from-amber-100 to-amber-200 p-3 rounded-xl shadow-lg">
               <FileText className="w-6 h-6 text-amber-800" />
             </div>
-            <span className="text-xs font-semibold text-amber-700/70 uppercase tracking-wider">{t('dashboard.templates')}</span>
+            <span className="text-[10px] sm:text-xs font-semibold text-amber-700/70 uppercase tracking-wider">{t('dashboard.templates')}</span>
           </div>
-          <p className="text-4xl font-bold bg-gradient-to-r from-amber-800 to-amber-600 bg-clip-text text-transparent mb-2">{templates.length}</p>
-          <p className="text-sm text-amber-700/70 font-medium leading-relaxed">{t('dashboard.activeTemplates')}</p>
+          <p className="text-3xl sm:text-4xl font-bold bg-gradient-to-r from-amber-800 to-amber-600 bg-clip-text text-transparent mb-1 sm:mb-2">{templates.length}</p>
+          <p className="text-xs sm:text-sm text-amber-700/70 font-medium leading-relaxed">{t('dashboard.activeTemplates')}</p>
         </div>
 
         <div 
           onClick={() => onNavigate?.('clients')}
-          className="glass-gold rounded-2xl p-5 sm:p-6 glass-hover animate-slide-up cursor-pointer transition-all duration-200 hover:shadow-xl"
+          className="glass-gold rounded-xl sm:rounded-2xl p-4 sm:p-5 md:p-6 glass-hover animate-slide-up cursor-pointer transition-all duration-200 hover:shadow-xl active:scale-95"
           style={{ animationDelay: '0.1s' }}
         >
-          <div className="flex items-center justify-between mb-4">
-            <div className="bg-gradient-to-br from-amber-100 to-amber-200 p-3 rounded-xl shadow-lg">
-              <Users className="w-6 h-6 text-amber-800" />
+          <div className="flex items-center justify-between mb-3 sm:mb-4">
+            <div className="bg-gradient-to-br from-amber-100 to-amber-200 p-2 sm:p-3 rounded-lg sm:rounded-xl shadow-lg">
+              <Users className="w-5 h-5 sm:w-6 sm:h-6 text-amber-800" />
             </div>
-            <span className="text-xs font-semibold text-amber-700/70 uppercase tracking-wider">{t('dashboard.clients')}</span>
+            <span className="text-[10px] sm:text-xs font-semibold text-amber-700/70 uppercase tracking-wider">{t('dashboard.clients')}</span>
           </div>
-          <p className="text-4xl font-bold bg-gradient-to-r from-amber-800 to-amber-600 bg-clip-text text-transparent mb-2">{clients.length}</p>
-          <p className="text-sm text-amber-700/70 font-medium leading-relaxed">{t('dashboard.totalClients')}</p>
+          <p className="text-3xl sm:text-4xl font-bold bg-gradient-to-r from-amber-800 to-amber-600 bg-clip-text text-transparent mb-1 sm:mb-2">{clients.length}</p>
+          <p className="text-xs sm:text-sm text-amber-700/70 font-medium leading-relaxed">{t('dashboard.totalClients')}</p>
         </div>
 
         <div 
           onClick={() => setShowAwaitingModal(true)}
-          className="glass-gold rounded-2xl p-5 sm:p-6 glass-hover animate-slide-up cursor-pointer transition-all duration-200 hover:shadow-xl"
+          className="glass-gold rounded-xl sm:rounded-2xl p-4 sm:p-5 md:p-6 glass-hover animate-slide-up cursor-pointer transition-all duration-200 hover:shadow-xl active:scale-95"
           style={{ animationDelay: '0.2s' }}
         >
           <div className="flex items-center justify-between mb-4">
             <div className="bg-gradient-to-br from-amber-100 to-amber-200 p-3 rounded-xl shadow-lg">
               <Clock className="w-6 h-6 text-amber-800" />
             </div>
-            <span className="text-xs font-semibold text-amber-700/70 uppercase tracking-wider">{t('dashboard.pending')}</span>
+            <span className="text-[10px] sm:text-xs font-semibold text-amber-700/70 uppercase tracking-wider">{t('dashboard.pending')}</span>
           </div>
-          <p className="text-4xl font-bold bg-gradient-to-r from-amber-800 to-amber-600 bg-clip-text text-transparent mb-2">{awaitingSubmission.length}</p>
-          <p className="text-sm text-amber-700/70 font-medium leading-relaxed mb-2">{t('dashboard.awaitingSubmission')}</p>
+          <p className="text-3xl sm:text-4xl font-bold bg-gradient-to-r from-amber-800 to-amber-600 bg-clip-text text-transparent mb-1 sm:mb-2">{awaitingSubmission.length}</p>
+          <p className="text-xs sm:text-sm text-amber-700/70 font-medium leading-relaxed mb-1 sm:mb-2">{t('dashboard.awaitingSubmission')}</p>
         </div>
 
         <div 
           onClick={() => setShowReadyToSubmitModal(true)}
-          className="rounded-2xl p-5 sm:p-6 animate-slide-up cursor-pointer transition-all duration-200 hover:shadow-xl border-2 border-green-400"
+          className="rounded-xl sm:rounded-2xl p-4 sm:p-5 md:p-6 animate-slide-up cursor-pointer transition-all duration-200 hover:shadow-xl border-2 border-green-400 active:scale-95"
           style={{ 
             animationDelay: '0.3s',
             background: 'linear-gradient(135deg, rgba(34, 197, 94, 0.15) 0%, rgba(22, 163, 74, 0.2) 50%, rgba(34, 197, 94, 0.15) 100%)',
@@ -313,23 +313,23 @@ export default function Dashboard({ onNavigate }: DashboardProps) {
             </div>
             <span className="text-xs font-semibold text-green-800 uppercase tracking-wider">{t('dashboard.readyToSubmit')}</span>
           </div>
-          <p className="text-4xl font-bold bg-gradient-to-r from-green-900 to-green-700 bg-clip-text text-transparent mb-2">{readyToSubmit.length}</p>
-          <p className="text-sm text-green-800 font-medium leading-relaxed mb-2">{t('dashboard.readyToSubmitDesc')}</p>
+          <p className="text-3xl sm:text-4xl font-bold bg-gradient-to-r from-green-900 to-green-700 bg-clip-text text-transparent mb-1 sm:mb-2">{readyToSubmit.length}</p>
+          <p className="text-xs sm:text-sm text-green-800 font-medium leading-relaxed mb-1 sm:mb-2">{t('dashboard.readyToSubmitDesc')}</p>
         </div>
 
         <div 
           onClick={() => setShowSubmittedModal(true)}
-          className="glass-gold rounded-2xl p-5 sm:p-6 glass-hover animate-slide-up cursor-pointer transition-all duration-200 hover:shadow-xl"
+          className="glass-gold rounded-xl sm:rounded-2xl p-4 sm:p-5 md:p-6 glass-hover animate-slide-up cursor-pointer transition-all duration-200 hover:shadow-xl active:scale-95"
           style={{ animationDelay: '0.4s' }}
         >
           <div className="flex items-center justify-between mb-4">
             <div className="bg-gradient-to-br from-amber-100 to-amber-200 p-3 rounded-xl shadow-lg">
               <Send className="w-6 h-6 text-amber-800" />
             </div>
-            <span className="text-xs font-semibold text-amber-700/70 uppercase tracking-wider">{t('dashboard.administrative')}</span>
+            <span className="text-[10px] sm:text-xs font-semibold text-amber-700/70 uppercase tracking-wider">{t('dashboard.administrative')}</span>
           </div>
-          <p className="text-4xl font-bold bg-gradient-to-r from-amber-800 to-amber-600 bg-clip-text text-transparent mb-2">{submittedToAdmin.length}</p>
-          <p className="text-sm text-amber-700/70 font-medium leading-relaxed mb-2">
+          <p className="text-3xl sm:text-4xl font-bold bg-gradient-to-r from-amber-800 to-amber-600 bg-clip-text text-transparent mb-1 sm:mb-2">{submittedToAdmin.length}</p>
+          <p className="text-xs sm:text-sm text-amber-700/70 font-medium leading-relaxed mb-1 sm:mb-2">
             {submittedToAdmin.length === 1 ? t('dashboard.caseSubmitted') : t('dashboard.casesSubmitted')}
           </p>
         </div>
@@ -337,55 +337,55 @@ export default function Dashboard({ onNavigate }: DashboardProps) {
         {/* APORTAR DOCUMENTACIÓN Box */}
         <div 
           onClick={() => setShowAportarDocumentacionModal(true)}
-          className="glass-gold rounded-2xl p-5 sm:p-6 glass-hover animate-slide-up cursor-pointer transition-all duration-200 hover:shadow-xl"
+          className="glass-gold rounded-xl sm:rounded-2xl p-4 sm:p-5 md:p-6 glass-hover animate-slide-up cursor-pointer transition-all duration-200 hover:shadow-xl active:scale-95"
           style={{ animationDelay: '0.5s' }}
         >
           <div className="flex items-center justify-between mb-4">
             <div className="bg-gradient-to-br from-amber-100 to-amber-200 p-3 rounded-xl shadow-lg">
               <FilePlus className="w-6 h-6 text-amber-800" />
             </div>
-            <span className="text-xs font-semibold text-amber-700/70 uppercase tracking-wider">{t('dashboard.aportarDocumentacion')}</span>
+            <span className="text-[10px] sm:text-xs font-semibold text-amber-700/70 uppercase tracking-wider">{t('dashboard.aportarDocumentacion')}</span>
           </div>
-          <p className="text-4xl font-bold bg-gradient-to-r from-amber-800 to-amber-600 bg-clip-text text-transparent mb-2">{aportarDocumentacion.length}</p>
-          <p className="text-sm text-amber-700/70 font-medium leading-relaxed mb-2">{t('dashboard.aportarDocumentacionDesc')}</p>
+          <p className="text-3xl sm:text-4xl font-bold bg-gradient-to-r from-amber-800 to-amber-600 bg-clip-text text-transparent mb-1 sm:mb-2">{aportarDocumentacion.length}</p>
+          <p className="text-xs sm:text-sm text-amber-700/70 font-medium leading-relaxed mb-1 sm:mb-2">{t('dashboard.aportarDocumentacionDesc')}</p>
         </div>
 
         {/* REQUERIMIENTO Box */}
         <div 
           onClick={() => setShowRequerimientoModal(true)}
-          className="glass-gold rounded-2xl p-5 sm:p-6 glass-hover animate-slide-up cursor-pointer transition-all duration-200 hover:shadow-xl"
+          className="glass-gold rounded-xl sm:rounded-2xl p-4 sm:p-5 md:p-6 glass-hover animate-slide-up cursor-pointer transition-all duration-200 hover:shadow-xl active:scale-95"
           style={{ animationDelay: '0.6s' }}
         >
           <div className="flex items-center justify-between mb-4">
             <div className="bg-gradient-to-br from-amber-100 to-amber-200 p-3 rounded-xl shadow-lg">
               <AlertCircle className="w-6 h-6 text-amber-800" />
             </div>
-            <span className="text-xs font-semibold text-amber-700/70 uppercase tracking-wider">{t('dashboard.requerimiento')}</span>
+            <span className="text-[10px] sm:text-xs font-semibold text-amber-700/70 uppercase tracking-wider">{t('dashboard.requerimiento')}</span>
           </div>
-          <p className="text-4xl font-bold bg-gradient-to-r from-amber-800 to-amber-600 bg-clip-text text-transparent mb-2">{requerimiento.length}</p>
-          <p className="text-sm text-amber-700/70 font-medium leading-relaxed mb-2">{t('dashboard.requerimientoDesc')}</p>
+          <p className="text-3xl sm:text-4xl font-bold bg-gradient-to-r from-amber-800 to-amber-600 bg-clip-text text-transparent mb-1 sm:mb-2">{requerimiento.length}</p>
+          <p className="text-xs sm:text-sm text-amber-700/70 font-medium leading-relaxed mb-1 sm:mb-2">{t('dashboard.requerimientoDesc')}</p>
         </div>
 
         {/* RECURSO Box */}
         <div 
           onClick={() => setShowRecursoModal(true)}
-          className="glass-gold rounded-2xl p-5 sm:p-6 glass-hover animate-slide-up cursor-pointer transition-all duration-200 hover:shadow-xl"
+          className="glass-gold rounded-xl sm:rounded-2xl p-4 sm:p-5 md:p-6 glass-hover animate-slide-up cursor-pointer transition-all duration-200 hover:shadow-xl active:scale-95"
           style={{ animationDelay: '0.7s' }}
         >
           <div className="flex items-center justify-between mb-4">
             <div className="bg-gradient-to-br from-amber-100 to-amber-200 p-3 rounded-xl shadow-lg">
               <Gavel className="w-6 h-6 text-amber-800" />
             </div>
-            <span className="text-xs font-semibold text-amber-700/70 uppercase tracking-wider">{t('dashboard.recurso')}</span>
+            <span className="text-[10px] sm:text-xs font-semibold text-amber-700/70 uppercase tracking-wider">{t('dashboard.recurso')}</span>
           </div>
-          <p className="text-4xl font-bold bg-gradient-to-r from-amber-800 to-amber-600 bg-clip-text text-transparent mb-2">{recurso.length}</p>
-          <p className="text-sm text-amber-700/70 font-medium leading-relaxed mb-2">{t('dashboard.recursoDesc')}</p>
+          <p className="text-3xl sm:text-4xl font-bold bg-gradient-to-r from-amber-800 to-amber-600 bg-clip-text text-transparent mb-1 sm:mb-2">{recurso.length}</p>
+          <p className="text-xs sm:text-sm text-amber-700/70 font-medium leading-relaxed mb-1 sm:mb-2">{t('dashboard.recursoDesc')}</p>
         </div>
 
         {/* URGENTES Box */}
         <div 
           onClick={() => setShowUrgentesModal(true)}
-          className="rounded-2xl p-5 sm:p-6 animate-slide-up cursor-pointer transition-all duration-200 hover:shadow-xl border-2 border-red-500"
+          className="rounded-xl sm:rounded-2xl p-4 sm:p-5 md:p-6 animate-slide-up cursor-pointer transition-all duration-200 hover:shadow-xl border-2 border-red-500 active:scale-95"
           style={{ 
             animationDelay: '0.8s',
             background: 'linear-gradient(135deg, rgba(239, 68, 68, 0.15) 0%, rgba(220, 38, 38, 0.2) 50%, rgba(239, 68, 68, 0.15) 100%)',
@@ -400,24 +400,24 @@ export default function Dashboard({ onNavigate }: DashboardProps) {
             </div>
             <span className="text-xs font-semibold text-red-900 uppercase tracking-wider">{t('dashboard.urgentes')}</span>
           </div>
-          <p className="text-4xl font-bold bg-gradient-to-r from-red-950 to-red-800 bg-clip-text text-transparent mb-2">{urgentes.length + urgentReminders.length}</p>
-          <p className="text-sm text-red-900 font-medium leading-relaxed mb-2">{t('dashboard.urgentesDesc')}</p>
+          <p className="text-3xl sm:text-4xl font-bold bg-gradient-to-r from-red-950 to-red-800 bg-clip-text text-transparent mb-1 sm:mb-2">{urgentes.length + urgentReminders.length}</p>
+          <p className="text-xs sm:text-sm text-red-900 font-medium leading-relaxed mb-1 sm:mb-2">{t('dashboard.urgentesDesc')}</p>
         </div>
 
         {/* RECORDATORIO Box */}
         <div 
           onClick={() => setShowRecordatorioModal(true)}
-          className="glass-gold rounded-2xl p-5 sm:p-6 glass-hover animate-slide-up cursor-pointer transition-all duration-200 hover:shadow-xl"
+          className="glass-gold rounded-xl sm:rounded-2xl p-4 sm:p-5 md:p-6 glass-hover animate-slide-up cursor-pointer transition-all duration-200 hover:shadow-xl active:scale-95"
           style={{ animationDelay: '0.9s' }}
         >
           <div className="flex items-center justify-between mb-4">
             <div className="bg-gradient-to-br from-amber-100 to-amber-200 p-3 rounded-xl shadow-lg">
               <Bell className="w-6 h-6 text-amber-800" />
             </div>
-            <span className="text-xs font-semibold text-amber-700/70 uppercase tracking-wider">{t('dashboard.recordatorio')}</span>
+            <span className="text-[10px] sm:text-xs font-semibold text-amber-700/70 uppercase tracking-wider">{t('dashboard.recordatorio')}</span>
           </div>
-          <p className="text-4xl font-bold bg-gradient-to-r from-amber-800 to-amber-600 bg-clip-text text-transparent mb-2">{reminders.length}</p>
-          <p className="text-sm text-amber-700/70 font-medium leading-relaxed mb-2">{t('dashboard.recordatorioDesc')}</p>
+          <p className="text-3xl sm:text-4xl font-bold bg-gradient-to-r from-amber-800 to-amber-600 bg-clip-text text-transparent mb-1 sm:mb-2">{reminders.length}</p>
+          <p className="text-xs sm:text-sm text-amber-700/70 font-medium leading-relaxed mb-1 sm:mb-2">{t('dashboard.recordatorioDesc')}</p>
         </div>
 
         {/* PAGOS Box */}
@@ -442,12 +442,12 @@ export default function Dashboard({ onNavigate }: DashboardProps) {
                 <Lock className="w-6 h-6 text-amber-800" />
               )}
             </div>
-            <span className="text-xs font-semibold text-amber-700/70 uppercase tracking-wider">{t('dashboard.pagos')}</span>
+            <span className="text-[10px] sm:text-xs font-semibold text-amber-700/70 uppercase tracking-wider">{t('dashboard.pagos')}</span>
           </div>
-          <p className="text-4xl font-bold bg-gradient-to-r from-amber-800 to-amber-600 bg-clip-text text-transparent mb-2">
+          <p className="text-3xl sm:text-4xl font-bold bg-gradient-to-r from-amber-800 to-amber-600 bg-clip-text text-transparent mb-1 sm:mb-2">
             {paymentsUnlocked ? pagos.length : '🔒'}
           </p>
-          <p className="text-sm text-amber-700/70 font-medium leading-relaxed mb-2">
+          <p className="text-xs sm:text-sm text-amber-700/70 font-medium leading-relaxed mb-1 sm:mb-2">
             {paymentsUnlocked ? t('dashboard.pagosDesc') : 'Enter passcode to view'}
           </p>
         </div>
@@ -586,7 +586,7 @@ export default function Dashboard({ onNavigate }: DashboardProps) {
       {/* APORTAR DOCUMENTACIÓN Modal */}
       {showAportarDocumentacionModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
-          <div className="bg-white rounded-2xl max-w-4xl w-full max-h-[90vh] overflow-hidden flex flex-col">
+          <div className="bg-white rounded-xl sm:rounded-2xl max-w-4xl w-full max-h-[95vh] sm:max-h-[90vh] overflow-hidden flex flex-col m-2 sm:m-0">
             <div className="p-6 border-b border-gray-200 bg-gradient-to-r from-amber-50 to-amber-100">
               <div className="flex items-center justify-between">
                 <div>
@@ -644,7 +644,7 @@ export default function Dashboard({ onNavigate }: DashboardProps) {
       {/* REQUERIMIENTO Modal */}
       {showRequerimientoModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
-          <div className="bg-white rounded-2xl max-w-4xl w-full max-h-[90vh] overflow-hidden flex flex-col">
+          <div className="bg-white rounded-xl sm:rounded-2xl max-w-4xl w-full max-h-[95vh] sm:max-h-[90vh] overflow-hidden flex flex-col m-2 sm:m-0">
             <div className="p-6 border-b border-gray-200 bg-gradient-to-r from-amber-50 to-amber-100">
               <div className="flex items-center justify-between">
                 <div>
@@ -702,7 +702,7 @@ export default function Dashboard({ onNavigate }: DashboardProps) {
       {/* RECURSO Modal */}
       {showRecursoModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
-          <div className="bg-white rounded-2xl max-w-4xl w-full max-h-[90vh] overflow-hidden flex flex-col">
+          <div className="bg-white rounded-xl sm:rounded-2xl max-w-4xl w-full max-h-[95vh] sm:max-h-[90vh] overflow-hidden flex flex-col m-2 sm:m-0">
             <div className="p-6 border-b border-gray-200 bg-gradient-to-r from-amber-50 to-amber-100">
               <div className="flex items-center justify-between">
                 <div>
@@ -759,7 +759,7 @@ export default function Dashboard({ onNavigate }: DashboardProps) {
       {/* URGENTES Modal */}
       {showUrgentesModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
-          <div className="bg-white rounded-2xl max-w-4xl w-full max-h-[90vh] overflow-hidden flex flex-col">
+          <div className="bg-white rounded-xl sm:rounded-2xl max-w-4xl w-full max-h-[95vh] sm:max-h-[90vh] overflow-hidden flex flex-col m-2 sm:m-0">
             <div className="p-6 border-b border-gray-200 bg-gradient-to-r from-red-50 to-red-100">
               <div className="flex items-center justify-between">
                 <div>
@@ -852,7 +852,7 @@ export default function Dashboard({ onNavigate }: DashboardProps) {
       {/* RECORDATORIO Modal */}
       {showRecordatorioModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
-          <div className="bg-white rounded-2xl max-w-4xl w-full max-h-[90vh] overflow-hidden flex flex-col">
+          <div className="bg-white rounded-xl sm:rounded-2xl max-w-4xl w-full max-h-[95vh] sm:max-h-[90vh] overflow-hidden flex flex-col m-2 sm:m-0">
             <div className="p-6 border-b border-gray-200 bg-gradient-to-r from-amber-50 to-amber-100">
               <div className="flex items-center justify-between">
                 <div>
@@ -1248,7 +1248,7 @@ export default function Dashboard({ onNavigate }: DashboardProps) {
       {/* PAGOS Modal */}
       {showPagosModal && paymentsUnlocked && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
-          <div className="bg-white rounded-2xl max-w-4xl w-full max-h-[90vh] overflow-hidden flex flex-col">
+          <div className="bg-white rounded-xl sm:rounded-2xl max-w-4xl w-full max-h-[95vh] sm:max-h-[90vh] overflow-hidden flex flex-col m-2 sm:m-0">
             <div className="p-6 border-b border-gray-200 bg-gradient-to-r from-amber-50 to-amber-100">
               <div className="flex items-center justify-between">
                 <div>

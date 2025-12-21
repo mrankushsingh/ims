@@ -368,7 +368,7 @@ export default function Notifications({ onClientClick, onReminderClick }: Props)
               className="fixed inset-0 z-40"
               onClick={() => setIsOpen(false)}
             />
-            <div className="absolute right-0 mt-2 w-[calc(100vw-2rem)] sm:w-96 max-w-sm bg-white rounded-xl sm:rounded-2xl shadow-2xl border border-gray-200 z-50 max-h-[600px] overflow-hidden animate-scale-in">
+            <div className="absolute right-0 mt-2 w-[calc(100vw-1rem)] sm:w-96 max-w-sm bg-white rounded-xl sm:rounded-2xl shadow-2xl border border-gray-200 z-50 max-h-[85vh] sm:max-h-[600px] overflow-hidden animate-scale-in">
               <div className="p-4 border-b border-gray-200 bg-gradient-to-r from-slate-50 to-gray-50">
                 <div className="flex items-center justify-between">
                   <div>
