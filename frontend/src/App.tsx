@@ -29,25 +29,30 @@ function App() {
   const [, forceUpdate] = useState({});
   const [currentUserRole, setCurrentUserRole] = useState<'admin' | 'user' | null>(null);
 
-  // Sync route with currentView (only for dashboard)
+  // Sync route with currentView (only for dashboard - other views use state)
   useEffect(() => {
     if (!isAuthenticated) return;
     
     const path = location.pathname;
+    // Only sync dashboard route - other views don't have routes
     if (path === '/dashboard' && currentView !== 'dashboard') {
       setCurrentView('dashboard');
     } else if (path === '/' || path === '/login') {
       navigate('/dashboard', { replace: true });
     }
-  }, [location.pathname, isAuthenticated, navigate, currentView]);
+    // Don't change currentView for other paths - they use state-based navigation
+  }, [location.pathname, isAuthenticated, navigate]);
 
-  // Sync currentView with route (only for dashboard)
+  // Sync currentView with route (only for dashboard - other views use state)
   useEffect(() => {
     if (!isAuthenticated) return;
     
+    // Only navigate to /dashboard if currentView is dashboard
+    // Other views (templates, clients, users) use state-based navigation and don't change URL
     if (currentView === 'dashboard' && location.pathname !== '/dashboard') {
       navigate('/dashboard', { replace: true });
     }
+    // Don't navigate for other views - they use state-based navigation only
   }, [currentView, navigate, location.pathname, isAuthenticated]);
 
   useEffect(() => {
@@ -147,14 +152,22 @@ function App() {
     }
   };
 
-  // Auth Guard: Redirect unauthenticated users to login
+  // Auth Guard: Redirect unauthenticated users trying to access protected routes
   useEffect(() => {
-    if (!isAuthenticated && location.pathname === '/dashboard') {
-      // User is not authenticated but trying to access dashboard
-      // The Login component will be shown by the if statement below
+    if (!isAuthenticated) {
+      // If user is not authenticated and trying to access dashboard, show login
+      if (location.pathname === '/dashboard') {
+        // Login component will be shown by the guard below
+        return;
+      }
       return;
     }
-  }, [location.pathname, isAuthenticated]);
+    
+    // Authenticated users: redirect root to dashboard
+    if (location.pathname === '/' || location.pathname === '/login') {
+      navigate('/dashboard', { replace: true });
+    }
+  }, [location.pathname, isAuthenticated, navigate]);
 
   // Auth Guard: Show login if not authenticated
   if (!isAuthenticated) {
