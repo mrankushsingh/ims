@@ -21,9 +21,32 @@ export default function Notifications({ onClientClick, onReminderClick }: Props)
   const [reminders, setReminders] = useState<Reminder[]>([]);
   const [loading, setLoading] = useState(true);
   const [showPopups, setShowPopups] = useState(true);
-  const [readReminders, setReadReminders] = useState<Set<string>>(new Set());
+  
+  // Load read reminders from localStorage on mount
+  const [readReminders, setReadReminders] = useState<Set<string>>(() => {
+    try {
+      const saved = localStorage.getItem('readReminders');
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        return new Set(Array.isArray(parsed) ? parsed : []);
+      }
+    } catch (error) {
+      console.error('Failed to load read reminders from localStorage:', error);
+    }
+    return new Set();
+  });
+  
   const [selectedReminder, setSelectedReminder] = useState<ReminderType | null>(null);
   const [showReminderDetails, setShowReminderDetails] = useState(false);
+
+  // Save read reminders to localStorage whenever it changes
+  useEffect(() => {
+    try {
+      localStorage.setItem('readReminders', JSON.stringify(Array.from(readReminders)));
+    } catch (error) {
+      console.error('Failed to save read reminders to localStorage:', error);
+    }
+  }, [readReminders]);
 
   useEffect(() => {
     loadReminders();
