@@ -22,6 +22,8 @@ export default function Notifications({ onClientClick, onReminderClick }: Props)
   const [loading, setLoading] = useState(true);
   const [showPopups, setShowPopups] = useState(true);
   const [readReminders, setReadReminders] = useState<Set<string>>(new Set());
+  const [selectedReminder, setSelectedReminder] = useState<ReminderType | null>(null);
+  const [showReminderDetails, setShowReminderDetails] = useState(false);
 
   useEffect(() => {
     loadReminders();
@@ -345,15 +347,28 @@ export default function Notifications({ onClientClick, onReminderClick }: Props)
                     {reminders.map((reminder, index) => (
                       <div
                         key={`${reminder.client.id}-${reminder.type}-${index}`}
-                        onClick={() => {
+                        onClick={async () => {
                           // Mark reminder as read
                           const reminderKey = `${reminder.client.id}-${reminder.type}`;
                           setReadReminders(prev => new Set([...prev, reminderKey]));
                           // Check if it's a RECORDATORIO reminder (standalone reminder)
                           if (reminder.client.id && reminder.client.id.startsWith('reminder_')) {
-                            // It's a RECORDATORIO reminder - open RECORDATORIO modal
-                            if (onReminderClick) {
-                              onReminderClick();
+                            // It's a RECORDATORIO reminder - fetch full reminder details and show modal
+                            try {
+                              const reminderId = reminder.client.id.replace('reminder_', '');
+                              const allReminders = await api.getReminders();
+                              const fullReminder = allReminders.find((r: ReminderType) => r.id === reminderId);
+                              if (fullReminder) {
+                                setSelectedReminder(fullReminder);
+                                setShowReminderDetails(true);
+                              } else if (onReminderClick) {
+                                onReminderClick();
+                              }
+                            } catch (error) {
+                              console.error('Failed to load reminder details:', error);
+                              if (onReminderClick) {
+                                onReminderClick();
+                              }
                             }
                           } else if (reminder.client.id && reminder.client.id.startsWith('client_')) {
                             // It's a real client - open client details
@@ -494,6 +509,105 @@ export default function Notifications({ onClientClick, onReminderClick }: Props)
                 </div>
               </div>
             ))}
+        </div>
+      )}
+
+      {/* Reminder Details Modal */}
+      {showReminderDetails && selectedReminder && (
+        <div 
+          className="fixed inset-0 z-[60] flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm animate-fade-in"
+          onClick={(e) => {
+            if (e.target === e.currentTarget) {
+              setShowReminderDetails(false);
+              setSelectedReminder(null);
+            }
+          }}
+        >
+          <div 
+            className="bg-white rounded-2xl max-w-md w-full p-6 animate-scale-in shadow-2xl"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="flex items-center justify-between mb-6">
+              <div className="flex items-center space-x-3">
+                <div className="p-3 bg-gradient-to-br from-amber-100 to-amber-200 rounded-xl">
+                  <Bell className="w-6 h-6 text-amber-800" />
+                </div>
+                <div>
+                  <h3 className="text-xl font-bold text-gray-900">Recordatorio</h3>
+                  <p className="text-sm text-gray-600">Detalles del recordatorio</p>
+                </div>
+              </div>
+              <button
+                onClick={() => {
+                  setShowReminderDetails(false);
+                  setSelectedReminder(null);
+                }}
+                className="p-2 text-gray-400 hover:text-gray-600 rounded-lg transition-colors"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            <div className="space-y-4">
+              {/* Client Full Name */}
+              <div>
+                <label className="block text-sm font-semibold text-gray-700 mb-1">Cliente</label>
+                <p className="text-lg font-bold text-gray-900">
+                  {selectedReminder.client_name} {selectedReminder.client_surname}
+                </p>
+              </div>
+
+              {/* Phone */}
+              {selectedReminder.phone && (
+                <div>
+                  <label className="block text-sm font-semibold text-gray-700 mb-1">Teléfono</label>
+                  <p className="text-base text-gray-900">{selectedReminder.phone}</p>
+                </div>
+              )}
+
+              {/* Date */}
+              <div>
+                <label className="block text-sm font-semibold text-gray-700 mb-1">Fecha</label>
+                <p className="text-base text-gray-900">
+                  {new Date(selectedReminder.reminder_date).toLocaleDateString('es-ES', {
+                    year: 'numeric',
+                    month: 'long',
+                    day: 'numeric',
+                    hour: '2-digit',
+                    minute: '2-digit',
+                  })}
+                </p>
+              </div>
+
+              {/* Notes */}
+              {selectedReminder.notes && (
+                <div>
+                  <label className="block text-sm font-semibold text-gray-700 mb-1">Notas</label>
+                  <div className="p-4 bg-gray-50 rounded-xl border border-gray-200">
+                    <p className="text-base text-gray-900 whitespace-pre-wrap">{selectedReminder.notes}</p>
+                  </div>
+                </div>
+              )}
+
+              {!selectedReminder.notes && (
+                <div className="p-4 bg-gray-50 rounded-xl border border-gray-200 text-center">
+                  <p className="text-sm text-gray-500">No hay notas adicionales</p>
+                </div>
+              )}
+            </div>
+
+            <div className="mt-6 flex justify-end">
+              <button
+                onClick={() => {
+                  setShowReminderDetails(false);
+                  setSelectedReminder(null);
+                }}
+                className="px-6 py-2 bg-gradient-to-r from-amber-600 to-amber-700 text-white rounded-xl hover:shadow-xl transition-all font-semibold"
+              >
+                Cerrar
+              </button>
+            </div>
+          </div>
         </div>
       )}
     </>
