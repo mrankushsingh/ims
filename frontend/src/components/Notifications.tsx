@@ -348,9 +348,15 @@ export default function Notifications({ onClientClick, onReminderClick }: Props)
                       <div
                         key={`${reminder.client.id}-${reminder.type}-${index}`}
                         onClick={async () => {
-                          // Mark reminder as read
+                          // Mark reminder as read immediately
                           const reminderKey = `${reminder.client.id}-${reminder.type}`;
                           setReadReminders(prev => new Set([...prev, reminderKey]));
+                          // Remove from display immediately
+                          setReminders(prev => prev.filter(r => {
+                            const key = `${r.client.id}-${r.type}`;
+                            return key !== reminderKey;
+                          }));
+                          
                           // Check if it's a RECORDATORIO reminder (standalone reminder)
                           if (reminder.client.id && reminder.client.id.startsWith('reminder_')) {
                             // It's a RECORDATORIO reminder - fetch full reminder details and show modal
@@ -451,15 +457,34 @@ export default function Notifications({ onClientClick, onReminderClick }: Props)
             .map((reminder, index) => (
               <div
                 key={`popup-${reminder.client.id}-${reminder.type}-${index}`}
-                onClick={() => {
-                  // Mark reminder as read
+                onClick={async () => {
+                  // Mark reminder as read immediately
                   const reminderKey = `${reminder.client.id}-${reminder.type}`;
                   setReadReminders(prev => new Set([...prev, reminderKey]));
+                  // Remove from display immediately
+                  setReminders(prev => prev.filter(r => {
+                    const key = `${r.client.id}-${r.type}`;
+                    return key !== reminderKey;
+                  }));
+                  
                   // Check if it's a RECORDATORIO reminder (standalone reminder)
                   if (reminder.client.id && reminder.client.id.startsWith('reminder_')) {
-                    // It's a RECORDATORIO reminder - open RECORDATORIO modal
-                    if (onReminderClick) {
-                      onReminderClick();
+                    // It's a RECORDATORIO reminder - fetch full reminder details and show modal
+                    try {
+                      const reminderId = reminder.client.id.replace('reminder_', '');
+                      const allReminders = await api.getReminders();
+                      const fullReminder = allReminders.find((r: ReminderType) => r.id === reminderId);
+                      if (fullReminder) {
+                        setSelectedReminder(fullReminder);
+                        setShowReminderDetails(true);
+                      } else if (onReminderClick) {
+                        onReminderClick();
+                      }
+                    } catch (error) {
+                      console.error('Failed to load reminder details:', error);
+                      if (onReminderClick) {
+                        onReminderClick();
+                      }
                     }
                   } else if (reminder.client.id && reminder.client.id.startsWith('client_')) {
                     // It's a real client - open client details
