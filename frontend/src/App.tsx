@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { Routes, Route, useNavigate, useLocation, Navigate } from 'react-router-dom';
 import { FileText, Users as UsersIcon, LayoutDashboard, Menu, X, LogOut, UserCog, Shield } from 'lucide-react';
 import Dashboard from './components/Dashboard';
 import Templates from './components/Templates';
@@ -18,6 +19,8 @@ import { api } from './utils/api';
 type View = 'dashboard' | 'templates' | 'clients' | 'users';
 
 function App() {
+  const navigate = useNavigate();
+  const location = useLocation();
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [currentView, setCurrentView] = useState<View>('dashboard');
   const [selectedClient, setSelectedClient] = useState<Client | null>(null);
@@ -25,6 +28,35 @@ function App() {
   const [toasts, setToasts] = useState<Toast[]>([]);
   const [, forceUpdate] = useState({});
   const [currentUserRole, setCurrentUserRole] = useState<'admin' | 'user' | null>(null);
+
+  // Sync route with currentView
+  useEffect(() => {
+    const path = location.pathname;
+    if (path === '/dashboard' && currentView !== 'dashboard') {
+      setCurrentView('dashboard');
+    } else if (path === '/templates' && currentView !== 'templates') {
+      setCurrentView('templates');
+    } else if (path === '/clients' && currentView !== 'clients') {
+      setCurrentView('clients');
+    } else if (path === '/users' && currentView !== 'users') {
+      setCurrentView('users');
+    } else if (path === '/' && isAuthenticated) {
+      navigate('/dashboard', { replace: true });
+    }
+  }, [location.pathname, isAuthenticated, navigate, currentView]);
+
+  // Sync currentView with route
+  useEffect(() => {
+    if (currentView === 'dashboard' && location.pathname !== '/dashboard') {
+      navigate('/dashboard', { replace: true });
+    } else if (currentView === 'templates' && location.pathname !== '/templates') {
+      navigate('/templates', { replace: true });
+    } else if (currentView === 'clients' && location.pathname !== '/clients') {
+      navigate('/clients', { replace: true });
+    } else if (currentView === 'users' && location.pathname !== '/users') {
+      navigate('/users', { replace: true });
+    }
+  }, [currentView, navigate, location.pathname]);
 
   useEffect(() => {
     // Check if Firebase is available
@@ -353,19 +385,28 @@ function App() {
       {/* Main Content */}
       <main className="max-w-7xl mx-auto px-3 sm:px-4 md:px-6 lg:px-8 py-3 sm:py-4 md:py-6 lg:py-8">
         <div className="animate-fade-in">
-          {currentView === 'dashboard' && <Dashboard onNavigate={setCurrentView} />}
-          {currentView === 'templates' && <Templates />}
-          {currentView === 'clients' && <Clients />}
-          {currentView === 'users' && currentUserRole === 'admin' && <Users />}
-          {currentView === 'users' && currentUserRole !== 'admin' && (
-            <div className="flex items-center justify-center h-64">
-              <div className="text-center">
-                <Shield className="w-16 h-16 text-red-500 mx-auto mb-4" />
-                <h2 className="text-2xl font-bold text-gray-900 mb-2">{t('users.accessDenied')}</h2>
-                <p className="text-gray-600">{t('users.adminOnly')}</p>
-              </div>
-            </div>
-          )}
+          <Routes>
+            <Route path="/dashboard" element={<Dashboard onNavigate={setCurrentView} />} />
+            <Route path="/templates" element={<Templates />} />
+            <Route path="/clients" element={<Clients />} />
+            <Route 
+              path="/users" 
+              element={
+                currentUserRole === 'admin' ? (
+                  <Users />
+                ) : (
+                  <div className="flex items-center justify-center h-64">
+                    <div className="text-center">
+                      <Shield className="w-16 h-16 text-red-500 mx-auto mb-4" />
+                      <h2 className="text-2xl font-bold text-gray-900 mb-2">{t('users.accessDenied')}</h2>
+                      <p className="text-gray-600">{t('users.adminOnly')}</p>
+                    </div>
+                  </div>
+                )
+              } 
+            />
+            <Route path="/" element={<Navigate to="/dashboard" replace />} />
+          </Routes>
         </div>
       </main>
 
