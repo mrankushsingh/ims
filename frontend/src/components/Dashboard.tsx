@@ -337,11 +337,12 @@ export default function Dashboard({ onNavigate }: DashboardProps) {
     return timeDiff > 0 && timeDiff <= days3;
   });
 
-  // PAGOS: Clients with pending payments
+  // PAGOS: Clients with pending payments or advance payments
   const pagos = clients.filter((client) => {
     const totalFee = client.payment?.totalFee || 0;
     const paidAmount = client.payment?.paidAmount || 0;
-    return totalFee > paidAmount;
+    // Include clients with pending payments (totalFee > paidAmount) or advance payments (paidAmount > totalFee)
+    return totalFee !== paidAmount;
   });
 
   return (
@@ -1524,6 +1525,7 @@ export default function Dashboard({ onNavigate }: DashboardProps) {
                     const totalFee = client.payment?.totalFee || 0;
                     const paidAmount = client.payment?.paidAmount || 0;
                     const remaining = totalFee - paidAmount;
+                    const isAdvancePayment = remaining < 0;
                     return (
                       <div
                         key={client.id}
@@ -1531,20 +1533,38 @@ export default function Dashboard({ onNavigate }: DashboardProps) {
                           setSelectedClient(client);
                           setShowPagosModal(false);
                         }}
-                        className="p-4 border-2 border-amber-200 rounded-xl hover:border-amber-300 hover:shadow-md transition-all cursor-pointer bg-gradient-to-br from-amber-50 to-white"
+                        className={`p-4 border-2 rounded-xl hover:shadow-md transition-all cursor-pointer bg-gradient-to-br ${
+                          isAdvancePayment 
+                            ? 'border-green-200 hover:border-green-300 from-green-50 to-white' 
+                            : 'border-amber-200 hover:border-amber-300 from-amber-50 to-white'
+                        }`}
                       >
                         <div className="flex items-center justify-between">
                           <div className="flex-1">
-                            <h3 className="font-bold text-amber-900 text-lg">{client.first_name} {client.last_name}</h3>
-                            <p className="text-sm text-amber-700 mt-1">{client.case_type || 'No template'}</p>
+                            <h3 className={`font-bold text-lg ${isAdvancePayment ? 'text-green-900' : 'text-amber-900'}`}>
+                              {client.first_name} {client.last_name}
+                            </h3>
+                            <p className={`text-sm mt-1 ${isAdvancePayment ? 'text-green-700' : 'text-amber-700'}`}>
+                              {client.case_type || 'No template'}
+                            </p>
                             {client.phone && (
-                              <p className="text-xs text-amber-600 mt-1">Phone: {client.phone}</p>
+                              <p className={`text-xs mt-1 ${isAdvancePayment ? 'text-green-600' : 'text-amber-600'}`}>
+                                Phone: {client.phone}
+                              </p>
                             )}
-                            <p className="text-xs text-amber-600 mt-2 font-semibold">
-                              Pendiente: €{remaining.toFixed(2)} / Total: €{totalFee.toFixed(2)}
+                            <p className={`text-xs mt-2 font-semibold ${isAdvancePayment ? 'text-green-700' : 'text-amber-600'}`}>
+                              {isAdvancePayment ? (
+                                <>
+                                  Advance Payment: €{Math.abs(remaining).toFixed(2)} / Total: €{totalFee.toFixed(2)} / Paid: €{paidAmount.toFixed(2)}
+                                </>
+                              ) : (
+                                <>
+                                  Pendiente: €{remaining.toFixed(2)} / Total: €{totalFee.toFixed(2)}
+                                </>
+                              )}
                             </p>
                           </div>
-                          <DollarSign className="w-6 h-6 text-amber-600 ml-4" />
+                          <DollarSign className={`w-6 h-6 ml-4 ${isAdvancePayment ? 'text-green-600' : 'text-amber-600'}`} />
                         </div>
                       </div>
                     );
