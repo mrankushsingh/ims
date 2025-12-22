@@ -1559,7 +1559,7 @@ export default function Dashboard({ onNavigate }: DashboardProps) {
                                 </>
                               ) : (
                                 <>
-                                  Pendiente: €{remaining.toFixed(2)} / Total: €{totalFee.toFixed(2)}
+                                  Remaining Payment: €{remaining.toFixed(2)} / Total: €{totalFee.toFixed(2)}
                                 </>
                               )}
                             </p>
