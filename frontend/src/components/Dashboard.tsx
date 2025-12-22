@@ -358,6 +358,23 @@ export default function Dashboard({ onNavigate }: DashboardProps) {
     return acc;
   }, { advance: 0, pending: 0 });
 
+  // Calculate overall payment statistics (all clients)
+  const overallPaymentStats = clients.reduce((acc, client) => {
+    const totalFee = client.payment?.totalFee || 0;
+    const paidAmount = client.payment?.paidAmount || 0;
+    const remaining = totalFee - paidAmount;
+    if (remaining < 0) {
+      acc.totalAdvance += Math.abs(remaining);
+      acc.advanceCount++;
+    } else if (remaining > 0) {
+      acc.totalDue += remaining;
+      acc.dueCount++;
+    } else {
+      acc.noDueCount++;
+    }
+    return acc;
+  }, { totalDue: 0, totalAdvance: 0, dueCount: 0, advanceCount: 0, noDueCount: 0 });
+
   return (
     <div className="space-y-8 animate-fade-in">
       <div className="border-b border-amber-200/50 pb-4 sm:pb-6">
@@ -1420,6 +1437,34 @@ export default function Dashboard({ onNavigate }: DashboardProps) {
               </div>
             </div>
             <div className="flex-1 overflow-y-auto p-6">
+              {/* Payment Statistics Summary */}
+              <div className="mb-6 grid grid-cols-1 sm:grid-cols-3 gap-4">
+                <div className="bg-amber-50 border-2 border-amber-200 rounded-xl p-4">
+                  <div className="flex items-center gap-2 mb-2">
+                    <div className="w-3 h-3 rounded-full bg-amber-500"></div>
+                    <h3 className="text-sm font-semibold text-amber-900">Total Due</h3>
+                  </div>
+                  <p className="text-2xl font-bold text-amber-800">€{overallPaymentStats.totalDue.toFixed(2)}</p>
+                  <p className="text-xs text-amber-600 mt-1">{overallPaymentStats.dueCount} {overallPaymentStats.dueCount === 1 ? 'client' : 'clients'}</p>
+                </div>
+                <div className="bg-green-50 border-2 border-green-200 rounded-xl p-4">
+                  <div className="flex items-center gap-2 mb-2">
+                    <div className="w-3 h-3 rounded-full bg-green-500"></div>
+                    <h3 className="text-sm font-semibold text-green-900">Total Advance</h3>
+                  </div>
+                  <p className="text-2xl font-bold text-green-800">€{overallPaymentStats.totalAdvance.toFixed(2)}</p>
+                  <p className="text-xs text-green-600 mt-1">{overallPaymentStats.advanceCount} {overallPaymentStats.advanceCount === 1 ? 'client' : 'clients'}</p>
+                </div>
+                <div className="bg-gray-50 border-2 border-gray-200 rounded-xl p-4">
+                  <div className="flex items-center gap-2 mb-2">
+                    <div className="w-3 h-3 rounded-full bg-gray-400"></div>
+                    <h3 className="text-sm font-semibold text-gray-900">No Due</h3>
+                  </div>
+                  <p className="text-2xl font-bold text-gray-800">{overallPaymentStats.noDueCount}</p>
+                  <p className="text-xs text-gray-600 mt-1">{overallPaymentStats.noDueCount === 1 ? 'client' : 'clients'}</p>
+                </div>
+              </div>
+
               {/* Add Payment Button */}
               <div className="mb-4">
                 <button
