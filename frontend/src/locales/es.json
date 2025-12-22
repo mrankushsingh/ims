@@ -87,6 +87,7 @@
     "recordatorioDesc": "Recordatorios y seguimientos de clientes",
     "pagos": "PAGOS",
     "pagosDesc": "Pagos pendientes",
+    "addPayment": "AGREGAR PAGO",
     "aportarDocumentacion": "APORTAR DOCUMENTACIÓN",
     "aportarDocumentacionDesc": "Aportar documentación que falta al expediente"
   },

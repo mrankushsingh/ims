@@ -86,6 +86,7 @@
     "recordatorioDesc": "Client reminders and follow-ups",
     "pagos": "PAYMENTS",
     "pagosDesc": "Pending payments",
+    "addPayment": "ADD Payment",
     "aportarDocumentacion": "ADD DOCUMENTS",
     "aportarDocumentacionDesc": "Add missing documents to the file"
   },

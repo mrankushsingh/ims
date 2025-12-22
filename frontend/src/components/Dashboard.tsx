@@ -48,6 +48,16 @@ export default function Dashboard({ onNavigate }: DashboardProps) {
     isOpen: false,
     reminder: null,
   });
+  const [showPaymentForm, setShowPaymentForm] = useState(false);
+  const [paymentForm, setPaymentForm] = useState({
+    client_name: '',
+    client_surname: '',
+    phone: '',
+    amount_paid: '',
+    total_amount: '',
+    pending_extra: '',
+    notes: '',
+  });
   
   // Explicitly reference modal states to satisfy TypeScript
   void showAportarDocumentacionModal;
@@ -84,6 +94,99 @@ export default function Dashboard({ onNavigate }: DashboardProps) {
     } catch (error: any) {
       setPasscodeError(error.message || 'Failed to verify passcode. Please try again.');
       setPasscodeInput('');
+    }
+  };
+
+  const handleAddPayment = async (e: React.FormEvent) => {
+    e.preventDefault();
+    
+    try {
+      const amountPaid = parseFloat(paymentForm.amount_paid) || 0;
+      const totalAmount = parseFloat(paymentForm.total_amount) || 0;
+      const pendingExtra = parseFloat(paymentForm.pending_extra) || 0;
+      
+      // Calculate final amounts
+      const finalTotalAmount = totalAmount + pendingExtra;
+      const finalPaidAmount = amountPaid + pendingExtra;
+      
+      // Check if client exists (by name and phone)
+      const existingClient = clients.find(
+        (c) => 
+          c.first_name.toLowerCase() === paymentForm.client_name.toLowerCase() &&
+          c.last_name.toLowerCase() === paymentForm.client_surname.toLowerCase() &&
+          (paymentForm.phone ? c.phone === paymentForm.phone : true)
+      );
+      
+      if (existingClient) {
+        // Update existing client's payment
+        const currentPaid = existingClient.payment?.paidAmount || 0;
+        const newPaidAmount = currentPaid + amountPaid + pendingExtra;
+        
+        await api.addPayment(
+          existingClient.id,
+          amountPaid + pendingExtra,
+          'Manual Entry',
+          paymentForm.notes || undefined
+        );
+        
+        // Update total fee if provided
+        if (finalTotalAmount > 0 && finalTotalAmount !== existingClient.payment?.totalFee) {
+          await api.updateClient(existingClient.id, {
+            payment: {
+              ...existingClient.payment,
+              totalFee: finalTotalAmount,
+              paidAmount: newPaidAmount,
+            },
+          });
+        }
+        
+        showToast('Payment added successfully', 'success');
+      } else {
+        // Create new client with payment info
+        const newClient = {
+          first_name: paymentForm.client_name,
+          last_name: paymentForm.client_surname,
+          phone: paymentForm.phone || undefined,
+          payment: {
+            totalFee: finalTotalAmount,
+            paidAmount: finalPaidAmount,
+            payments: [
+              {
+                amount: amountPaid + pendingExtra,
+                date: new Date().toISOString(),
+                method: 'Manual Entry',
+                note: paymentForm.notes || undefined,
+              },
+            ],
+          },
+          required_documents: [],
+          reminder_interval_days: 30,
+          administrative_silence_days: 90,
+          submitted_to_immigration: false,
+          additional_docs_required: false,
+          notes: paymentForm.notes || undefined,
+        };
+        
+        await api.createClient(newClient);
+        showToast('Client and payment created successfully', 'success');
+      }
+      
+      // Reset form
+      setPaymentForm({
+        client_name: '',
+        client_surname: '',
+        phone: '',
+        amount_paid: '',
+        total_amount: '',
+        pending_extra: '',
+        notes: '',
+      });
+      setShowPaymentForm(false);
+      
+      // Reload data
+      await loadData();
+    } catch (error: any) {
+      showToast(error.message || 'Failed to add payment', 'error');
     }
   };
 
@@ -1283,6 +1386,132 @@ export default function Dashboard({ onNavigate }: DashboardProps) {
               </div>
             </div>
             <div className="flex-1 overflow-y-auto p-6">
+              {/* Add Payment Button */}
+              <div className="mb-4">
+                <button
+                  onClick={() => setShowPaymentForm(!showPaymentForm)}
+                  className="w-full sm:w-auto px-4 py-2 bg-green-600 text-white text-sm rounded-lg hover:bg-green-700 transition-colors flex items-center justify-center space-x-2"
+                >
+                  <Plus className="w-4 h-4" />
+                  <span>{t('dashboard.addPayment') || 'ADD Payment'}</span>
+                </button>
+              </div>
+
+              {/* Payment Form */}
+              {showPaymentForm && (
+                <form onSubmit={handleAddPayment} className="mb-6 p-4 bg-green-50 rounded-lg border border-green-200">
+                  <h3 className="text-lg font-semibold text-green-900 mb-4">Add Payment</h3>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">Client Name *</label>
+                      <input
+                        type="text"
+                        required
+                        value={paymentForm.client_name}
+                        onChange={(e) => setPaymentForm({ ...paymentForm, client_name: e.target.value })}
+                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 outline-none"
+                        placeholder="First Name"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">Client Surname *</label>
+                      <input
+                        type="text"
+                        required
+                        value={paymentForm.client_surname}
+                        onChange={(e) => setPaymentForm({ ...paymentForm, client_surname: e.target.value })}
+                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 outline-none"
+                        placeholder="Last Name"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">Phone Number</label>
+                      <input
+                        type="tel"
+                        value={paymentForm.phone}
+                        onChange={(e) => setPaymentForm({ ...paymentForm, phone: e.target.value })}
+                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 outline-none"
+                        placeholder="Phone (optional)"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">Amount Paid (€) *</label>
+                      <input
+                        type="number"
+                        step="0.01"
+                        min="0"
+                        required
+                        value={paymentForm.amount_paid}
+                        onChange={(e) => setPaymentForm({ ...paymentForm, amount_paid: e.target.value })}
+                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 outline-none"
+                        placeholder="0.00"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">Total Amount (€) *</label>
+                      <input
+                        type="number"
+                        step="0.01"
+                        min="0"
+                        required
+                        value={paymentForm.total_amount}
+                        onChange={(e) => setPaymentForm({ ...paymentForm, total_amount: e.target.value })}
+                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 outline-none"
+                        placeholder="0.00"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">Pending or Extra Payment (€)</label>
+                      <input
+                        type="number"
+                        step="0.01"
+                        value={paymentForm.pending_extra}
+                        onChange={(e) => setPaymentForm({ ...paymentForm, pending_extra: e.target.value })}
+                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 outline-none"
+                        placeholder="0.00 (optional)"
+                      />
+                      <p className="text-xs text-gray-500 mt-1">Add pending or extra payment directly</p>
+                    </div>
+                    <div className="sm:col-span-2">
+                      <label className="block text-sm font-medium text-gray-700 mb-1">Notes</label>
+                      <textarea
+                        value={paymentForm.notes}
+                        onChange={(e) => setPaymentForm({ ...paymentForm, notes: e.target.value })}
+                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 outline-none"
+                        rows={3}
+                        placeholder="Additional notes (optional)"
+                      />
+                    </div>
+                  </div>
+                  <div className="flex items-center justify-end space-x-3 mt-4">
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setShowPaymentForm(false);
+                        setPaymentForm({
+                          client_name: '',
+                          client_surname: '',
+                          phone: '',
+                          amount_paid: '',
+                          total_amount: '',
+                          pending_extra: '',
+                          notes: '',
+                        });
+                      }}
+                      className="px-4 py-2 text-gray-700 bg-gray-200 rounded-lg hover:bg-gray-300 transition-colors"
+                    >
+                      Cancel
+                    </button>
+                    <button
+                      type="submit"
+                      className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors"
+                    >
+                      Save Payment
+                    </button>
+                  </div>
+                </form>
+              )}
+
               {pagos.length === 0 ? (
                 <div className="text-center py-12">
                   <DollarSign className="w-16 h-16 mx-auto text-amber-400 mb-4" />
@@ -1308,6 +1537,9 @@ export default function Dashboard({ onNavigate }: DashboardProps) {
                           <div className="flex-1">
                             <h3 className="font-bold text-amber-900 text-lg">{client.first_name} {client.last_name}</h3>
                             <p className="text-sm text-amber-700 mt-1">{client.case_type || 'No template'}</p>
+                            {client.phone && (
+                              <p className="text-xs text-amber-600 mt-1">Phone: {client.phone}</p>
+                            )}
                             <p className="text-xs text-amber-600 mt-2 font-semibold">
                               Pendiente: €{remaining.toFixed(2)} / Total: €{totalFee.toFixed(2)}
                             </p>
