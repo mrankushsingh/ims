@@ -345,6 +345,19 @@ export default function Dashboard({ onNavigate }: DashboardProps) {
     return totalFee !== paidAmount;
   });
 
+  // Calculate payment statistics for color indicators
+  const paymentStats = pagos.reduce((acc, client) => {
+    const totalFee = client.payment?.totalFee || 0;
+    const paidAmount = client.payment?.paidAmount || 0;
+    const remaining = totalFee - paidAmount;
+    if (remaining < 0) {
+      acc.advance++;
+    } else if (remaining > 0) {
+      acc.pending++;
+    }
+    return acc;
+  }, { advance: 0, pending: 0 });
+
   return (
     <div className="space-y-8 animate-fade-in">
       <div className="border-b border-amber-200/50 pb-4 sm:pb-6">
@@ -551,6 +564,26 @@ export default function Dashboard({ onNavigate }: DashboardProps) {
           <p className="text-3xl sm:text-4xl font-bold bg-gradient-to-r from-amber-800 to-amber-600 bg-clip-text text-transparent mb-1 sm:mb-2">
             {paymentsUnlocked ? pagos.length : '🔒'}
           </p>
+          {paymentsUnlocked && pagos.length > 0 && (
+            <div className="flex items-center gap-3 mb-2">
+              {paymentStats.pending > 0 && (
+                <div className="flex items-center gap-1.5">
+                  <div className="w-2.5 h-2.5 rounded-full bg-amber-500"></div>
+                  <span className="text-xs text-amber-700 font-medium">
+                    {paymentStats.pending} Pending
+                  </span>
+                </div>
+              )}
+              {paymentStats.advance > 0 && (
+                <div className="flex items-center gap-1.5">
+                  <div className="w-2.5 h-2.5 rounded-full bg-green-500"></div>
+                  <span className="text-xs text-green-700 font-medium">
+                    {paymentStats.advance} Advance
+                  </span>
+                </div>
+              )}
+            </div>
+          )}
           <p className="text-xs sm:text-sm text-amber-700/70 font-medium leading-relaxed mb-1 sm:mb-2">
             {paymentsUnlocked ? t('dashboard.pagosDesc') : 'Enter passcode to view'}
           </p>
