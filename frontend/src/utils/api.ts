@@ -80,7 +80,10 @@ export const api = {
       headers,
       body: JSON.stringify(data),
     });
-    if (!response.ok) throw new Error('Failed to create client');
+    if (!response.ok) {
+      const error = await response.json().catch(() => ({ error: 'Failed to create client' }));
+      throw new Error(error.error || error.message || 'Failed to create client');
+    }
     return response.json();
   },
 

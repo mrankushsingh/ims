@@ -107,7 +107,6 @@ export default function Dashboard({ onNavigate }: DashboardProps) {
       
       // Calculate final amounts
       const finalTotalAmount = totalAmount + pendingExtra;
-      const finalPaidAmount = amountPaid + pendingExtra;
       
       // Check if client exists (by name and phone)
       const existingClient = clients.find(
@@ -144,30 +143,31 @@ export default function Dashboard({ onNavigate }: DashboardProps) {
       } else {
         // Create new client with payment info
         const newClient = {
-          first_name: paymentForm.client_name,
-          last_name: paymentForm.client_surname,
-          phone: paymentForm.phone || undefined,
-          payment: {
-            totalFee: finalTotalAmount,
-            paidAmount: finalPaidAmount,
-            payments: [
-              {
-                amount: amountPaid + pendingExtra,
-                date: new Date().toISOString(),
-                method: 'Manual Entry',
-                note: paymentForm.notes || undefined,
-              },
-            ],
-          },
-          required_documents: [],
-          reminder_interval_days: 30,
-          administrative_silence_days: 90,
-          submitted_to_immigration: false,
-          additional_docs_required: false,
-          notes: paymentForm.notes || undefined,
+          firstName: paymentForm.client_name.trim(),
+          lastName: paymentForm.client_surname.trim(),
+          phone: paymentForm.phone?.trim() || undefined,
+          totalFee: finalTotalAmount,
         };
         
-        await api.createClient(newClient);
+        const createdClient = await api.createClient(newClient);
+        
+        // Add the payment to the newly created client
+        if (amountPaid + pendingExtra > 0) {
+          await api.addPayment(
+            createdClient.id,
+            amountPaid + pendingExtra,
+            'Manual Entry',
+            paymentForm.notes || undefined
+          );
+        }
+        
+        // Update notes if provided
+        if (paymentForm.notes) {
+          await api.updateClient(createdClient.id, {
+            notes: paymentForm.notes,
+          });
+        }
+        
         showToast('Client and payment created successfully', 'success');
       }
       
