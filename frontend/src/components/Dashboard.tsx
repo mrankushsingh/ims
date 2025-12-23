@@ -455,8 +455,8 @@ export default function Dashboard({ onNavigate }: DashboardProps) {
     return requiredDocs.length > 0 && requiredDocs.some((d: any) => !d.submitted);
   });
   
-  // APORTAR DOCUMENTACIÓN: Clients that have APORTAR DOCUMENTACIÓN documents ONLY
-  // DO NOT show clients with missing required documents - ONLY show clients with aportar_documentacion documents
+  // APORTAR DOCUMENTACIÓN: Clients that have APORTAR DOCUMENTACIÓN documents that are NOT uploaded (missing files)
+  // Only show clients with aportar_documentacion documents that don't have fileUrl
   const aportarDocumentacion = clients.filter((client) => {
     // ONLY check aportar_documentacion field - ignore required_documents completely
     const aportarDocs = client.aportar_documentacion;
@@ -472,9 +472,9 @@ export default function Dashboard({ onNavigate }: DashboardProps) {
       return false;
     }
     
-    // IMPORTANT: Only return true if client has APORTAR DOCUMENTACIÓN documents
-    // Do NOT check required_documents at all - this filter is ONLY for aportar_documentacion
-    return true;
+    // IMPORTANT: Only show clients that have at least one APORTAR DOCUMENTACIÓN document WITHOUT a file (not uploaded)
+    const documentsWithoutFile = validDocs.filter((doc: any) => !doc.fileUrl);
+    return documentsWithoutFile.length > 0;
   });
 
   
