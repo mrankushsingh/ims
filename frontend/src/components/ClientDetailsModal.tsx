@@ -1,8 +1,8 @@
-import { useState, useEffect } from 'react';
-import { X, Upload, CheckCircle, FileText, Download, Trash2, Plus, DollarSign, StickyNote, Archive, XCircle, AlertCircle, Send, Clock, Eye, ToggleLeft, ToggleRight, Calendar, GripVertical } from 'lucide-react';
+import { useState, useEffect, useRef } from 'react';
+import { X, Upload, CheckCircle, FileText, Download, Trash2, Plus, DollarSign, StickyNote, Archive, XCircle, AlertCircle, Send, Clock, Eye, ToggleLeft, ToggleRight, Calendar, GripVertical, Search, Edit2 } from 'lucide-react';
 import JSZip from 'jszip';
 import { api } from '../utils/api';
-import { Client, RequiredDocument, AdditionalDocument, RequestedDocument } from '../types';
+import { Client, RequiredDocument, AdditionalDocument, RequestedDocument, CaseTemplate } from '../types';
 import ConfirmDialog from './ConfirmDialog';
 import { showToast } from './Toast';
 
@@ -47,6 +47,11 @@ export default function ClientDetailsModal({ client, onClose, onSuccess }: Props
   const [justificanteForm, setJustificanteForm] = useState({ name: '', description: '', file: null as File | null });
   const [draggedIndex, setDraggedIndex] = useState<number | null>(null);
   const [dragOverIndex, setDragOverIndex] = useState<number | null>(null);
+  const [templates, setTemplates] = useState<CaseTemplate[]>([]);
+  const [showTemplateDropdown, setShowTemplateDropdown] = useState(false);
+  const [templateSearchQuery, setTemplateSearchQuery] = useState('');
+  const [savingTemplate, setSavingTemplate] = useState(false);
+  const templateDropdownRef = useRef<HTMLDivElement>(null);
   const [confirmDialog, setConfirmDialog] = useState<{
     isOpen: boolean;
     title: string;
@@ -64,7 +69,25 @@ export default function ClientDetailsModal({ client, onClose, onSuccess }: Props
   useEffect(() => {
     loadClient();
     loadCurrentUser();
+    loadTemplates();
   }, [client.id]);
+
+  // Close template dropdown when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (templateDropdownRef.current && !templateDropdownRef.current.contains(event.target as Node)) {
+        setShowTemplateDropdown(false);
+      }
+    };
+
+    if (showTemplateDropdown) {
+      document.addEventListener('mousedown', handleClickOutside);
+    }
+
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, [showTemplateDropdown]);
 
   const loadCurrentUser = async () => {
     try {
@@ -87,6 +110,64 @@ export default function ClientDetailsModal({ client, onClose, onSuccess }: Props
       setClientData(data);
     } catch (error) {
       console.error('Failed to load client:', error);
+    }
+  };
+
+  const loadTemplates = async () => {
+    try {
+      const data = await api.getCaseTemplates();
+      setTemplates(data);
+    } catch (error) {
+      console.error('Failed to load templates:', error);
+    }
+  };
+
+  const filteredTemplates = templates.filter((template) => {
+    if (!templateSearchQuery.trim()) return true;
+    const query = templateSearchQuery.toLowerCase();
+    const name = (template.name || '').toLowerCase();
+    const description = (template.description || '').toLowerCase();
+    
+    return name.startsWith(query) || description.startsWith(query);
+  });
+
+  const selectedTemplate = templates.find(t => t.id === clientData.case_template_id);
+
+  const handleTemplateChange = async (templateId: string) => {
+    setSavingTemplate(true);
+    try {
+      const template = templates.find(t => t.id === templateId);
+      if (!template) {
+        showToast('Template not found', 'error');
+        return;
+      }
+
+      // Update client with new template
+      await api.updateClient(clientData.id, {
+        case_template_id: templateId,
+        case_type: template.name,
+        // Update required documents from template
+        required_documents: template.required_documents.map((doc: any) => ({
+          code: doc.code,
+          name: doc.name,
+          description: doc.description || '',
+          submitted: false,
+          fileUrl: null,
+          uploadedAt: null,
+          isOptional: false,
+        })),
+        reminder_interval_days: template.reminder_interval_days,
+        administrative_silence_days: template.administrative_silence_days,
+      });
+
+      await loadClient();
+      setShowTemplateDropdown(false);
+      setTemplateSearchQuery('');
+      showToast('Template updated successfully', 'success');
+    } catch (error: any) {
+      showToast(error.message || 'Failed to update template', 'error');
+    } finally {
+      setSavingTemplate(false);
     }
   };
 
@@ -906,11 +987,68 @@ export default function ClientDetailsModal({ client, onClose, onSuccess }: Props
       >
         {/* Fixed Header */}
         <div className="flex-shrink-0 flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4 p-6 border-b border-gray-200 bg-gradient-to-r from-gray-50 to-white">
-          <div>
+          <div className="flex-1">
             <h2 className="text-2xl sm:text-3xl font-bold text-gray-900 tracking-tight">
               {clientData.first_name} {clientData.last_name}
             </h2>
-            <p className="text-gray-600 mt-1.5 text-sm sm:text-base font-medium">{clientData.case_type || 'No template assigned'}</p>
+            <div className="mt-1.5 relative" ref={templateDropdownRef}>
+              <div className="flex items-center gap-2">
+                <p className="text-gray-600 text-sm sm:text-base font-medium">
+                  {clientData.case_type || 'No template assigned'}
+                </p>
+                <button
+                  onClick={() => setShowTemplateDropdown(!showTemplateDropdown)}
+                  className="p-1.5 text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded-lg transition-all"
+                  title="Change template"
+                >
+                  <Edit2 className="w-4 h-4" />
+                </button>
+              </div>
+              
+              {showTemplateDropdown && (
+                <div className="absolute top-full left-0 mt-2 w-80 bg-white border-2 border-gray-200 rounded-xl shadow-xl z-50 max-h-96 overflow-hidden">
+                  <div className="p-3 border-b border-gray-200">
+                    <div className="relative">
+                      <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
+                      <input
+                        type="text"
+                        placeholder="Search templates..."
+                        value={templateSearchQuery}
+                        onChange={(e) => setTemplateSearchQuery(e.target.value)}
+                        className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-amber-500 focus:border-amber-500 outline-none text-sm"
+                      />
+                    </div>
+                  </div>
+                  <div className="overflow-y-auto max-h-64">
+                    {filteredTemplates.length === 0 ? (
+                      <div className="p-4 text-center text-gray-500 text-sm">No templates found</div>
+                    ) : (
+                      filteredTemplates.map((template) => {
+                        const isSelected = selectedTemplate?.id === template.id;
+                        return (
+                          <button
+                            key={template.id}
+                            onClick={() => handleTemplateChange(template.id)}
+                            disabled={savingTemplate}
+                            className={`w-full text-left px-4 py-3 hover:bg-amber-50 transition-colors ${
+                              isSelected ? 'bg-amber-100 border-l-4 border-amber-500' : ''
+                            } ${savingTemplate ? 'opacity-50 cursor-not-allowed' : ''}`}
+                          >
+                            <div className="font-semibold text-gray-900 text-sm flex items-center gap-2">
+                              {template.name}
+                              {isSelected && <CheckCircle className="w-4 h-4 text-amber-600" />}
+                            </div>
+                            {template.description && (
+                              <div className="text-xs text-gray-600 mt-1">{template.description}</div>
+                            )}
+                          </button>
+                        );
+                      })
+                    )}
+                  </div>
+                </div>
+              )}
+            </div>
           </div>
           <button
             onClick={onClose}
