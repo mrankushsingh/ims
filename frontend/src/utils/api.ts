@@ -339,13 +339,16 @@ export const api = {
   },
 
   // APORTAR DOCUMENTACIÓN
-  async uploadAportarDocumentacion(clientId: string, name: string, description: string, file: File, userName: string) {
+  async uploadAportarDocumentacion(clientId: string, name: string, description: string, file: File, userName: string, reminder_days?: number) {
     const formData = new FormData();
     formData.append('file', file);
     formData.append('name', name);
     formData.append('userName', userName);
     if (description) {
       formData.append('description', description);
+    }
+    if (reminder_days) {
+      formData.append('reminder_days', reminder_days.toString());
     }
     const token = await (await import('./firebase.js')).getIdToken();
     const headers: HeadersInit = {};
