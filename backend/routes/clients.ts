@@ -882,11 +882,11 @@ async function handleDocumentFileUpload(
     let fileUrl: string;
     
     if (isUsingBucketStorage() && file.buffer) {
-      const ext = extname(file.originalname);
       const uniqueSuffix = `${Date.now()}_${Math.round(Math.random() * 1E9)}`;
+      const ext = extname(file.originalname);
       const name = file.originalname.replace(ext, '').replace(/[^a-zA-Z0-9]/g, '_');
       fileName = `${name}_${uniqueSuffix}${ext}`;
-      fileUrl = await uploadFile(file.buffer, `clients/${req.params.id}/${documentType}/${fileName}`, file.mimetype);
+      fileUrl = await uploadFile(file.buffer, fileName, file.mimetype);
     } else {
       // Use flat structure like Additional Documents (works perfectly)
       fileName = file.filename || file.originalname;
