@@ -3,6 +3,7 @@
   "short_name": "BERLIKU",
   "description": "Immigration Case Management System",
   "start_url": "/",
+  "scope": "/",
   "display": "standalone",
   "background_color": "#ffffff",
   "theme_color": "#F59E0B",
@@ -12,23 +13,21 @@
       "src": "/logo_AB.svg",
       "sizes": "any",
       "type": "image/svg+xml",
-      "purpose": "any maskable"
+      "purpose": "any"
     },
     {
-      "src": "/icon-192.png",
+      "src": "/logo_AB.svg",
       "sizes": "192x192",
-      "type": "image/png",
+      "type": "image/svg+xml",
       "purpose": "any maskable"
     },
     {
-      "src": "/icon-512.png",
+      "src": "/logo_AB.svg",
       "sizes": "512x512",
-      "type": "image/png",
+      "type": "image/svg+xml",
       "purpose": "any maskable"
     }
   ],
-  "categories": ["business", "productivity"],
-  "screenshots": [],
-  "shortcuts": []
+  "categories": ["business", "productivity"]
 }
 
