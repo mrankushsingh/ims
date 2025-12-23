@@ -439,11 +439,10 @@ export default function Dashboard({ onNavigate }: DashboardProps) {
     return requiredDocs.length > 0 && requiredDocs.some((d: any) => !d.submitted);
   });
   
-  // APORTAR DOCUMENTACIÓN: Clients that need to add missing documents (not submitted, has missing required docs)
+  // APORTAR DOCUMENTACIÓN: Clients that have documents in their APORTAR DOCUMENTACIÓN section
   const aportarDocumentacion = clients.filter((client) => {
-    if (client.submitted_to_immigration) return false;
-    const requiredDocs = client.required_documents?.filter((d: any) => !d.isOptional) || [];
-    return requiredDocs.length > 0 && requiredDocs.some((d: any) => !d.submitted);
+    const aportarDocs = client.aportar_documentacion || [];
+    return aportarDocs.length > 0;
   });
   
   // REQUERIMIENTO: Clients with pending requested documents (submitted clients with pending requested docs)
