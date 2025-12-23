@@ -2613,7 +2613,7 @@ export default function ClientDetailsModal({ client, onClose, onSuccess }: Props
                       ) : (
                         <p className="text-xs text-amber-600 font-medium">File not uploaded yet</p>
                       )}
-                      {doc.reminder_days && (
+                      {!doc.fileUrl && doc.reminder_days && (
                         <p className="text-xs text-blue-600 mt-1 flex items-center space-x-1">
                           <Clock className="w-3 h-3" />
                           <span>Reminder: {doc.reminder_days} days</span>
@@ -2642,6 +2642,33 @@ export default function ClientDetailsModal({ client, onClose, onSuccess }: Props
                           >
                             <Download className="w-4 h-4" />
                           </button>
+                          <label className="cursor-pointer">
+                            <input
+                              type="file"
+                              className="hidden"
+                              onChange={async (e) => {
+                                const file = e.target.files?.[0];
+                                if (file && currentUserName) {
+                                  setUploading('additional');
+                                  try {
+                                    await api.uploadAdditionalDocumentFile(client.id, doc.id, file, currentUserName);
+                                    await loadClient();
+                                    onSuccess();
+                                    showToast('File re-uploaded successfully', 'success');
+                                  } catch (error: any) {
+                                    showToast(error.message || 'Failed to re-upload file', 'error');
+                                  } finally {
+                                    setUploading(null);
+                                  }
+                                }
+                              }}
+                              disabled={uploading === 'additional'}
+                            />
+                            <div className="px-3 py-2 text-xs font-medium text-purple-600 hover:text-purple-700 hover:bg-purple-50 rounded-lg transition-colors border border-purple-200 hover:border-purple-300">
+                              <Upload className="w-4 h-4 inline mr-1" />
+                              Re-upload
+                            </div>
+                          </label>
                         </>
                       ) : (
                         <label className="cursor-pointer">
@@ -2827,7 +2854,7 @@ export default function ClientDetailsModal({ client, onClose, onSuccess }: Props
                       ) : (
                         <p className="text-xs text-amber-600 font-medium">File not uploaded yet</p>
                       )}
-                      {doc.reminder_days && (
+                      {!doc.fileUrl && doc.reminder_days && (
                         <p className="text-xs text-blue-600 mt-1 flex items-center space-x-1">
                           <Clock className="w-3 h-3" />
                           <span>Reminder: {doc.reminder_days} days</span>
@@ -2856,6 +2883,33 @@ export default function ClientDetailsModal({ client, onClose, onSuccess }: Props
                           >
                             <Download className="w-4 h-4" />
                           </button>
+                          <label className="cursor-pointer">
+                            <input
+                              type="file"
+                              className="hidden"
+                              onChange={async (e) => {
+                                const file = e.target.files?.[0];
+                                if (file && currentUserName) {
+                                  setUploading('additional');
+                                  try {
+                                    await api.uploadAdditionalDocumentFile(client.id, doc.id, file, currentUserName);
+                                    await loadClient();
+                                    onSuccess();
+                                    showToast('File re-uploaded successfully', 'success');
+                                  } catch (error: any) {
+                                    showToast(error.message || 'Failed to re-upload file', 'error');
+                                  } finally {
+                                    setUploading(null);
+                                  }
+                                }
+                              }}
+                              disabled={uploading === 'additional'}
+                            />
+                            <div className="px-3 py-2 text-xs font-medium text-purple-600 hover:text-purple-700 hover:bg-purple-50 rounded-lg transition-colors border border-purple-200 hover:border-purple-300">
+                              <Upload className="w-4 h-4 inline mr-1" />
+                              Re-upload
+                            </div>
+                          </label>
                         </>
                       ) : (
                         <label className="cursor-pointer">
@@ -3030,7 +3084,7 @@ export default function ClientDetailsModal({ client, onClose, onSuccess }: Props
                       ) : (
                         <p className="text-xs text-amber-600 font-medium">File not uploaded yet</p>
                       )}
-                      {doc.reminder_days && (
+                      {!doc.fileUrl && doc.reminder_days && (
                         <p className="text-xs text-blue-600 mt-1 flex items-center space-x-1">
                           <Clock className="w-3 h-3" />
                           <span>Reminder: {doc.reminder_days} days</span>
@@ -3059,6 +3113,33 @@ export default function ClientDetailsModal({ client, onClose, onSuccess }: Props
                           >
                             <Download className="w-4 h-4" />
                           </button>
+                          <label className="cursor-pointer">
+                            <input
+                              type="file"
+                              className="hidden"
+                              onChange={async (e) => {
+                                const file = e.target.files?.[0];
+                                if (file && currentUserName) {
+                                  setUploading('aportar');
+                                  try {
+                                    await api.uploadAportarDocumentacionFile(client.id, doc.id, file, currentUserName);
+                                    await loadClient();
+                                    onSuccess();
+                                    showToast('File re-uploaded successfully', 'success');
+                                  } catch (error: any) {
+                                    showToast(error.message || 'Failed to re-upload file', 'error');
+                                  } finally {
+                                    setUploading(null);
+                                  }
+                                }
+                              }}
+                              disabled={uploading === 'aportar'}
+                            />
+                            <div className="px-3 py-2 text-xs font-medium text-blue-600 hover:text-blue-700 hover:bg-blue-50 rounded-lg transition-colors border border-blue-200 hover:border-blue-300">
+                              <Upload className="w-4 h-4 inline mr-1" />
+                              Re-upload
+                            </div>
+                          </label>
                         </>
                       ) : (
                         <label className="cursor-pointer">
@@ -3244,7 +3325,7 @@ export default function ClientDetailsModal({ client, onClose, onSuccess }: Props
                       ) : (
                         <p className="text-xs text-amber-600 font-medium">File not uploaded yet</p>
                       )}
-                      {doc.reminder_days && (
+                      {!doc.fileUrl && doc.reminder_days && (
                         <p className="text-xs text-blue-600 mt-1 flex items-center space-x-1">
                           <Clock className="w-3 h-3" />
                           <span>Reminder: {doc.reminder_days} days</span>
@@ -3273,6 +3354,33 @@ export default function ClientDetailsModal({ client, onClose, onSuccess }: Props
                           >
                             <Download className="w-4 h-4" />
                           </button>
+                          <label className="cursor-pointer">
+                            <input
+                              type="file"
+                              className="hidden"
+                              onChange={async (e) => {
+                                const file = e.target.files?.[0];
+                                if (file && currentUserName) {
+                                  setUploading('requerimiento');
+                                  try {
+                                    await api.uploadRequerimientoFile(client.id, doc.id, file, currentUserName);
+                                    await loadClient();
+                                    onSuccess();
+                                    showToast('File re-uploaded successfully', 'success');
+                                  } catch (error: any) {
+                                    showToast(error.message || 'Failed to re-upload file', 'error');
+                                  } finally {
+                                    setUploading(null);
+                                  }
+                                }
+                              }}
+                              disabled={uploading === 'requerimiento'}
+                            />
+                            <div className="px-3 py-2 text-xs font-medium text-amber-600 hover:text-amber-700 hover:bg-amber-50 rounded-lg transition-colors border border-amber-200 hover:border-amber-300">
+                              <Upload className="w-4 h-4 inline mr-1" />
+                              Re-upload
+                            </div>
+                          </label>
                         </>
                       ) : (
                         <label className="cursor-pointer">
@@ -3458,7 +3566,7 @@ export default function ClientDetailsModal({ client, onClose, onSuccess }: Props
                       ) : (
                         <p className="text-xs text-amber-600 font-medium">File not uploaded yet</p>
                       )}
-                      {doc.reminder_days && (
+                      {!doc.fileUrl && doc.reminder_days && (
                         <p className="text-xs text-blue-600 mt-1 flex items-center space-x-1">
                           <Clock className="w-3 h-3" />
                           <span>Reminder: {doc.reminder_days} days</span>
@@ -3487,6 +3595,33 @@ export default function ClientDetailsModal({ client, onClose, onSuccess }: Props
                           >
                             <Download className="w-4 h-4" />
                           </button>
+                          <label className="cursor-pointer">
+                            <input
+                              type="file"
+                              className="hidden"
+                              onChange={async (e) => {
+                                const file = e.target.files?.[0];
+                                if (file && currentUserName) {
+                                  setUploading('resolucion');
+                                  try {
+                                    await api.uploadResolucionFile(client.id, doc.id, file, currentUserName);
+                                    await loadClient();
+                                    onSuccess();
+                                    showToast('File re-uploaded successfully', 'success');
+                                  } catch (error: any) {
+                                    showToast(error.message || 'Failed to re-upload file', 'error');
+                                  } finally {
+                                    setUploading(null);
+                                  }
+                                }
+                              }}
+                              disabled={uploading === 'resolucion'}
+                            />
+                            <div className="px-3 py-2 text-xs font-medium text-green-600 hover:text-green-700 hover:bg-green-50 rounded-lg transition-colors border border-green-200 hover:border-green-300">
+                              <Upload className="w-4 h-4 inline mr-1" />
+                              Re-upload
+                            </div>
+                          </label>
                         </>
                       ) : (
                         <label className="cursor-pointer">
