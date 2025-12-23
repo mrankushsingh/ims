@@ -728,7 +728,7 @@ class DatabaseAdapter {
       for (const [key, value] of Object.entries(fields)) {
         if (value !== undefined) {
           updates.push(`${key} = $${paramCount++}`);
-          if (['required_documents', 'payment', 'notifications', 'additional_documents', 'requested_documents', 'aportar_documentacion', 'requerimiento', 'resolucion'].includes(key)) {
+          if (['required_documents', 'payment', 'notifications', 'additional_documents', 'requested_documents', 'aportar_documentacion', 'requerimiento', 'resolucion', 'justificante_presentacion'].includes(key)) {
             values.push(JSON.stringify(value));
           } else {
             values.push(value);
