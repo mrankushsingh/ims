@@ -38,12 +38,17 @@ export default function Dashboard({ onNavigate }: DashboardProps) {
     notes: '',
   });
   const [showRequerimientoReminderForm, setShowRequerimientoReminderForm] = useState(false);
+  const [editingRequerimientoReminder, setEditingRequerimientoReminder] = useState<Reminder | null>(null);
   const [requerimientoReminderForm, setRequerimientoReminderForm] = useState({
     client_name: '',
     client_surname: '',
     phone: '',
     reminder_date: '',
     notes: '',
+  });
+  const [deleteRequerimientoConfirm, setDeleteRequerimientoConfirm] = useState<{ reminder: Reminder | null; isOpen: boolean }>({
+    reminder: null,
+    isOpen: false,
   });
   const [paymentsUnlocked, setPaymentsUnlocked] = useState(false);
   const [showPasscodeModal, setShowPasscodeModal] = useState(false);
@@ -881,8 +886,13 @@ export default function Dashboard({ onNavigate }: DashboardProps) {
                         reminder_type: 'REQUERIMIENTO', // Mark as REQUERIMIENTO reminder
                       };
 
-                      await api.createReminder(reminderData);
-                      showToast('Recordatorio creado exitosamente', 'success');
+                      if (editingRequerimientoReminder) {
+                        await api.updateReminder(editingRequerimientoReminder.id, reminderData);
+                        showToast('Recordatorio actualizado exitosamente', 'success');
+                      } else {
+                        await api.createReminder(reminderData);
+                        showToast('Recordatorio creado exitosamente', 'success');
+                      }
                       
                       // Reset form
                       setRequerimientoReminderForm({
@@ -892,6 +902,7 @@ export default function Dashboard({ onNavigate }: DashboardProps) {
                         reminder_date: '',
                         notes: '',
                       });
+                      setEditingRequerimientoReminder(null);
                       setShowRequerimientoReminderForm(false);
                       
                       // Reload data
@@ -902,7 +913,9 @@ export default function Dashboard({ onNavigate }: DashboardProps) {
                   }}
                   className="mb-6 p-4 bg-amber-50 rounded-lg border border-amber-200"
                 >
-                  <h3 className="text-lg font-semibold text-amber-900 mb-4">REQUERIMIENTO</h3>
+                  <h3 className="text-lg font-semibold text-amber-900 mb-4">
+                    {editingRequerimientoReminder ? 'Editar REQUERIMIENTO' : 'Nuevo REQUERIMIENTO'}
+                  </h3>
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <div>
                       <label className="block text-sm font-medium text-gray-700 mb-1">Nombre *</label>
@@ -963,6 +976,7 @@ export default function Dashboard({ onNavigate }: DashboardProps) {
                       type="button"
                       onClick={() => {
                         setShowRequerimientoReminderForm(false);
+                        setEditingRequerimientoReminder(null);
                         setRequerimientoReminderForm({
                           client_name: '',
                           client_surname: '',
@@ -995,26 +1009,7 @@ export default function Dashboard({ onNavigate }: DashboardProps) {
                       return (
                         <div
                           key={reminder.id}
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            setShowRequerimientoModal(false);
-                            setShowRecordatorioModal(true);
-                            setEditingReminder(reminder);
-                            const dateStr = reminder.reminder_date;
-                            const date = new Date(dateStr);
-                            const localDate = new Date(date.getTime() - date.getTimezoneOffset() * 60000);
-                            const formattedDate = localDate.toISOString().slice(0, 16);
-                            setReminderForm({
-                              client_id: reminder.client_id || '',
-                              client_name: reminder.client_name || '',
-                              client_surname: reminder.client_surname || '',
-                              phone: reminder.phone || '',
-                              reminder_date: formattedDate,
-                              notes: reminder.notes || '',
-                            });
-                            setShowReminderForm(true);
-                          }}
-                          className="p-4 border-2 border-amber-300 rounded-xl hover:border-amber-400 hover:shadow-md transition-all cursor-pointer bg-gradient-to-br from-amber-100 to-white"
+                          className="p-4 border-2 border-amber-300 rounded-xl hover:border-amber-400 hover:shadow-md transition-all bg-gradient-to-br from-amber-100 to-white"
                         >
                           <div className="flex items-center justify-between">
                             <div className="flex-1">
@@ -1038,7 +1033,40 @@ export default function Dashboard({ onNavigate }: DashboardProps) {
                                 <p className="text-xs text-amber-600 mt-1">Notas: {reminder.notes}</p>
                               )}
                             </div>
-                            <Bell className="w-6 h-6 text-amber-600 ml-4" />
+                            <div className="flex items-center gap-2 ml-4">
+                              <button
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  setEditingRequerimientoReminder(reminder);
+                                  const dateStr = reminder.reminder_date;
+                                  const date = new Date(dateStr);
+                                  const localDate = new Date(date.getTime() - date.getTimezoneOffset() * 60000);
+                                  const formattedDate = localDate.toISOString().slice(0, 16);
+                                  setRequerimientoReminderForm({
+                                    client_name: reminder.client_name || '',
+                                    client_surname: reminder.client_surname || '',
+                                    phone: reminder.phone || '',
+                                    reminder_date: formattedDate,
+                                    notes: reminder.notes || '',
+                                  });
+                                  setShowRequerimientoReminderForm(true);
+                                }}
+                                className="p-2 text-amber-700 hover:bg-amber-200 rounded-lg transition-colors"
+                                title="Editar"
+                              >
+                                <Edit2 className="w-5 h-5" />
+                              </button>
+                              <button
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  setDeleteRequerimientoConfirm({ reminder, isOpen: true });
+                                }}
+                                className="p-2 text-red-600 hover:bg-red-100 rounded-lg transition-colors"
+                                title="Eliminar"
+                              >
+                                <Trash2 className="w-5 h-5" />
+                              </button>
+                            </div>
                           </div>
                         </div>
                       );
@@ -2363,6 +2391,29 @@ export default function Dashboard({ onNavigate }: DashboardProps) {
         onCancel={() => {
           setDeleteConfirm({ isOpen: false, reminder: null });
         }}
+      />
+
+      {/* Delete Confirmation Dialog for REQUERIMIENTO Reminders */}
+      <ConfirmDialog
+        isOpen={deleteRequerimientoConfirm.isOpen}
+        title="Eliminar Recordatorio"
+        message={deleteRequerimientoConfirm.reminder ? `¿Estás seguro de que deseas eliminar el recordatorio de ${deleteRequerimientoConfirm.reminder.client_name} ${deleteRequerimientoConfirm.reminder.client_surname}?` : ''}
+        confirmText="Eliminar"
+        cancelText="Cancelar"
+        type="danger"
+        onConfirm={async () => {
+          if (deleteRequerimientoConfirm.reminder) {
+            try {
+              await api.deleteReminder(deleteRequerimientoConfirm.reminder.id);
+              showToast('Recordatorio eliminado exitosamente', 'success');
+              setDeleteRequerimientoConfirm({ reminder: null, isOpen: false });
+              await loadData();
+            } catch (error: any) {
+              showToast(error.message || 'Error al eliminar recordatorio', 'error');
+            }
+          }
+        }}
+        onCancel={() => setDeleteRequerimientoConfirm({ reminder: null, isOpen: false })}
       />
     </div>
   );
