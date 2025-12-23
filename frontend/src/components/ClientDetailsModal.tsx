@@ -52,6 +52,15 @@ export default function ClientDetailsModal({ client, onClose, onSuccess }: Props
   const [templateSearchQuery, setTemplateSearchQuery] = useState('');
   const [savingTemplate, setSavingTemplate] = useState(false);
   const templateDropdownRef = useRef<HTMLDivElement>(null);
+  const [editingClientInfo, setEditingClientInfo] = useState(false);
+  const [savingClientInfo, setSavingClientInfo] = useState(false);
+  const [clientInfoForm, setClientInfoForm] = useState({
+    first_name: '',
+    last_name: '',
+    email: '',
+    phone: '',
+    parent_name: '',
+  });
   const [confirmDialog, setConfirmDialog] = useState<{
     isOpen: boolean;
     title: string;
@@ -102,7 +111,14 @@ export default function ClientDetailsModal({ client, onClose, onSuccess }: Props
     setNotes(clientData.notes || '');
     setDetails(clientData.details || '');
     setCustomReminderDate(clientData.custom_reminder_date || '');
-  }, [clientData.notes, clientData.details, clientData.custom_reminder_date]);
+    setClientInfoForm({
+      first_name: clientData.first_name || '',
+      last_name: clientData.last_name || '',
+      email: clientData.email || '',
+      phone: clientData.phone || '',
+      parent_name: clientData.parent_name || '',
+    });
+  }, [clientData.notes, clientData.details, clientData.custom_reminder_date, clientData.first_name, clientData.last_name, clientData.email, clientData.phone, clientData.parent_name]);
 
   const loadClient = async () => {
     try {
@@ -168,6 +184,32 @@ export default function ClientDetailsModal({ client, onClose, onSuccess }: Props
       showToast(error.message || 'Failed to update template', 'error');
     } finally {
       setSavingTemplate(false);
+    }
+  };
+
+  const handleSaveClientInfo = async () => {
+    if (!clientInfoForm.first_name.trim() || !clientInfoForm.last_name.trim()) {
+      showToast('First name and last name are required', 'error');
+      return;
+    }
+
+    setSavingClientInfo(true);
+    try {
+      await api.updateClient(clientData.id, {
+        first_name: clientInfoForm.first_name.trim(),
+        last_name: clientInfoForm.last_name.trim(),
+        email: clientInfoForm.email.trim() || undefined,
+        phone: clientInfoForm.phone.trim() || undefined,
+        parent_name: clientInfoForm.parent_name.trim() || undefined,
+      });
+
+      await loadClient();
+      setEditingClientInfo(false);
+      showToast('Client information updated successfully', 'success');
+    } catch (error: any) {
+      showToast(error.message || 'Failed to update client information', 'error');
+    } finally {
+      setSavingClientInfo(false);
     }
   };
 
@@ -1358,54 +1400,152 @@ export default function ClientDetailsModal({ client, onClose, onSuccess }: Props
 
         {/* Client Information */}
         <div className="mb-6 p-5 bg-gradient-to-br from-gray-50 to-white rounded-xl border border-gray-200 shadow-sm">
-          <h3 className="text-lg font-bold text-gray-900 mb-4 flex items-center space-x-2">
-            <div className="w-1 h-6 bg-gradient-to-b from-blue-600 to-indigo-600 rounded-full"></div>
-            <span>Client Information</span>
-          </h3>
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-sm mb-4">
-            <div>
-              <span className="text-gray-600">Email:</span>
-              <span className="ml-2 text-gray-900">{clientData.email || 'N/A'}</span>
-            </div>
-            <div>
-              <span className="text-gray-600">Phone:</span>
-              <span className="ml-2 text-gray-900">{clientData.phone || 'N/A'}</span>
-            </div>
-            <div>
-              <span className="text-gray-600">Parent Name:</span>
-              <span className="ml-2 text-gray-900">{clientData.parent_name || 'N/A'}</span>
-            </div>
-            <div>
-              <span className="text-gray-600">Payment:</span>
-              <span className="ml-2 text-gray-900">
-                €{clientData.payment?.paidAmount || 0} / €{clientData.payment?.totalFee || 0}
-              </span>
-            </div>
-            <div>
-              <span className="text-gray-600">Documents Status:</span>
-              <div className="ml-2 inline-flex items-center space-x-2">
-                <span className="text-gray-900 font-semibold">
-                  {clientData.required_documents?.filter((d: any) => d.submitted).length || 0} / {clientData.required_documents?.length || 0}
-                </span>
-                {clientData.required_documents && clientData.required_documents.length > 0 && (
-                  <>
-                    <span className="text-emerald-600 text-xs font-medium flex items-center space-x-1">
-                      <CheckCircle className="w-3.5 h-3.5" />
-                      <span>{clientData.required_documents.filter((d: any) => d.submitted).length} submitted</span>
-                    </span>
-                    {clientData.required_documents.filter((d: any) => !d.submitted).length > 0 && (
-                      <span className="text-red-600 text-xs font-medium flex items-center space-x-1">
-                        <XCircle className="w-3.5 h-3.5" />
-                        <span>{clientData.required_documents.filter((d: any) => !d.submitted).length} pending</span>
-                      </span>
-                    )}
-                  </>
-                )}
-              </div>
-            </div>
+          <div className="flex items-center justify-between mb-4">
+            <h3 className="text-lg font-bold text-gray-900 flex items-center space-x-2">
+              <div className="w-1 h-6 bg-gradient-to-b from-blue-600 to-indigo-600 rounded-full"></div>
+              <span>Client Information</span>
+            </h3>
+            {!editingClientInfo && (
+              <button
+                onClick={() => setEditingClientInfo(true)}
+                className="px-3 py-1.5 text-sm bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors flex items-center space-x-2"
+              >
+                <Edit2 className="w-4 h-4" />
+                <span>Edit</span>
+              </button>
+            )}
           </div>
           
-          {/* Client Details Section */}
+          {editingClientInfo ? (
+            <div className="space-y-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">First Name *</label>
+                  <input
+                    type="text"
+                    required
+                    value={clientInfoForm.first_name}
+                    onChange={(e) => setClientInfoForm({ ...clientInfoForm, first_name: e.target.value })}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none"
+                    placeholder="First Name"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Last Name *</label>
+                  <input
+                    type="text"
+                    required
+                    value={clientInfoForm.last_name}
+                    onChange={(e) => setClientInfoForm({ ...clientInfoForm, last_name: e.target.value })}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none"
+                    placeholder="Last Name"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Email</label>
+                  <input
+                    type="email"
+                    value={clientInfoForm.email}
+                    onChange={(e) => setClientInfoForm({ ...clientInfoForm, email: e.target.value })}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none"
+                    placeholder="Email (optional)"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Phone</label>
+                  <input
+                    type="tel"
+                    value={clientInfoForm.phone}
+                    onChange={(e) => setClientInfoForm({ ...clientInfoForm, phone: e.target.value })}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none"
+                    placeholder="Phone (optional)"
+                  />
+                </div>
+                <div className="sm:col-span-2">
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Parent Name</label>
+                  <input
+                    type="text"
+                    value={clientInfoForm.parent_name}
+                    onChange={(e) => setClientInfoForm({ ...clientInfoForm, parent_name: e.target.value })}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none"
+                    placeholder="Parent Name (optional)"
+                  />
+                </div>
+              </div>
+              <div className="flex items-center justify-end space-x-3 pt-2">
+                <button
+                  onClick={() => {
+                    setEditingClientInfo(false);
+                    setClientInfoForm({
+                      first_name: clientData.first_name || '',
+                      last_name: clientData.last_name || '',
+                      email: clientData.email || '',
+                      phone: clientData.phone || '',
+                      parent_name: clientData.parent_name || '',
+                    });
+                  }}
+                  className="px-4 py-2 text-gray-700 bg-gray-200 rounded-lg hover:bg-gray-300 transition-colors"
+                  disabled={savingClientInfo}
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={handleSaveClientInfo}
+                  disabled={savingClientInfo}
+                  className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  {savingClientInfo ? 'Saving...' : 'Save'}
+                </button>
+              </div>
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-sm mb-4">
+              <div>
+                <span className="text-gray-600">Email:</span>
+                <span className="ml-2 text-gray-900">{clientData.email || 'N/A'}</span>
+              </div>
+              <div>
+                <span className="text-gray-600">Phone:</span>
+                <span className="ml-2 text-gray-900">{clientData.phone || 'N/A'}</span>
+              </div>
+              <div>
+                <span className="text-gray-600">Parent Name:</span>
+                <span className="ml-2 text-gray-900">{clientData.parent_name || 'N/A'}</span>
+              </div>
+              <div>
+                <span className="text-gray-600">Payment:</span>
+                <span className="ml-2 text-gray-900">
+                  €{clientData.payment?.paidAmount || 0} / €{clientData.payment?.totalFee || 0}
+                </span>
+              </div>
+              <div>
+                <span className="text-gray-600">Documents Status:</span>
+                <div className="ml-2 inline-flex items-center space-x-2">
+                  <span className="text-gray-900 font-semibold">
+                    {clientData.required_documents?.filter((d: any) => d.submitted).length || 0} / {clientData.required_documents?.length || 0}
+                  </span>
+                  {clientData.required_documents && clientData.required_documents.length > 0 && (
+                    <>
+                      <span className="text-emerald-600 text-xs font-medium flex items-center space-x-1">
+                        <CheckCircle className="w-3.5 h-3.5" />
+                        <span>{clientData.required_documents.filter((d: any) => d.submitted).length} submitted</span>
+                      </span>
+                      {clientData.required_documents.filter((d: any) => !d.submitted).length > 0 && (
+                        <span className="text-red-600 text-xs font-medium flex items-center space-x-1">
+                          <XCircle className="w-3.5 h-3.5" />
+                          <span>{clientData.required_documents.filter((d: any) => !d.submitted).length} pending</span>
+                        </span>
+                      )}
+                    </>
+                  )}
+                </div>
+              </div>
+            </div>
+          )}
+        </div>
+        
+        {/* Client Details Section */}
+        <div className="mb-6 p-5 bg-gradient-to-br from-gray-50 to-white rounded-xl border border-gray-200 shadow-sm">
           <div className="mt-4 pt-4 border-t border-gray-200">
             <div className="flex justify-between items-center mb-2">
               <h4 className="text-sm font-semibold text-gray-700">Client Details</h4>
