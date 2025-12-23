@@ -18,7 +18,6 @@ export default function Dashboard({ onNavigate }: DashboardProps) {
   const [loading, setLoading] = useState(true);
   const [selectedClient, setSelectedClient] = useState<Client | null>(null);
   const [returnToRequerimiento, setReturnToRequerimiento] = useState(false);
-  const [returnToAportarDocumentacion, setReturnToAportarDocumentacion] = useState(false);
   const [showReadyToSubmitModal, setShowReadyToSubmitModal] = useState(false);
   const [showAwaitingModal, setShowAwaitingModal] = useState(false);
   const [showSubmittedModal, setShowSubmittedModal] = useState(false);
@@ -2642,14 +2641,11 @@ export default function Dashboard({ onNavigate }: DashboardProps) {
               setReturnToRequerimiento(false);
               setShowRequerimientoModal(true);
             }
-            // Always reset returnToAportarDocumentacion - never reopen modal automatically
-            setReturnToAportarDocumentacion(false);
+            // APORTAR DOCUMENTACIÓN modal should never reopen automatically
           }}
           onSuccess={async () => {
             await loadData();
-            // Always reset returnToAportarDocumentacion after any success action
-            // This prevents modal from reopening when client details closes
-            setReturnToAportarDocumentacion(false);
+            // APORTAR DOCUMENTACIÓN modal should never reopen automatically after document creation
           }}
         />
       )}
