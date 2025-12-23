@@ -725,7 +725,17 @@ async function handleDocumentUpload(
   documentType: 'aportar_documentacion' | 'requerimiento' | 'resolucion' | 'justificante_presentacion'
 ) {
   try {
-    const { name, description, reminder_days } = req.body;
+    // Parse body - if it's a string (from JSON), parse it
+    let body = req.body;
+    if (typeof body === 'string') {
+      try {
+        body = JSON.parse(body);
+      } catch (e) {
+        // If parsing fails, use as-is
+      }
+    }
+
+    const { name, description, reminder_days } = body;
     if (!name || !name.trim()) {
       return res.status(400).json({ error: 'Document name is required' });
     }
