@@ -21,7 +21,7 @@ router.get('/', async (req: AuthenticatedRequest, res) => {
 // Create a new reminder
 router.post('/', async (req: AuthenticatedRequest, res) => {
   try {
-    const { client_id, client_name, client_surname, phone, reminder_date, notes } = req.body;
+    const { client_id, client_name, client_surname, phone, reminder_date, notes, reminder_type } = req.body;
 
     // client_id is optional (for standalone reminders), but name, surname, and date are required
     if (!client_name || !client_surname || !reminder_date) {
@@ -35,6 +35,7 @@ router.post('/', async (req: AuthenticatedRequest, res) => {
       phone,
       reminder_date,
       notes,
+      reminder_type,
     });
 
     res.status(201).json(reminder);
@@ -47,7 +48,7 @@ router.post('/', async (req: AuthenticatedRequest, res) => {
 router.put('/:id', async (req: AuthenticatedRequest, res) => {
   try {
     const { id } = req.params;
-    const { client_id, client_name, client_surname, phone, reminder_date, notes } = req.body;
+    const { client_id, client_name, client_surname, phone, reminder_date, notes, reminder_type } = req.body;
 
     const updated = await memoryDb.updateReminder(id, {
       client_id,
@@ -56,6 +57,7 @@ router.put('/:id', async (req: AuthenticatedRequest, res) => {
       phone,
       reminder_date,
       notes,
+      reminder_type,
     });
 
     if (!updated) {

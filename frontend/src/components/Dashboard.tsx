@@ -284,6 +284,9 @@ export default function Dashboard({ onNavigate }: DashboardProps) {
     const requestedDocs = client.requested_documents || [];
     return requestedDocs.length > 0 && requestedDocs.some((d: any) => !d.submitted);
   });
+
+  // REQUERIMIENTO Reminders: Reminders created from REQUERIMIENTO box
+  const requerimientoReminders = reminders.filter((reminder) => reminder.reminder_type === 'REQUERIMIENTO');
   
   // RECURSO: Clients that need to file an appeal (placeholder - can be expanded later)
   // For now, this could be clients with expired administrative silence or specific status
@@ -860,6 +863,7 @@ export default function Dashboard({ onNavigate }: DashboardProps) {
                         phone: requerimientoReminderForm.phone.trim() || undefined,
                         reminder_date: reminderDate.toISOString(),
                         notes: requerimientoReminderForm.notes.trim() || undefined,
+                        reminder_type: 'REQUERIMIENTO', // Mark as REQUERIMIENTO reminder
                       };
 
                       await api.createReminder(reminderData);
@@ -966,14 +970,78 @@ export default function Dashboard({ onNavigate }: DashboardProps) {
                 </form>
               )}
 
-              {requerimiento.length === 0 ? (
+              {/* REQUERIMIENTO Reminders */}
+              {requerimientoReminders.length > 0 && (
+                <div className="mb-6">
+                  <h3 className="text-lg font-semibold text-amber-900 mb-3">Recordatorios REQUERIMIENTO</h3>
+                  <div className="space-y-3">
+                    {requerimientoReminders.map((reminder) => {
+                      const reminderDate = new Date(reminder.reminder_date);
+                      return (
+                        <div
+                          key={reminder.id}
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setShowRequerimientoModal(false);
+                            setShowRecordatorioModal(true);
+                            setEditingReminder(reminder);
+                            const dateStr = reminder.reminder_date;
+                            const date = new Date(dateStr);
+                            const localDate = new Date(date.getTime() - date.getTimezoneOffset() * 60000);
+                            const formattedDate = localDate.toISOString().slice(0, 16);
+                            setReminderForm({
+                              client_id: reminder.client_id || '',
+                              client_name: reminder.client_name || '',
+                              client_surname: reminder.client_surname || '',
+                              phone: reminder.phone || '',
+                              reminder_date: formattedDate,
+                              notes: reminder.notes || '',
+                            });
+                            setShowReminderForm(true);
+                          }}
+                          className="p-4 border-2 border-amber-300 rounded-xl hover:border-amber-400 hover:shadow-md transition-all cursor-pointer bg-gradient-to-br from-amber-100 to-white"
+                        >
+                          <div className="flex items-center justify-between">
+                            <div className="flex-1">
+                              <div className="flex items-center gap-2 mb-1">
+                                <span className="px-2 py-0.5 bg-amber-600 text-white text-xs font-semibold rounded">REQUERIMIENTO</span>
+                                <h3 className="font-bold text-amber-900 text-lg">{reminder.client_name} {reminder.client_surname}</h3>
+                              </div>
+                              {reminder.phone && (
+                                <p className="text-sm text-amber-700 mt-1">Teléfono: {reminder.phone}</p>
+                              )}
+                              <p className="text-xs text-amber-600 mt-2">
+                                Fecha: {reminderDate.toLocaleDateString('es-ES', {
+                                  year: 'numeric',
+                                  month: 'long',
+                                  day: 'numeric',
+                                  hour: '2-digit',
+                                  minute: '2-digit',
+                                })}
+                              </p>
+                              {reminder.notes && (
+                                <p className="text-xs text-amber-600 mt-1">Notas: {reminder.notes}</p>
+                              )}
+                            </div>
+                            <Bell className="w-6 h-6 text-amber-600 ml-4" />
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+              )}
+
+              {/* REQUERIMIENTO Clients */}
+              {requerimiento.length === 0 && requerimientoReminders.length === 0 ? (
                 <div className="text-center py-12">
                   <AlertCircle className="w-16 h-16 mx-auto text-amber-400 mb-4" />
                   <p className="text-gray-500 font-medium text-lg">{t('dashboard.allSubmitted')}</p>
                   <p className="text-sm text-gray-400 mt-1">Todos los documentos solicitados han sido proporcionados</p>
                 </div>
-              ) : (
+              ) : requerimiento.length > 0 ? (
                 <div className="space-y-4">
+                  <h3 className="text-lg font-semibold text-amber-900 mb-3">Clientes con Documentos Pendientes</h3>
                   {requerimiento.map((client) => {
                     const pendingDocs = (client.requested_documents || []).filter((d: any) => !d.submitted);
                     return (
@@ -999,7 +1067,7 @@ export default function Dashboard({ onNavigate }: DashboardProps) {
                     );
                   })}
                 </div>
-              )}
+              ) : null}
             </div>
           </div>
         </div>

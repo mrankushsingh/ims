@@ -119,6 +119,7 @@ export interface Reminder {
   phone?: string;
   reminder_date: string; // ISO date string
   notes?: string;
+  reminder_type?: string; // 'REQUERIMIENTO', 'RECORDATORIO', etc.
   created_at: string;
   updated_at: string;
 }
