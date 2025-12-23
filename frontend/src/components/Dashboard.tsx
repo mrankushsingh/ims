@@ -36,6 +36,14 @@ export default function Dashboard({ onNavigate }: DashboardProps) {
     reminder_date: '',
     notes: '',
   });
+  const [showRequerimientoReminderForm, setShowRequerimientoReminderForm] = useState(false);
+  const [requerimientoReminderForm, setRequerimientoReminderForm] = useState({
+    client_name: '',
+    client_surname: '',
+    phone: '',
+    reminder_date: '',
+    notes: '',
+  });
   const [paymentsUnlocked, setPaymentsUnlocked] = useState(false);
   const [showPasscodeModal, setShowPasscodeModal] = useState(false);
   const [passcodeInput, setPasscodeInput] = useState('');
@@ -822,6 +830,142 @@ export default function Dashboard({ onNavigate }: DashboardProps) {
               </div>
             </div>
             <div className="flex-1 overflow-y-auto p-6">
+              {/* Nuevo Recordatorio Button */}
+              <div className="mb-4">
+                <button
+                  onClick={() => setShowRequerimientoReminderForm(!showRequerimientoReminderForm)}
+                  className="w-full sm:w-auto px-4 py-2 bg-amber-600 text-white text-sm rounded-lg hover:bg-amber-700 transition-colors flex items-center justify-center space-x-2"
+                >
+                  <Plus className="w-4 h-4" />
+                  <span>Nuevo Recordatorio</span>
+                </button>
+              </div>
+
+              {/* Nuevo Recordatorio Form */}
+              {showRequerimientoReminderForm && (
+                <form 
+                  onSubmit={async (e) => {
+                    e.preventDefault();
+                    try {
+                      if (!requerimientoReminderForm.client_name.trim() || !requerimientoReminderForm.client_surname.trim() || !requerimientoReminderForm.reminder_date) {
+                        showToast('Nombre, Apellido y Fecha y Hora del Recordatorio son requeridos', 'error');
+                        return;
+                      }
+
+                      const reminderDate = new Date(requerimientoReminderForm.reminder_date);
+                      const reminderData = {
+                        client_id: '', // Optional for standalone reminders
+                        client_name: requerimientoReminderForm.client_name.trim(),
+                        client_surname: requerimientoReminderForm.client_surname.trim(),
+                        phone: requerimientoReminderForm.phone.trim() || undefined,
+                        reminder_date: reminderDate.toISOString(),
+                        notes: requerimientoReminderForm.notes.trim() || undefined,
+                      };
+
+                      await api.createReminder(reminderData);
+                      showToast('Recordatorio creado exitosamente', 'success');
+                      
+                      // Reset form
+                      setRequerimientoReminderForm({
+                        client_name: '',
+                        client_surname: '',
+                        phone: '',
+                        reminder_date: '',
+                        notes: '',
+                      });
+                      setShowRequerimientoReminderForm(false);
+                      
+                      // Reload data
+                      await loadData();
+                    } catch (error: any) {
+                      showToast(error.message || 'Error al crear recordatorio', 'error');
+                    }
+                  }}
+                  className="mb-6 p-4 bg-amber-50 rounded-lg border border-amber-200"
+                >
+                  <h3 className="text-lg font-semibold text-amber-900 mb-4">Nuevo Recordatorio</h3>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">Nombre *</label>
+                      <input
+                        type="text"
+                        required
+                        value={requerimientoReminderForm.client_name}
+                        onChange={(e) => setRequerimientoReminderForm({ ...requerimientoReminderForm, client_name: e.target.value })}
+                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-amber-500 outline-none"
+                        placeholder="Nombre del cliente"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">Apellido *</label>
+                      <input
+                        type="text"
+                        required
+                        value={requerimientoReminderForm.client_surname}
+                        onChange={(e) => setRequerimientoReminderForm({ ...requerimientoReminderForm, client_surname: e.target.value })}
+                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-amber-500 outline-none"
+                        placeholder="Apellido del cliente"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">Teléfono</label>
+                      <input
+                        type="tel"
+                        value={requerimientoReminderForm.phone}
+                        onChange={(e) => setRequerimientoReminderForm({ ...requerimientoReminderForm, phone: e.target.value })}
+                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-amber-500 outline-none"
+                        placeholder="Número de teléfono"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">Fecha y Hora del Recordatorio *</label>
+                      <input
+                        type="datetime-local"
+                        required
+                        value={requerimientoReminderForm.reminder_date}
+                        onChange={(e) => setRequerimientoReminderForm({ ...requerimientoReminderForm, reminder_date: e.target.value })}
+                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-amber-500 outline-none"
+                        placeholder="mm/dd/yyyy --:-- --"
+                      />
+                    </div>
+                    <div className="sm:col-span-2">
+                      <label className="block text-sm font-medium text-gray-700 mb-1">Notas</label>
+                      <textarea
+                        value={requerimientoReminderForm.notes}
+                        onChange={(e) => setRequerimientoReminderForm({ ...requerimientoReminderForm, notes: e.target.value })}
+                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-amber-500 outline-none"
+                        rows={3}
+                        placeholder="Notas adicionales (opcional)"
+                      />
+                    </div>
+                  </div>
+                  <div className="flex items-center justify-end space-x-3 mt-4">
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setShowRequerimientoReminderForm(false);
+                        setRequerimientoReminderForm({
+                          client_name: '',
+                          client_surname: '',
+                          phone: '',
+                          reminder_date: '',
+                          notes: '',
+                        });
+                      }}
+                      className="px-4 py-2 text-gray-700 bg-gray-200 rounded-lg hover:bg-gray-300 transition-colors"
+                    >
+                      Cancelar
+                    </button>
+                    <button
+                      type="submit"
+                      className="px-4 py-2 bg-amber-600 text-white rounded-lg hover:bg-amber-700 transition-colors"
+                    >
+                      Guardar
+                    </button>
+                  </div>
+                </form>
+              )}
+
               {requerimiento.length === 0 ? (
                 <div className="text-center py-12">
                   <AlertCircle className="w-16 h-16 mx-auto text-amber-400 mb-4" />
