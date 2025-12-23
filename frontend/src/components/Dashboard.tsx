@@ -973,7 +973,7 @@ export default function Dashboard({ onNavigate }: DashboardProps) {
               {/* REQUERIMIENTO Reminders */}
               {requerimientoReminders.length > 0 && (
                 <div className="mb-6">
-                  <h3 className="text-lg font-semibold text-amber-900 mb-3">Recordatorios REQUERIMIENTO</h3>
+                  <h3 className="text-lg font-semibold text-amber-900 mb-3">REQUERIMIENTO</h3>
                   <div className="space-y-3">
                     {requerimientoReminders.map((reminder) => {
                       const reminderDate = new Date(reminder.reminder_date);

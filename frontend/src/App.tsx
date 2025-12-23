@@ -152,7 +152,7 @@ function App() {
     } catch (error: any) {
       console.error('Logout error:', error);
       // Still set authenticated to false even if logout fails
-      setIsAuthenticated(false);
+    setIsAuthenticated(false);
       navigate('/', { replace: true });
     }
   };
@@ -448,8 +448,8 @@ function App() {
             />
             <Route path="*" element={
               <>
-                {currentView === 'templates' && <Templates />}
-                {currentView === 'clients' && <Clients />}
+          {currentView === 'templates' && <Templates />}
+          {currentView === 'clients' && <Clients />}
                 {currentView === 'users' && currentUserRole === 'admin' && <Users />}
                 {currentView === 'users' && currentUserRole !== 'admin' && (
                   <div className="flex items-center justify-center h-64">

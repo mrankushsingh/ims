@@ -32,17 +32,17 @@ async function getUserName(req: any): Promise<string> {
 const storage = isUsingBucketStorage()
   ? multer.memoryStorage()
   : multer.diskStorage({
-      destination: (req, file, cb) => {
-        cb(null, memoryDb.getUploadsDir());
-      },
-      filename: (req, file, cb) => {
-        // Generate unique filename: clientId_documentCode_timestamp.ext
-        const uniqueSuffix = `${Date.now()}_${Math.round(Math.random() * 1E9)}`;
-        const ext = extname(file.originalname);
-        const name = file.originalname.replace(ext, '').replace(/[^a-zA-Z0-9]/g, '_');
-        cb(null, `${name}_${uniqueSuffix}${ext}`);
-      }
-    });
+  destination: (req, file, cb) => {
+    cb(null, memoryDb.getUploadsDir());
+  },
+  filename: (req, file, cb) => {
+    // Generate unique filename: clientId_documentCode_timestamp.ext
+    const uniqueSuffix = `${Date.now()}_${Math.round(Math.random() * 1E9)}`;
+    const ext = extname(file.originalname);
+    const name = file.originalname.replace(ext, '').replace(/[^a-zA-Z0-9]/g, '_');
+    cb(null, `${name}_${uniqueSuffix}${ext}`);
+  }
+});
 
 // Allowed file types for uploads
 const ALLOWED_MIME_TYPES = [
@@ -63,7 +63,7 @@ const upload = multer({
   fileFilter: (req, file, cb) => {
     // Validate file type
     if (ALLOWED_MIME_TYPES.includes(file.mimetype)) {
-      cb(null, true);
+    cb(null, true);
     } else {
       cb(new Error(`File type ${file.mimetype} is not allowed. Allowed types: PDF, images, Word, Excel`));
     }
