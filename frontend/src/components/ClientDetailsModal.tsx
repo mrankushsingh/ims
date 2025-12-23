@@ -1988,7 +1988,7 @@ export default function ClientDetailsModal({ client, onClose, onSuccess }: Props
                                 ? 'bg-gray-100 text-gray-700' 
                                 : 'bg-red-100 text-red-700'
                             }`}>
-                              {doc.isOptional ? '○ Optional' : '✗ Pending'}
+                              ✗ Pending
                             </span>
                           )}
                         </div>
