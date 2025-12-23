@@ -453,7 +453,17 @@ export default function Dashboard({ onNavigate }: DashboardProps) {
   const aportarDocumentacion = clients.filter((client) => {
     const aportarDocs = client.aportar_documentacion || [];
     // Show clients that have any APORTAR DOCUMENTACIÓN documents
-    return aportarDocs.length > 0;
+    const hasDocs = aportarDocs.length > 0;
+    if (hasDocs) {
+      console.log(`Client ${client.first_name} ${client.last_name} has ${aportarDocs.length} APORTAR DOCUMENTACIÓN documents:`, aportarDocs);
+    }
+    return hasDocs;
+  });
+  
+  // Debug: Log all clients with APORTAR DOCUMENTACIÓN documents
+  console.log('APORTAR DOCUMENTACIÓN clients count:', aportarDocumentacion.length);
+  aportarDocumentacion.forEach((client) => {
+    console.log(`- ${client.first_name} ${client.last_name}:`, client.aportar_documentacion?.length || 0, 'documents');
   });
 
   
