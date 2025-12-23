@@ -2640,13 +2640,20 @@ export default function Dashboard({ onNavigate }: DashboardProps) {
               setReturnToRequerimiento(false);
               setShowRequerimientoModal(true);
             }
+            // Only reopen APORTAR DOCUMENTACIÓN modal if user explicitly closed client details
+            // Don't reopen if document was just created (reset the flag)
             if (returnToAportarDocumentacion) {
               setReturnToAportarDocumentacion(false);
-              setShowAportarDocumentacionModal(true);
+              // Don't automatically reopen - let user click the box if they want
             }
           }}
           onSuccess={async () => {
             await loadData();
+            // Reset returnToAportarDocumentacion after successful document creation
+            // This prevents modal from reopening when client details closes
+            if (returnToAportarDocumentacion) {
+              setReturnToAportarDocumentacion(false);
+            }
           }}
         />
       )}
