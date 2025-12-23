@@ -713,12 +713,12 @@ export default function Dashboard({ onNavigate }: DashboardProps) {
                             
                             if (!reminderStatus) {
                               return (
-                                <div className="flex items-center space-x-1">
-                                  <Clock className="w-3.5 h-3.5 text-slate-400" />
-                                  <p className="text-xs text-slate-500 font-medium">
+                      <div className="flex items-center space-x-1">
+                        <Clock className="w-3.5 h-3.5 text-slate-400" />
+                        <p className="text-xs text-slate-500 font-medium">
                                     {t('dashboard.interval')}: {client.reminder_interval_days} {t('dashboard.days')}
-                                  </p>
-                                </div>
+                        </p>
+                      </div>
                               );
                             }
                             
@@ -861,29 +861,6 @@ export default function Dashboard({ onNavigate }: DashboardProps) {
               </div>
             </div>
             <div className="flex-1 overflow-y-auto p-6">
-              {/* Nuevo Recordatorio Button */}
-              <div className="mb-4">
-                <button
-                  onClick={() => setShowRequerimientoReminderForm(!showRequerimientoReminderForm)}
-                  className={`w-full sm:w-auto px-4 py-2 text-sm rounded-lg transition-colors flex items-center justify-center space-x-2 ${
-                    showRequerimientoReminderForm 
-                      ? 'bg-gray-200 text-gray-700 hover:bg-gray-300' 
-                      : 'bg-amber-600 text-white hover:bg-amber-700'
-                  }`}
-                >
-                  {showRequerimientoReminderForm ? (
-                    <>
-                      <X className="w-4 h-4" />
-                      <span>Cancelar</span>
-                    </>
-                  ) : (
-                    <>
-                      <Plus className="w-4 h-4" />
-                      <span>REQUERIMIENTO</span>
-                    </>
-                  )}
-                </button>
-              </div>
 
               {/* Nuevo Recordatorio Form */}
               {showRequerimientoReminderForm && (
@@ -1023,7 +1000,6 @@ export default function Dashboard({ onNavigate }: DashboardProps) {
               {/* REQUERIMIENTO Reminders */}
               {requerimientoReminders.length > 0 && (
                 <div className="mb-6">
-                  <h3 className="text-lg font-semibold text-amber-900 mb-3">REQUERIMIENTO</h3>
                   <div className="space-y-3">
                     {requerimientoReminders.map((reminder) => {
                       const reminderDate = new Date(reminder.reminder_date);
@@ -2184,12 +2160,12 @@ export default function Dashboard({ onNavigate }: DashboardProps) {
                             
                             if (!reminderStatus) {
                               return (
-                                <div className="flex items-center space-x-1">
-                                  <Clock className="w-3.5 h-3.5 text-amber-600" />
-                                  <p className="text-xs text-amber-700 font-medium">
+                          <div className="flex items-center space-x-1">
+                            <Clock className="w-3.5 h-3.5 text-amber-600" />
+                            <p className="text-xs text-amber-700 font-medium">
                                     {t('dashboard.interval')}: {client.reminder_interval_days} {t('dashboard.days')}
-                                  </p>
-                                </div>
+                            </p>
+                          </div>
                               );
                             }
                             
