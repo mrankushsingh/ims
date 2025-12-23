@@ -73,7 +73,17 @@ export default function Notifications({ onClientClick, onReminderClick }: Props)
 
   useEffect(() => {
     loadReminders();
-    const interval = setInterval(loadReminders, 60000); // Check every minute
+    // Increase interval to 2 minutes to reduce performance impact
+    // Use requestIdleCallback if available for better performance
+    const interval = setInterval(() => {
+      if ('requestIdleCallback' in window) {
+        requestIdleCallback(() => {
+          loadReminders();
+        }, { timeout: 5000 });
+      } else {
+        loadReminders();
+      }
+    }, 120000); // Check every 2 minutes instead of 1 minute
     return () => clearInterval(interval);
   }, []);
 
