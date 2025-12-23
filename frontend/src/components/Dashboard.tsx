@@ -1076,8 +1076,7 @@ export default function Dashboard({ onNavigate }: DashboardProps) {
                     <h3 className="text-lg font-semibold text-amber-900 mb-3">Clientes con Documentos Pendientes</h3>
                   )}
                   {aportarDocumentacion.map((client) => {
-                    const aportarDocs = client.aportar_documentacion || [];
-                    const pendingDocs = aportarDocs.filter((d: any) => !d.fileUrl);
+                    const missingDocs = (client.required_documents || []).filter((d: any) => !d.submitted && !d.isOptional);
                     return (
                       <div
                         key={client.id}
@@ -1093,8 +1092,7 @@ export default function Dashboard({ onNavigate }: DashboardProps) {
                             <h3 className="font-bold text-amber-900 text-lg">{client.first_name} {client.last_name}</h3>
                             <p className="text-sm text-amber-700 mt-1">{client.case_type || 'No template'}</p>
                             <p className="text-xs text-amber-600 mt-2">
-                              {aportarDocs.length} documento(s) en APORTAR DOCUMENTACIÓN
-                              {pendingDocs.length > 0 && ` (${pendingDocs.length} sin archivo)`}
+                              {missingDocs.length} documento(s) faltante(s): {missingDocs.map((d: any) => d.name).join(', ')}
                             </p>
                           </div>
                           <FilePlus className="w-6 h-6 text-amber-600 ml-4" />
