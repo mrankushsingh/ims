@@ -57,6 +57,7 @@ export default function Dashboard({ onNavigate }: DashboardProps) {
   const [showUrgentesReminderForm, setShowUrgentesReminderForm] = useState(false);
   const [showPagosReminderForm, setShowPagosReminderForm] = useState(false);
   
+  const [editingGenericReminder, setEditingGenericReminder] = useState<Reminder | null>(null);
   const [genericReminderForm, setGenericReminderForm] = useState({
     client_name: '',
     client_surname: '',
@@ -83,8 +84,13 @@ export default function Dashboard({ onNavigate }: DashboardProps) {
         reminder_type: reminderType,
       };
 
-      await api.createReminder(reminderData);
-      showToast('Recordatorio creado exitosamente', 'success');
+      if (editingGenericReminder) {
+        await api.updateReminder(editingGenericReminder.id, reminderData);
+        showToast('Recordatorio actualizado exitosamente', 'success');
+      } else {
+        await api.createReminder(reminderData);
+        showToast('Recordatorio creado exitosamente', 'success');
+      }
       
       // Reset form
       setGenericReminderForm({
@@ -94,6 +100,7 @@ export default function Dashboard({ onNavigate }: DashboardProps) {
         reminder_date: '',
         notes: '',
       });
+      setEditingGenericReminder(null);
       
       // Close form
       setShowAportarReminderForm(false);
@@ -119,7 +126,9 @@ export default function Dashboard({ onNavigate }: DashboardProps) {
         }}
         className="mb-6 p-4 bg-amber-50 rounded-lg border border-amber-200"
       >
-        <h3 className="text-lg font-semibold text-amber-900 mb-4">{title}</h3>
+        <h3 className="text-lg font-semibold text-amber-900 mb-4">
+          {editingGenericReminder ? `Editar ${title}` : title}
+        </h3>
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">Nombre *</label>
@@ -179,6 +188,7 @@ export default function Dashboard({ onNavigate }: DashboardProps) {
             type="button"
             onClick={() => {
               onClose();
+              setEditingGenericReminder(null);
               setGenericReminderForm({
                 client_name: '',
                 client_surname: '',
@@ -444,6 +454,12 @@ export default function Dashboard({ onNavigate }: DashboardProps) {
 
   // REQUERIMIENTO Reminders: Reminders created from REQUERIMIENTO box
   const requerimientoReminders = reminders.filter((reminder) => reminder.reminder_type === 'REQUERIMIENTO');
+  
+  // Filter reminders by type for each modal
+  const aportarReminders = reminders.filter((reminder) => reminder.reminder_type === 'APORTAR_DOCUMENTACION');
+  const recursoReminders = reminders.filter((reminder) => reminder.reminder_type === 'RECURSO');
+  const urgentesReminders = reminders.filter((reminder) => reminder.reminder_type === 'URGENTES');
+  const pagosReminders = reminders.filter((reminder) => reminder.reminder_type === 'PAGOS');
   
   // RECURSO: Clients that need to file an appeal (placeholder - can be expanded later)
   // For now, this could be clients with expired administrative silence or specific status
@@ -926,18 +942,19 @@ export default function Dashboard({ onNavigate }: DashboardProps) {
                 </div>
                 <div className="flex items-center space-x-2">
                   <button
-                    onClick={() => {
-                      setShowAportarReminderForm(!showAportarReminderForm);
-                      if (!showAportarReminderForm) {
-                        setGenericReminderForm({
-                          client_name: '',
-                          client_surname: '',
-                          phone: '',
-                          reminder_date: '',
-                          notes: '',
-                        });
-                      }
-                    }}
+            onClick={() => {
+              setShowAportarReminderForm(!showAportarReminderForm);
+              setEditingGenericReminder(null);
+              if (!showAportarReminderForm) {
+                setGenericReminderForm({
+                  client_name: '',
+                  client_surname: '',
+                  phone: '',
+                  reminder_date: '',
+                  notes: '',
+                });
+              }
+            }}
                     className="p-2 bg-amber-600 text-white rounded-lg hover:bg-amber-700 transition-colors"
                     title="Nuevo Recordatorio"
                   >
@@ -954,7 +971,79 @@ export default function Dashboard({ onNavigate }: DashboardProps) {
             </div>
             <div className="flex-1 overflow-y-auto p-6">
               {renderGenericReminderForm(showAportarReminderForm, () => setShowAportarReminderForm(false), 'APORTAR_DOCUMENTACION', 'Nuevo Recordatorio')}
-              {aportarDocumentacion.length === 0 ? (
+              
+              {/* APORTAR_DOCUMENTACION Reminders */}
+              {aportarReminders.length > 0 && (
+                <div className="mb-6">
+                  <div className="space-y-3">
+                    {aportarReminders.map((reminder) => {
+                      const reminderDate = new Date(reminder.reminder_date);
+                      return (
+                        <div
+                          key={reminder.id}
+                          className="p-4 border-2 border-amber-300 rounded-xl bg-gradient-to-br from-amber-100 to-white"
+                        >
+                          <div className="flex items-center justify-between">
+                            <div className="flex-1">
+                              <div className="flex items-center gap-2 mb-1">
+                                <span className="px-2 py-0.5 bg-amber-600 text-white text-xs font-semibold rounded">APORTAR DOCUMENTACIÓN</span>
+                                <h3 className="font-bold text-amber-900 text-lg">{reminder.client_name} {reminder.client_surname}</h3>
+                              </div>
+                              {reminder.phone && (
+                                <p className="text-sm text-amber-700 mt-1">Teléfono: {reminder.phone}</p>
+                              )}
+                              <p className="text-xs text-amber-600 mt-2">
+                                Fecha: {reminderDate.toLocaleDateString('es-ES', {
+                                  year: 'numeric',
+                                  month: 'long',
+                                  day: 'numeric',
+                                  hour: '2-digit',
+                                  minute: '2-digit',
+                                })}
+                              </p>
+                              {reminder.notes && (
+                                <p className="text-xs text-amber-600 mt-1">Notas: {reminder.notes}</p>
+                              )}
+                            </div>
+                            <div className="flex items-center gap-2 ml-4">
+                              <button
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  setGenericReminderForm({
+                                    client_name: reminder.client_name || '',
+                                    client_surname: reminder.client_surname || '',
+                                    phone: reminder.phone || '',
+                                    reminder_date: new Date(reminder.reminder_date).toISOString().slice(0, 16),
+                                    notes: reminder.notes || '',
+                                  });
+                                  setShowAportarReminderForm(true);
+                                  // TODO: Add edit functionality
+                                }}
+                                className="p-2 text-amber-700 hover:bg-amber-200 rounded-lg transition-colors"
+                                title="Editar"
+                              >
+                                <Edit2 className="w-5 h-5" />
+                              </button>
+                              <button
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  setDeleteRequerimientoConfirm({ reminder, isOpen: true });
+                                }}
+                                className="p-2 text-red-600 hover:bg-red-100 rounded-lg transition-colors"
+                                title="Eliminar"
+                              >
+                                <Trash2 className="w-5 h-5" />
+                              </button>
+                            </div>
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+              )}
+              
+              {aportarDocumentacion.length === 0 && aportarReminders.length === 0 && !showAportarReminderForm ? (
                 <div className="text-center py-12">
                   <FilePlus className="w-16 h-16 mx-auto text-amber-400 mb-4" />
                   <p className="text-gray-500 font-medium text-lg">{t('dashboard.allSubmitted')}</p>
@@ -962,6 +1051,9 @@ export default function Dashboard({ onNavigate }: DashboardProps) {
                 </div>
               ) : (
                 <div className="space-y-4">
+                  {aportarDocumentacion.length > 0 && (
+                    <h3 className="text-lg font-semibold text-amber-900 mb-3">Clientes con Documentos Pendientes</h3>
+                  )}
                   {aportarDocumentacion.map((client) => {
                     const missingDocs = (client.required_documents || []).filter((d: any) => !d.submitted && !d.isOptional);
                     return (
@@ -1298,18 +1390,19 @@ export default function Dashboard({ onNavigate }: DashboardProps) {
                 </div>
                 <div className="flex items-center space-x-2">
                   <button
-                    onClick={() => {
-                      setShowRecursoReminderForm(!showRecursoReminderForm);
-                      if (!showRecursoReminderForm) {
-                        setGenericReminderForm({
-                          client_name: '',
-                          client_surname: '',
-                          phone: '',
-                          reminder_date: '',
-                          notes: '',
-                        });
-                      }
-                    }}
+            onClick={() => {
+              setShowRecursoReminderForm(!showRecursoReminderForm);
+              setEditingGenericReminder(null);
+              if (!showRecursoReminderForm) {
+                setGenericReminderForm({
+                  client_name: '',
+                  client_surname: '',
+                  phone: '',
+                  reminder_date: '',
+                  notes: '',
+                });
+              }
+            }}
                     className="p-2 bg-amber-600 text-white rounded-lg hover:bg-amber-700 transition-colors"
                     title="Nuevo Recordatorio"
                   >
@@ -1326,7 +1419,83 @@ export default function Dashboard({ onNavigate }: DashboardProps) {
             </div>
             <div className="flex-1 overflow-y-auto p-6">
               {renderGenericReminderForm(showRecursoReminderForm, () => setShowRecursoReminderForm(false), 'RECURSO', 'Nuevo Recordatorio')}
-              {recurso.length === 0 ? (
+              
+              {/* RECURSO Reminders */}
+              {recursoReminders.length > 0 && (
+                <div className="mb-6">
+                  <div className="space-y-3">
+                    {recursoReminders.map((reminder) => {
+                      const reminderDate = new Date(reminder.reminder_date);
+                      return (
+                        <div
+                          key={reminder.id}
+                          className="p-4 border-2 border-amber-300 rounded-xl bg-gradient-to-br from-amber-100 to-white"
+                        >
+                          <div className="flex items-center justify-between">
+                            <div className="flex-1">
+                              <div className="flex items-center gap-2 mb-1">
+                                <span className="px-2 py-0.5 bg-amber-600 text-white text-xs font-semibold rounded">RECURSO</span>
+                                <h3 className="font-bold text-amber-900 text-lg">{reminder.client_name} {reminder.client_surname}</h3>
+                              </div>
+                              {reminder.phone && (
+                                <p className="text-sm text-amber-700 mt-1">Teléfono: {reminder.phone}</p>
+                              )}
+                              <p className="text-xs text-amber-600 mt-2">
+                                Fecha: {reminderDate.toLocaleDateString('es-ES', {
+                                  year: 'numeric',
+                                  month: 'long',
+                                  day: 'numeric',
+                                  hour: '2-digit',
+                                  minute: '2-digit',
+                                })}
+                              </p>
+                              {reminder.notes && (
+                                <p className="text-xs text-amber-600 mt-1">Notas: {reminder.notes}</p>
+                              )}
+                            </div>
+                            <div className="flex items-center gap-2 ml-4">
+                              <button
+            onClick={async (e) => {
+              e.stopPropagation();
+              const dateStr = reminder.reminder_date;
+              const date = new Date(dateStr);
+              const localDate = new Date(date.getTime() - date.getTimezoneOffset() * 60000);
+              const formattedDate = localDate.toISOString().slice(0, 16);
+              setEditingGenericReminder(reminder);
+              setGenericReminderForm({
+                client_name: reminder.client_name || '',
+                client_surname: reminder.client_surname || '',
+                phone: reminder.phone || '',
+                reminder_date: formattedDate,
+                notes: reminder.notes || '',
+              });
+              setShowRecursoReminderForm(true);
+            }}
+                                className="p-2 text-amber-700 hover:bg-amber-200 rounded-lg transition-colors"
+                                title="Editar"
+                              >
+                                <Edit2 className="w-5 h-5" />
+                              </button>
+                              <button
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  setDeleteRequerimientoConfirm({ reminder, isOpen: true });
+                                }}
+                                className="p-2 text-red-600 hover:bg-red-100 rounded-lg transition-colors"
+                                title="Eliminar"
+                              >
+                                <Trash2 className="w-5 h-5" />
+                              </button>
+                            </div>
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+              )}
+              
+              {recurso.length === 0 && recursoReminders.length === 0 && !showRecursoReminderForm ? (
                 <div className="text-center py-12">
                   <Gavel className="w-16 h-16 mx-auto text-amber-400 mb-4" />
                   <p className="text-gray-500 font-medium text-lg">No hay recursos pendientes</p>
@@ -1334,6 +1503,9 @@ export default function Dashboard({ onNavigate }: DashboardProps) {
                 </div>
               ) : (
                 <div className="space-y-4">
+                  {recurso.length > 0 && (
+                    <h3 className="text-lg font-semibold text-amber-900 mb-3">Clientes con Recursos Pendientes</h3>
+                  )}
                   {recurso.map((client) => (
                     <div
                       key={client.id}
@@ -1376,18 +1548,19 @@ export default function Dashboard({ onNavigate }: DashboardProps) {
                 </div>
                 <div className="flex items-center space-x-2">
                   <button
-                    onClick={() => {
-                      setShowUrgentesReminderForm(!showUrgentesReminderForm);
-                      if (!showUrgentesReminderForm) {
-                        setGenericReminderForm({
-                          client_name: '',
-                          client_surname: '',
-                          phone: '',
-                          reminder_date: '',
-                          notes: '',
-                        });
-                      }
-                    }}
+            onClick={() => {
+              setShowUrgentesReminderForm(!showUrgentesReminderForm);
+              setEditingGenericReminder(null);
+              if (!showUrgentesReminderForm) {
+                setGenericReminderForm({
+                  client_name: '',
+                  client_surname: '',
+                  phone: '',
+                  reminder_date: '',
+                  notes: '',
+                });
+              }
+            }}
                     className="p-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors"
                     title="Nuevo Recordatorio"
                   >
@@ -1404,7 +1577,83 @@ export default function Dashboard({ onNavigate }: DashboardProps) {
             </div>
             <div className="flex-1 overflow-y-auto p-6">
               {renderGenericReminderForm(showUrgentesReminderForm, () => setShowUrgentesReminderForm(false), 'URGENTES', 'Nuevo Recordatorio')}
-              {urgentes.length === 0 && urgentReminders.length === 0 ? (
+              
+              {/* URGENTES Reminders */}
+              {urgentesReminders.length > 0 && (
+                <div className="mb-6">
+                  <div className="space-y-3">
+                    {urgentesReminders.map((reminder) => {
+                      const reminderDate = new Date(reminder.reminder_date);
+                      return (
+                        <div
+                          key={reminder.id}
+                          className="p-4 border-2 border-red-300 rounded-xl bg-gradient-to-br from-red-100 to-white"
+                        >
+                          <div className="flex items-center justify-between">
+                            <div className="flex-1">
+                              <div className="flex items-center gap-2 mb-1">
+                                <span className="px-2 py-0.5 bg-red-600 text-white text-xs font-semibold rounded">URGENTES</span>
+                                <h3 className="font-bold text-red-900 text-lg">{reminder.client_name} {reminder.client_surname}</h3>
+                              </div>
+                              {reminder.phone && (
+                                <p className="text-sm text-red-700 mt-1">Teléfono: {reminder.phone}</p>
+                              )}
+                              <p className="text-xs text-red-600 mt-2">
+                                Fecha: {reminderDate.toLocaleDateString('es-ES', {
+                                  year: 'numeric',
+                                  month: 'long',
+                                  day: 'numeric',
+                                  hour: '2-digit',
+                                  minute: '2-digit',
+                                })}
+                              </p>
+                              {reminder.notes && (
+                                <p className="text-xs text-red-600 mt-1">Notas: {reminder.notes}</p>
+                              )}
+                            </div>
+                            <div className="flex items-center gap-2 ml-4">
+                              <button
+            onClick={async (e) => {
+              e.stopPropagation();
+              const dateStr = reminder.reminder_date;
+              const date = new Date(dateStr);
+              const localDate = new Date(date.getTime() - date.getTimezoneOffset() * 60000);
+              const formattedDate = localDate.toISOString().slice(0, 16);
+              setEditingGenericReminder(reminder);
+              setGenericReminderForm({
+                client_name: reminder.client_name || '',
+                client_surname: reminder.client_surname || '',
+                phone: reminder.phone || '',
+                reminder_date: formattedDate,
+                notes: reminder.notes || '',
+              });
+              setShowUrgentesReminderForm(true);
+            }}
+                                className="p-2 text-red-700 hover:bg-red-200 rounded-lg transition-colors"
+                                title="Editar"
+                              >
+                                <Edit2 className="w-5 h-5" />
+                              </button>
+                              <button
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  setDeleteRequerimientoConfirm({ reminder, isOpen: true });
+                                }}
+                                className="p-2 text-red-600 hover:bg-red-100 rounded-lg transition-colors"
+                                title="Eliminar"
+                              >
+                                <Trash2 className="w-5 h-5" />
+                              </button>
+                            </div>
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+              )}
+              
+              {urgentes.length === 0 && urgentReminders.length === 0 && urgentesReminders.length === 0 && !showUrgentesReminderForm ? (
                 <div className="text-center py-12">
                   <AlertTriangle className="w-16 h-16 mx-auto text-red-400 mb-4" />
                   <p className="text-gray-500 font-medium text-lg">No hay trámites urgentes</p>
@@ -1905,18 +2154,19 @@ export default function Dashboard({ onNavigate }: DashboardProps) {
                 </div>
                 <div className="flex items-center space-x-2">
                   <button
-                    onClick={() => {
-                      setShowPagosReminderForm(!showPagosReminderForm);
-                      if (!showPagosReminderForm) {
-                        setGenericReminderForm({
-                          client_name: '',
-                          client_surname: '',
-                          phone: '',
-                          reminder_date: '',
-                          notes: '',
-                        });
-                      }
-                    }}
+            onClick={() => {
+              setShowPagosReminderForm(!showPagosReminderForm);
+              setEditingGenericReminder(null);
+              if (!showPagosReminderForm) {
+                setGenericReminderForm({
+                  client_name: '',
+                  client_surname: '',
+                  phone: '',
+                  reminder_date: '',
+                  notes: '',
+                });
+              }
+            }}
                     className="p-2 bg-amber-600 text-white rounded-lg hover:bg-amber-700 transition-colors"
                     title="Nuevo Recordatorio"
                   >
@@ -1933,6 +2183,83 @@ export default function Dashboard({ onNavigate }: DashboardProps) {
             </div>
             <div className="flex-1 overflow-y-auto p-6">
               {renderGenericReminderForm(showPagosReminderForm, () => setShowPagosReminderForm(false), 'PAGOS', 'Nuevo Recordatorio')}
+              
+              {/* PAGOS Reminders */}
+              {pagosReminders.length > 0 && (
+                <div className="mb-6">
+                  <h3 className="text-lg font-semibold text-amber-900 mb-3">Recordatorios de Pago</h3>
+                  <div className="space-y-3">
+                    {pagosReminders.map((reminder) => {
+                      const reminderDate = new Date(reminder.reminder_date);
+                      return (
+                        <div
+                          key={reminder.id}
+                          className="p-4 border-2 border-amber-300 rounded-xl bg-gradient-to-br from-amber-100 to-white"
+                        >
+                          <div className="flex items-center justify-between">
+                            <div className="flex-1">
+                              <div className="flex items-center gap-2 mb-1">
+                                <span className="px-2 py-0.5 bg-amber-600 text-white text-xs font-semibold rounded">PAGOS</span>
+                                <h3 className="font-bold text-amber-900 text-lg">{reminder.client_name} {reminder.client_surname}</h3>
+                              </div>
+                              {reminder.phone && (
+                                <p className="text-sm text-amber-700 mt-1">Teléfono: {reminder.phone}</p>
+                              )}
+                              <p className="text-xs text-amber-600 mt-2">
+                                Fecha: {reminderDate.toLocaleDateString('es-ES', {
+                                  year: 'numeric',
+                                  month: 'long',
+                                  day: 'numeric',
+                                  hour: '2-digit',
+                                  minute: '2-digit',
+                                })}
+                              </p>
+                              {reminder.notes && (
+                                <p className="text-xs text-amber-600 mt-1">Notas: {reminder.notes}</p>
+                              )}
+                            </div>
+                            <div className="flex items-center gap-2 ml-4">
+                              <button
+            onClick={async (e) => {
+              e.stopPropagation();
+              const dateStr = reminder.reminder_date;
+              const date = new Date(dateStr);
+              const localDate = new Date(date.getTime() - date.getTimezoneOffset() * 60000);
+              const formattedDate = localDate.toISOString().slice(0, 16);
+              setEditingGenericReminder(reminder);
+              setGenericReminderForm({
+                client_name: reminder.client_name || '',
+                client_surname: reminder.client_surname || '',
+                phone: reminder.phone || '',
+                reminder_date: formattedDate,
+                notes: reminder.notes || '',
+              });
+              setShowPagosReminderForm(true);
+            }}
+                                className="p-2 text-amber-700 hover:bg-amber-200 rounded-lg transition-colors"
+                                title="Editar"
+                              >
+                                <Edit2 className="w-5 h-5" />
+                              </button>
+                              <button
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  setDeleteRequerimientoConfirm({ reminder, isOpen: true });
+                                }}
+                                className="p-2 text-red-600 hover:bg-red-100 rounded-lg transition-colors"
+                                title="Eliminar"
+                              >
+                                <Trash2 className="w-5 h-5" />
+                              </button>
+                            </div>
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+              )}
+              
               {/* Payment Statistics Summary */}
               <div className="mb-6 grid grid-cols-1 sm:grid-cols-3 gap-4">
                 <div className="bg-amber-50 border-2 border-amber-200 rounded-xl p-4">
