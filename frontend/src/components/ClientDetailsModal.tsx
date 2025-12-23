@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
-import { X, Upload, CheckCircle, FileText, Download, Trash2, Plus, DollarSign, StickyNote, Archive, XCircle, AlertCircle, Send, Clock, Eye, ToggleLeft, ToggleRight, Calendar, GripVertical, Search, Edit2 } from 'lucide-react';
+import { X, Upload, CheckCircle, FileText, Download, Trash2, Plus, DollarSign, StickyNote, Archive, XCircle, AlertCircle, Send, Clock, Eye, ToggleLeft, ToggleRight, Calendar, GripVertical, Search, Edit2, Square, CheckSquare } from 'lucide-react';
 import JSZip from 'jszip';
 import { api } from '../utils/api';
 import { Client, RequiredDocument, AdditionalDocument, RequestedDocument, CaseTemplate } from '../types';
@@ -74,6 +74,7 @@ export default function ClientDetailsModal({ client, onClose, onSuccess }: Props
     type: 'warning',
     onConfirm: () => {},
   });
+  const [selectedDocuments, setSelectedDocuments] = useState<Set<string>>(new Set());
 
   useEffect(() => {
     loadClient();
@@ -341,7 +342,63 @@ export default function ClientDetailsModal({ client, onClose, onSuccess }: Props
       });
       await loadClient();
       onSuccess();
+      setSelectedDocuments(new Set());
       showToast('All documents marked as optional', 'success');
+    } catch (error: any) {
+      setError(error.message || 'Failed to update documents');
+      showToast(error.message || 'Failed to update documents', 'error');
+    }
+  };
+
+  const handleToggleDocumentSelection = (documentCode: string) => {
+    setSelectedDocuments(prev => {
+      const newSet = new Set(prev);
+      if (newSet.has(documentCode)) {
+        newSet.delete(documentCode);
+      } else {
+        newSet.add(documentCode);
+      }
+      return newSet;
+    });
+  };
+
+  const handleSelectAllDocuments = () => {
+    if (!clientData.required_documents) return;
+    const allCodes = clientData.required_documents
+      .filter((d: any) => !d.isOptional)
+      .map((d: any) => d.code);
+    setSelectedDocuments(new Set(allCodes));
+  };
+
+  const handleDeselectAllDocuments = () => {
+    setSelectedDocuments(new Set());
+  };
+
+  const handleMakeSelectedOptional = async () => {
+    if (selectedDocuments.size === 0) {
+      showToast('Please select at least one document', 'error');
+      return;
+    }
+
+    setError('');
+    try {
+      const updatedDocuments = clientData.required_documents.map((doc: any) => {
+        if (selectedDocuments.has(doc.code)) {
+          return {
+            ...doc,
+            isOptional: true,
+          };
+        }
+        return doc;
+      });
+
+      await api.updateClient(client.id, {
+        required_documents: updatedDocuments,
+      });
+      await loadClient();
+      onSuccess();
+      setSelectedDocuments(new Set());
+      showToast(`${selectedDocuments.size} document(s) marked as optional`, 'success');
     } catch (error: any) {
       setError(error.message || 'Failed to update documents');
       showToast(error.message || 'Failed to update documents', 'error');
@@ -1742,28 +1799,62 @@ export default function ClientDetailsModal({ client, onClose, onSuccess }: Props
                   <div className="w-1 h-6 bg-gradient-to-b from-amber-600 to-orange-600 rounded-full"></div>
                   <span>Required Documents</span>
                 </h3>
-                {clientData.required_documents && clientData.required_documents.length > 0 && 
-                 clientData.required_documents.some((d: any) => !d.isOptional) && (
-                  <button
-                    onClick={() => {
-                      setConfirmDialog({
-                        isOpen: true,
-                        title: 'Make All Documents Optional',
-                        message: 'Are you sure you want to mark all required documents as optional? This action cannot be undone.',
-                        type: 'warning',
-                        onConfirm: () => {
-                          handleMakeAllOptional();
-                          setConfirmDialog({ ...confirmDialog, isOpen: false });
-                        },
-                      });
-                    }}
-                    className="px-3 py-1.5 text-xs font-semibold text-amber-700 bg-amber-100 hover:bg-amber-200 rounded-lg transition-colors flex items-center space-x-1"
-                    title="Make all documents optional"
-                  >
-                    <ToggleRight className="w-4 h-4" />
-                    <span>Make All Optional</span>
-                  </button>
-                )}
+                <div className="flex items-center space-x-2">
+                  {clientData.required_documents && clientData.required_documents.length > 0 && 
+                   clientData.required_documents.some((d: any) => !d.isOptional) && (
+                    <>
+                      {selectedDocuments.size > 0 ? (
+                        <>
+                          <button
+                            onClick={handleMakeSelectedOptional}
+                            className="px-3 py-1.5 text-xs font-semibold text-amber-700 bg-amber-100 hover:bg-amber-200 rounded-lg transition-colors flex items-center space-x-1"
+                            title={`Make ${selectedDocuments.size} selected document(s) optional`}
+                          >
+                            <ToggleRight className="w-4 h-4" />
+                            <span>Make Selected Optional ({selectedDocuments.size})</span>
+                          </button>
+                          <button
+                            onClick={handleDeselectAllDocuments}
+                            className="px-2 py-1.5 text-xs font-semibold text-gray-600 bg-gray-100 hover:bg-gray-200 rounded-lg transition-colors"
+                            title="Deselect all"
+                          >
+                            Clear
+                          </button>
+                        </>
+                      ) : (
+                        <>
+                          <button
+                            onClick={handleSelectAllDocuments}
+                            className="px-2 py-1.5 text-xs font-semibold text-gray-600 bg-gray-100 hover:bg-gray-200 rounded-lg transition-colors flex items-center space-x-1"
+                            title="Select all required documents"
+                          >
+                            <CheckSquare className="w-4 h-4" />
+                            <span>Select All</span>
+                          </button>
+                          <button
+                            onClick={() => {
+                              setConfirmDialog({
+                                isOpen: true,
+                                title: 'Make All Documents Optional',
+                                message: 'Are you sure you want to mark all required documents as optional? This action cannot be undone.',
+                                type: 'warning',
+                                onConfirm: () => {
+                                  handleMakeAllOptional();
+                                  setConfirmDialog({ ...confirmDialog, isOpen: false });
+                                },
+                              });
+                            }}
+                            className="px-3 py-1.5 text-xs font-semibold text-amber-700 bg-amber-100 hover:bg-amber-200 rounded-lg transition-colors flex items-center space-x-1"
+                            title="Make all documents optional"
+                          >
+                            <ToggleRight className="w-4 h-4" />
+                            <span>Make All Optional</span>
+                          </button>
+                        </>
+                      )}
+                    </>
+                  )}
+                </div>
               </div>
               {clientData.required_documents && clientData.required_documents.length > 0 && (
                 <div className="flex items-center space-x-3 text-sm flex-wrap">
@@ -1829,6 +1920,8 @@ export default function ClientDetailsModal({ client, onClose, onSuccess }: Props
                       ? 'opacity-50 border-blue-400 bg-blue-50'
                       : dragOverIndex === index
                       ? 'border-blue-400 bg-blue-50 scale-105'
+                      : selectedDocuments.has(doc.code || '')
+                      ? 'border-blue-400 bg-blue-50'
                       : doc.submitted
                       ? 'border-emerald-300 bg-gradient-to-br from-emerald-50 to-white'
                       : doc.isOptional
@@ -1837,8 +1930,26 @@ export default function ClientDetailsModal({ client, onClose, onSuccess }: Props
                   }`}
                 >
                   <div className="flex items-start justify-between">
-                    <div className="flex items-center mr-3 cursor-grab active:cursor-grabbing">
-                      <GripVertical className="w-5 h-5 text-gray-400 hover:text-gray-600" />
+                    <div className="flex items-center space-x-2 mr-3">
+                      {!doc.isOptional && (
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleToggleDocumentSelection(doc.code || '');
+                          }}
+                          className="p-1 hover:bg-gray-100 rounded transition-colors flex-shrink-0"
+                          title={selectedDocuments.has(doc.code || '') ? 'Deselect' : 'Select'}
+                        >
+                          {selectedDocuments.has(doc.code || '') ? (
+                            <CheckSquare className="w-5 h-5 text-blue-600" />
+                          ) : (
+                            <Square className="w-5 h-5 text-gray-400" />
+                          )}
+                        </button>
+                      )}
+                      <div className="cursor-grab active:cursor-grabbing">
+                        <GripVertical className="w-5 h-5 text-gray-400 hover:text-gray-600" />
+                      </div>
                     </div>
                     <div className="flex-1">
                       <div className="flex items-center space-x-3 mb-3">
