@@ -574,7 +574,7 @@ export default function ClientDetailsModal({ client, onClose, onSuccess }: Props
         }
         setUploading('aportar');
         try {
-          await api.uploadAportarDocumentacion(
+          const updatedClient = await api.uploadAportarDocumentacion(
             client.id,
             aportarDocForm.name,
             aportarDocForm.description,
@@ -582,10 +582,16 @@ export default function ClientDetailsModal({ client, onClose, onSuccess }: Props
             currentUserName,
             aportarDocForm.reminder_days
           );
+          // Use the response from the API call to update clientData immediately
+          if (updatedClient) {
+            setClientData(updatedClient);
+          } else {
+            // Fallback: reload client if response doesn't have updated data
+            await loadClient();
+          }
           setAportarDocForm({ name: '', description: '', file: null, reminder_days: 10 });
           setShowAportarDocForm(false);
-          await loadClient();
-          // Call onSuccess to refresh data
+          // Call onSuccess to refresh data in Dashboard
           if (onSuccess) {
             await onSuccess();
           }
