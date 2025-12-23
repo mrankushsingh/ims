@@ -2892,9 +2892,9 @@ export default function ClientDetailsModal({ client, onClose, onSuccess }: Props
                               onChange={async (e) => {
                                 const file = e.target.files?.[0];
                                 if (file && currentUserName) {
-                                  setUploading('additional');
+                                  setUploading('justificante');
                                   try {
-                                    await api.uploadAdditionalDocumentFile(client.id, doc.id, file, currentUserName);
+                                    await api.uploadJustificanteFile(client.id, doc.id, file, currentUserName);
                                     await loadClient();
                                     onSuccess();
                                     showToast('File re-uploaded successfully', 'success');
@@ -2905,9 +2905,9 @@ export default function ClientDetailsModal({ client, onClose, onSuccess }: Props
                                   }
                                 }
                               }}
-                              disabled={uploading === 'additional'}
+                              disabled={uploading === 'justificante'}
                             />
-                            <div className="px-3 py-2 text-xs font-medium text-purple-600 hover:text-purple-700 hover:bg-purple-50 rounded-lg transition-colors border border-purple-200 hover:border-purple-300">
+                            <div className="px-3 py-2 text-xs font-medium text-indigo-600 hover:text-indigo-700 hover:bg-indigo-50 rounded-lg transition-colors border border-indigo-200 hover:border-indigo-300">
                               <Upload className="w-4 h-4 inline mr-1" />
                               Re-upload
                             </div>
