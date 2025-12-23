@@ -135,6 +135,8 @@ export default function Dashboard({ onNavigate }: DashboardProps) {
             <label className="block text-sm font-medium text-gray-700 mb-1">Nombre *</label>
             <input
               type="text"
+              id="generic-reminder-client-name"
+              name="client_name"
               required
               value={genericReminderForm.client_name}
               onChange={(e) => setGenericReminderForm({ ...genericReminderForm, client_name: e.target.value })}
@@ -146,6 +148,8 @@ export default function Dashboard({ onNavigate }: DashboardProps) {
             <label className="block text-sm font-medium text-gray-700 mb-1">Apellido *</label>
             <input
               type="text"
+              id="generic-reminder-client-surname"
+              name="client_surname"
               required
               value={genericReminderForm.client_surname}
               onChange={(e) => setGenericReminderForm({ ...genericReminderForm, client_surname: e.target.value })}
@@ -157,6 +161,8 @@ export default function Dashboard({ onNavigate }: DashboardProps) {
             <label className="block text-sm font-medium text-gray-700 mb-1">Teléfono</label>
             <input
               type="tel"
+              id="generic-reminder-phone"
+              name="phone"
               value={genericReminderForm.phone}
               onChange={(e) => setGenericReminderForm({ ...genericReminderForm, phone: e.target.value })}
               className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-amber-500 outline-none"
@@ -167,6 +173,8 @@ export default function Dashboard({ onNavigate }: DashboardProps) {
             <label className="block text-sm font-medium text-gray-700 mb-1">Fecha y Hora *</label>
             <input
               type="datetime-local"
+              id="generic-reminder-date"
+              name="reminder_date"
               required
               value={genericReminderForm.reminder_date}
               onChange={(e) => setGenericReminderForm({ ...genericReminderForm, reminder_date: e.target.value })}
@@ -176,6 +184,8 @@ export default function Dashboard({ onNavigate }: DashboardProps) {
           <div className="sm:col-span-2">
             <label className="block text-sm font-medium text-gray-700 mb-1">Notas</label>
             <textarea
+              id="generic-reminder-notes"
+              name="notes"
               value={genericReminderForm.notes}
               onChange={(e) => setGenericReminderForm({ ...genericReminderForm, notes: e.target.value })}
               className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-amber-500 outline-none"
@@ -1208,6 +1218,8 @@ export default function Dashboard({ onNavigate }: DashboardProps) {
                       <label className="block text-sm font-medium text-gray-700 mb-1">Nombre *</label>
                       <input
                         type="text"
+                        id="requerimiento-reminder-client-name"
+                        name="client_name"
                         required
                         value={requerimientoReminderForm.client_name}
                         onChange={(e) => setRequerimientoReminderForm({ ...requerimientoReminderForm, client_name: e.target.value })}
@@ -1219,6 +1231,8 @@ export default function Dashboard({ onNavigate }: DashboardProps) {
                       <label className="block text-sm font-medium text-gray-700 mb-1">Apellido *</label>
                       <input
                         type="text"
+                        id="requerimiento-reminder-client-surname"
+                        name="client_surname"
                         required
                         value={requerimientoReminderForm.client_surname}
                         onChange={(e) => setRequerimientoReminderForm({ ...requerimientoReminderForm, client_surname: e.target.value })}
@@ -1230,6 +1244,8 @@ export default function Dashboard({ onNavigate }: DashboardProps) {
                       <label className="block text-sm font-medium text-gray-700 mb-1">Teléfono</label>
                       <input
                         type="tel"
+                        id="requerimiento-reminder-phone"
+                        name="phone"
                         value={requerimientoReminderForm.phone}
                         onChange={(e) => setRequerimientoReminderForm({ ...requerimientoReminderForm, phone: e.target.value })}
                         className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-amber-500 outline-none"
@@ -1240,6 +1256,8 @@ export default function Dashboard({ onNavigate }: DashboardProps) {
                       <label className="block text-sm font-medium text-gray-700 mb-1">Fecha y Hora del Recordatorio *</label>
                       <input
                         type="datetime-local"
+                        id="requerimiento-reminder-date"
+                        name="reminder_date"
                         required
                         value={requerimientoReminderForm.reminder_date}
                         onChange={(e) => setRequerimientoReminderForm({ ...requerimientoReminderForm, reminder_date: e.target.value })}
@@ -1250,6 +1268,8 @@ export default function Dashboard({ onNavigate }: DashboardProps) {
                     <div className="sm:col-span-2">
                       <label className="block text-sm font-medium text-gray-700 mb-1">Notas</label>
                       <textarea
+                        id="requerimiento-reminder-notes"
+                        name="notes"
                         value={requerimientoReminderForm.notes}
                         onChange={(e) => setRequerimientoReminderForm({ ...requerimientoReminderForm, notes: e.target.value })}
                         className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-amber-500 outline-none"
@@ -2333,6 +2353,8 @@ export default function Dashboard({ onNavigate }: DashboardProps) {
                       <label className="block text-sm font-medium text-gray-700 mb-1">Client Name *</label>
                       <input
                         type="text"
+                        id="payment-client-name"
+                        name="client_name"
                         required
                         value={paymentForm.client_name}
                         onChange={(e) => setPaymentForm({ ...paymentForm, client_name: e.target.value })}
@@ -2344,6 +2366,8 @@ export default function Dashboard({ onNavigate }: DashboardProps) {
                       <label className="block text-sm font-medium text-gray-700 mb-1">Client Surname *</label>
                       <input
                         type="text"
+                        id="payment-client-surname"
+                        name="client_surname"
                         required
                         value={paymentForm.client_surname}
                         onChange={(e) => setPaymentForm({ ...paymentForm, client_surname: e.target.value })}
@@ -2355,6 +2379,8 @@ export default function Dashboard({ onNavigate }: DashboardProps) {
                       <label className="block text-sm font-medium text-gray-700 mb-1">Phone Number</label>
                       <input
                         type="tel"
+                        id="payment-phone"
+                        name="phone"
                         value={paymentForm.phone}
                         onChange={(e) => setPaymentForm({ ...paymentForm, phone: e.target.value })}
                         className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 outline-none"
@@ -2382,6 +2408,8 @@ export default function Dashboard({ onNavigate }: DashboardProps) {
                               <Search className="absolute left-2 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
                               <input
                                 type="text"
+                                id="payment-template-search"
+                                name="template_search"
                                 placeholder="Search templates..."
                                 value={templateSearchQuery}
                                 onChange={(e) => setTemplateSearchQuery(e.target.value)}
@@ -2436,6 +2464,8 @@ export default function Dashboard({ onNavigate }: DashboardProps) {
                       <label className="block text-sm font-medium text-gray-700 mb-1">Amount Paid (€) *</label>
                       <input
                         type="number"
+                        id="payment-amount-paid"
+                        name="amount_paid"
                         step="0.01"
                         min="0"
                         required
@@ -2449,6 +2479,8 @@ export default function Dashboard({ onNavigate }: DashboardProps) {
                       <label className="block text-sm font-medium text-gray-700 mb-1">Total Amount (€) *</label>
                       <input
                         type="number"
+                        id="payment-total-amount"
+                        name="total_amount"
                         step="0.01"
                         min="0"
                         required
@@ -2462,6 +2494,8 @@ export default function Dashboard({ onNavigate }: DashboardProps) {
                       <label className="block text-sm font-medium text-gray-700 mb-1">Pending or Extra Payment (€)</label>
                       <input
                         type="number"
+                        id="payment-pending-extra"
+                        name="pending_extra"
                         step="0.01"
                         value={paymentForm.pending_extra}
                         onChange={(e) => setPaymentForm({ ...paymentForm, pending_extra: e.target.value })}

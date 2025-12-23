@@ -1863,6 +1863,8 @@ export default function ClientDetailsModal({ client, onClose, onSuccess, onOpenA
                   <label className="block text-sm font-medium text-gray-700 mb-1">First Name *</label>
                   <input
                     type="text"
+                    id="client-first-name"
+                    name="first_name"
                     required
                     value={clientInfoForm.first_name}
                     onChange={(e) => setClientInfoForm({ ...clientInfoForm, first_name: e.target.value })}
@@ -1874,6 +1876,8 @@ export default function ClientDetailsModal({ client, onClose, onSuccess, onOpenA
                   <label className="block text-sm font-medium text-gray-700 mb-1">Last Name *</label>
                   <input
                     type="text"
+                    id="client-last-name"
+                    name="last_name"
                     required
                     value={clientInfoForm.last_name}
                     onChange={(e) => setClientInfoForm({ ...clientInfoForm, last_name: e.target.value })}
@@ -1885,6 +1889,8 @@ export default function ClientDetailsModal({ client, onClose, onSuccess, onOpenA
                   <label className="block text-sm font-medium text-gray-700 mb-1">Email</label>
                   <input
                     type="email"
+                    id="client-email"
+                    name="email"
                     value={clientInfoForm.email}
                     onChange={(e) => setClientInfoForm({ ...clientInfoForm, email: e.target.value })}
                     className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none"
@@ -1895,6 +1901,8 @@ export default function ClientDetailsModal({ client, onClose, onSuccess, onOpenA
                   <label className="block text-sm font-medium text-gray-700 mb-1">Phone</label>
                   <input
                     type="tel"
+                    id="client-phone"
+                    name="phone"
                     value={clientInfoForm.phone}
                     onChange={(e) => setClientInfoForm({ ...clientInfoForm, phone: e.target.value })}
                     className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none"
@@ -1905,6 +1913,8 @@ export default function ClientDetailsModal({ client, onClose, onSuccess, onOpenA
                   <label className="block text-sm font-medium text-gray-700 mb-1">Parent Name</label>
                   <input
                     type="text"
+                    id="client-parent-name"
+                    name="parent_name"
                     value={clientInfoForm.parent_name}
                     onChange={(e) => setClientInfoForm({ ...clientInfoForm, parent_name: e.target.value })}
                     className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none"
@@ -1998,6 +2008,8 @@ export default function ClientDetailsModal({ client, onClose, onSuccess, onOpenA
               </button>
             </div>
             <textarea
+              id="client-details"
+              name="details"
               value={details}
               onChange={(e) => setDetails(e.target.value)}
               rows={4}
@@ -2058,6 +2070,8 @@ export default function ClientDetailsModal({ client, onClose, onSuccess, onOpenA
                   <label className="block text-sm font-medium text-gray-700 mb-1">Amount (€)</label>
                   <input
                     type="number"
+                    id="client-payment-amount"
+                    name="amount"
                     step="0.01"
                     min="0.01"
                     required
@@ -2070,6 +2084,8 @@ export default function ClientDetailsModal({ client, onClose, onSuccess, onOpenA
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">Method</label>
                   <select
+                    id="client-payment-method"
+                    name="method"
                     value={paymentForm.method}
                     onChange={(e) => setPaymentForm({ ...paymentForm, method: e.target.value })}
                     className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 outline-none"
@@ -2085,6 +2101,8 @@ export default function ClientDetailsModal({ client, onClose, onSuccess, onOpenA
                   <label className="block text-sm font-medium text-gray-700 mb-1">Note (optional)</label>
                   <input
                     type="text"
+                    id="client-payment-note"
+                    name="note"
                     value={paymentForm.note}
                     onChange={(e) => setPaymentForm({ ...paymentForm, note: e.target.value })}
                     className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 outline-none"
@@ -2535,6 +2553,8 @@ export default function ClientDetailsModal({ client, onClose, onSuccess, onOpenA
                   <label className="block text-sm font-medium text-gray-700 mb-1">Document Name *</label>
                   <input
                     type="text"
+                    id="additional-doc-name"
+                    name="additional_doc_name"
                     required
                     value={additionalDocForm.name}
                     onChange={(e) => setAdditionalDocForm({ ...additionalDocForm, name: e.target.value })}
@@ -2546,6 +2566,8 @@ export default function ClientDetailsModal({ client, onClose, onSuccess, onOpenA
                   <label className="block text-sm font-medium text-gray-700 mb-1">Description (optional)</label>
                   <input
                     type="text"
+                    id="additional-doc-description"
+                    name="additional_doc_description"
                     value={additionalDocForm.description}
                     onChange={(e) => setAdditionalDocForm({ ...additionalDocForm, description: e.target.value })}
                     className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 outline-none"
@@ -2556,6 +2578,8 @@ export default function ClientDetailsModal({ client, onClose, onSuccess, onOpenA
                   <label className="block text-sm font-medium text-gray-700 mb-1">Reminder Days (default: 10)</label>
                   <input
                     type="number"
+                    id="additional-doc-reminder-days"
+                    name="additional_doc_reminder_days"
                     min="1"
                     value={additionalDocForm.reminder_days}
                     onChange={(e) => setAdditionalDocForm({ ...additionalDocForm, reminder_days: parseInt(e.target.value) || 10 })}
@@ -2567,6 +2591,8 @@ export default function ClientDetailsModal({ client, onClose, onSuccess, onOpenA
                   <label className="block text-sm font-medium text-gray-700 mb-1">File (optional - can upload later)</label>
                   <input
                     type="file"
+                    id="additional-doc-file"
+                    name="additional_doc_file"
                     onChange={(e) => {
                       const file = e.target.files?.[0];
                       if (file) {
@@ -3025,6 +3051,8 @@ export default function ClientDetailsModal({ client, onClose, onSuccess, onOpenA
                   <label className="block text-sm font-medium text-gray-700 mb-1">Document Name *</label>
                   <input
                     type="text"
+                    id="aportar-doc-name"
+                    name="aportar_doc_name"
                     required
                     value={aportarDocForm.name}
                     onChange={(e) => setAportarDocForm({ ...aportarDocForm, name: e.target.value })}
@@ -3036,6 +3064,8 @@ export default function ClientDetailsModal({ client, onClose, onSuccess, onOpenA
                   <label className="block text-sm font-medium text-gray-700 mb-1">Description (optional)</label>
                   <input
                     type="text"
+                    id="aportar-doc-description"
+                    name="aportar_doc_description"
                     value={aportarDocForm.description}
                     onChange={(e) => setAportarDocForm({ ...aportarDocForm, description: e.target.value })}
                     className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none"
@@ -3046,6 +3076,8 @@ export default function ClientDetailsModal({ client, onClose, onSuccess, onOpenA
                   <label className="block text-sm font-medium text-gray-700 mb-1">Reminder Days (default: 10)</label>
                   <input
                     type="number"
+                    id="aportar-doc-reminder-days"
+                    name="aportar_doc_reminder_days"
                     min="1"
                     value={aportarDocForm.reminder_days}
                     onChange={(e) => setAportarDocForm({ ...aportarDocForm, reminder_days: parseInt(e.target.value) || 10 })}
@@ -3057,6 +3089,8 @@ export default function ClientDetailsModal({ client, onClose, onSuccess, onOpenA
                   <label className="block text-sm font-medium text-gray-700 mb-1">File (optional - can upload later)</label>
                   <input
                     type="file"
+                    id="aportar-doc-file"
+                    name="aportar_doc_file"
                     onChange={(e) => {
                       const file = e.target.files?.[0];
                       if (file) {
