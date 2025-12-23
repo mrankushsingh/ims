@@ -445,6 +445,13 @@ export default function Dashboard({ onNavigate }: DashboardProps) {
     // Show clients that have at least one APORTAR DOCUMENTACIÓN document without a file
     return aportarDocs.length > 0 && aportarDocs.some((d: any) => !d.fileUrl);
   });
+
+  // Count total missing APORTAR DOCUMENTACIÓN documents (documents without files)
+  const totalMissingAportarDocs = clients.reduce((total, client) => {
+    const aportarDocs = client.aportar_documentacion || [];
+    const missingDocs = aportarDocs.filter((d: any) => !d.fileUrl);
+    return total + missingDocs.length;
+  }, 0);
   
   // REQUERIMIENTO: Clients with pending requested documents (submitted clients with pending requested docs)
   const requerimiento = clients.filter((client) => {
@@ -674,7 +681,7 @@ export default function Dashboard({ onNavigate }: DashboardProps) {
             </div>
             <span className="text-[10px] sm:text-xs font-semibold text-amber-700/70 uppercase tracking-wider">{t('dashboard.aportarDocumentacion')}</span>
           </div>
-          <p className="text-3xl sm:text-4xl font-bold bg-gradient-to-r from-amber-800 to-amber-600 bg-clip-text text-transparent mb-1 sm:mb-2">{aportarDocumentacion.length + aportarReminders.length}</p>
+          <p className="text-3xl sm:text-4xl font-bold bg-gradient-to-r from-amber-800 to-amber-600 bg-clip-text text-transparent mb-1 sm:mb-2">{totalMissingAportarDocs + aportarReminders.length}</p>
           <p className="text-xs sm:text-sm text-amber-700/70 font-medium leading-relaxed mb-1 sm:mb-2">{t('dashboard.aportarDocumentacionDesc')}</p>
         </div>
 
