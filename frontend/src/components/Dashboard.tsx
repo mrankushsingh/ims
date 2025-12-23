@@ -673,7 +673,7 @@ export default function Dashboard({ onNavigate }: DashboardProps) {
             </div>
             <span className="text-[10px] sm:text-xs font-semibold text-amber-700/70 uppercase tracking-wider">{t('dashboard.aportarDocumentacion')}</span>
           </div>
-          <p className="text-3xl sm:text-4xl font-bold bg-gradient-to-r from-amber-800 to-amber-600 bg-clip-text text-transparent mb-1 sm:mb-2">{aportarDocumentacion.length}</p>
+          <p className="text-3xl sm:text-4xl font-bold bg-gradient-to-r from-amber-800 to-amber-600 bg-clip-text text-transparent mb-1 sm:mb-2">{aportarDocumentacion.length + aportarReminders.length}</p>
           <p className="text-xs sm:text-sm text-amber-700/70 font-medium leading-relaxed mb-1 sm:mb-2">{t('dashboard.aportarDocumentacionDesc')}</p>
         </div>
 
@@ -705,7 +705,7 @@ export default function Dashboard({ onNavigate }: DashboardProps) {
             </div>
             <span className="text-[10px] sm:text-xs font-semibold text-amber-700/70 uppercase tracking-wider">{t('dashboard.recurso')}</span>
           </div>
-          <p className="text-3xl sm:text-4xl font-bold bg-gradient-to-r from-amber-800 to-amber-600 bg-clip-text text-transparent mb-1 sm:mb-2">{recurso.length}</p>
+          <p className="text-3xl sm:text-4xl font-bold bg-gradient-to-r from-amber-800 to-amber-600 bg-clip-text text-transparent mb-1 sm:mb-2">{recurso.length + recursoReminders.length}</p>
           <p className="text-xs sm:text-sm text-amber-700/70 font-medium leading-relaxed mb-1 sm:mb-2">{t('dashboard.recursoDesc')}</p>
         </div>
 
@@ -727,7 +727,7 @@ export default function Dashboard({ onNavigate }: DashboardProps) {
             </div>
             <span className="text-xs font-semibold text-red-900 uppercase tracking-wider">{t('dashboard.urgentes')}</span>
           </div>
-          <p className="text-3xl sm:text-4xl font-bold bg-gradient-to-r from-red-950 to-red-800 bg-clip-text text-transparent mb-1 sm:mb-2">{urgentes.length + urgentReminders.length}</p>
+          <p className="text-3xl sm:text-4xl font-bold bg-gradient-to-r from-red-950 to-red-800 bg-clip-text text-transparent mb-1 sm:mb-2">{urgentes.length + urgentReminders.length + urgentesReminders.length}</p>
           <p className="text-xs sm:text-sm text-red-900 font-medium leading-relaxed mb-1 sm:mb-2">{t('dashboard.urgentesDesc')}</p>
         </div>
 
@@ -772,7 +772,7 @@ export default function Dashboard({ onNavigate }: DashboardProps) {
             <span className="text-[10px] sm:text-xs font-semibold text-amber-700/70 uppercase tracking-wider">{t('dashboard.pagos')}</span>
           </div>
           <p className="text-3xl sm:text-4xl font-bold bg-gradient-to-r from-amber-800 to-amber-600 bg-clip-text text-transparent mb-1 sm:mb-2">
-            {paymentsUnlocked ? pagos.length : '🔒'}
+            {paymentsUnlocked ? pagos.length + pagosReminders.length : '🔒'}
           </p>
           {paymentsUnlocked && pagos.length > 0 && (
             <div className="flex items-center gap-3 mb-2">
