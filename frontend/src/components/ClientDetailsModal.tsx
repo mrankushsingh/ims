@@ -588,6 +588,12 @@ export default function ClientDetailsModal({ client, onClose, onSuccess, onOpenA
           await loadClient();
           onSuccess();
           showToast('Document created successfully', 'success');
+          // Automatically open APORTAR DOCUMENTACIÓN modal after creating a document with file
+          if (onOpenAportarDocumentacion) {
+            setTimeout(() => {
+              onOpenAportarDocumentacion();
+            }, 300); // Small delay to ensure state updates
+          }
         } catch (error: any) {
           const errorMessage = error.message || 'Failed to create document';
           setError(errorMessage);
@@ -611,6 +617,12 @@ export default function ClientDetailsModal({ client, onClose, onSuccess, onOpenA
           await loadClient();
           onSuccess();
           showToast('Document entry created successfully. You can upload the file later.', 'success');
+          // Automatically open APORTAR DOCUMENTACIÓN modal after creating a document
+          if (onOpenAportarDocumentacion) {
+            setTimeout(() => {
+              onOpenAportarDocumentacion();
+            }, 300); // Small delay to ensure state updates
+          }
         } catch (error: any) {
           const errorMessage = error.message || 'Failed to create document';
           setError(errorMessage);
