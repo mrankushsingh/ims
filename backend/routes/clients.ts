@@ -2,6 +2,7 @@ import { Router } from 'express';
 import multer from 'multer';
 import { fileURLToPath } from 'url';
 import { dirname, join, extname } from 'path';
+import { existsSync, mkdirSync } from 'fs';
 import { db } from '../utils/database.js';
 import { uploadFile, deleteFile, isUsingBucketStorage } from '../utils/storage.js';
 import { AuthenticatedRequest, authenticateToken } from '../middleware/auth.js';
@@ -764,8 +765,43 @@ async function handleDocumentUpload(
         fileName = `${name}_${uniqueSuffix}${ext}`;
         fileUrl = await uploadFile(file.buffer, `clients/${req.params.id}/${documentType}/${fileName}`, file.mimetype);
       } else {
-        fileName = file.filename || file.originalname;
-        fileUrl = `/uploads/${fileName}`;
+        // For local filesystem, organize files by client ID and document type
+        const ext = extname(file.originalname);
+        const uniqueSuffix = `${Date.now()}_${Math.round(Math.random() * 1E9)}`;
+        const name = file.originalname.replace(ext, '').replace(/[^a-zA-Z0-9]/g, '_');
+        fileName = `${name}_${uniqueSuffix}${ext}`;
+        
+        const uploadsDir = memoryDb.getUploadsDir();
+        const clientDir = join(uploadsDir, req.params.id);
+        const docTypeDir = join(clientDir, documentType);
+        
+        // Ensure directories exist
+        if (!existsSync(docTypeDir)) {
+          mkdirSync(docTypeDir, { recursive: true });
+        }
+        
+        // Move file from multer's location to organized location
+        const oldPath = join(uploadsDir, file.filename || file.originalname);
+        const newPath = join(docTypeDir, fileName);
+        
+        const fs = await import('fs/promises');
+        try {
+          // If multer saved the file, move it; otherwise copy the buffer
+          if (existsSync(oldPath)) {
+            await fs.rename(oldPath, newPath);
+          } else {
+            // If file doesn't exist (shouldn't happen with disk storage), write buffer
+            await fs.writeFile(newPath, file.buffer || Buffer.from([]));
+          }
+        } catch (error: any) {
+          console.error('Error moving file:', error);
+          // Fallback: try to write buffer directly
+          if (file.buffer) {
+            await fs.writeFile(newPath, file.buffer);
+          }
+        }
+        
+        fileUrl = `/uploads/${req.params.id}/${documentType}/${fileName}`;
       }
 
       const newDoc: any = {
@@ -885,8 +921,43 @@ async function handleDocumentFileUpload(
       fileName = `${name}_${uniqueSuffix}${ext}`;
       fileUrl = await uploadFile(file.buffer, `clients/${req.params.id}/${documentType}/${fileName}`, file.mimetype);
     } else {
-      fileName = file.filename || file.originalname;
-      fileUrl = `/uploads/${fileName}`;
+      // For local filesystem, organize files by client ID and document type
+      const ext = extname(file.originalname);
+      const uniqueSuffix = `${Date.now()}_${Math.round(Math.random() * 1E9)}`;
+      const name = file.originalname.replace(ext, '').replace(/[^a-zA-Z0-9]/g, '_');
+      fileName = `${name}_${uniqueSuffix}${ext}`;
+      
+      const uploadsDir = memoryDb.getUploadsDir();
+      const clientDir = join(uploadsDir, req.params.id);
+      const docTypeDir = join(clientDir, documentType);
+      
+      // Ensure directories exist
+      if (!existsSync(docTypeDir)) {
+        mkdirSync(docTypeDir, { recursive: true });
+      }
+      
+      // Move file from multer's location to organized location
+      const oldPath = join(uploadsDir, file.filename || file.originalname);
+      const newPath = join(docTypeDir, fileName);
+      
+      const fs = await import('fs/promises');
+      try {
+        // If multer saved the file, move it; otherwise copy the buffer
+        if (existsSync(oldPath)) {
+          await fs.rename(oldPath, newPath);
+        } else {
+          // If file doesn't exist (shouldn't happen with disk storage), write buffer
+          await fs.writeFile(newPath, file.buffer || Buffer.from([]));
+        }
+      } catch (error: any) {
+        console.error('Error moving file:', error);
+        // Fallback: try to write buffer directly
+        if (file.buffer) {
+          await fs.writeFile(newPath, file.buffer);
+        }
+      }
+      
+      fileUrl = `/uploads/${req.params.id}/${documentType}/${fileName}`;
     }
 
     const updatedDoc = {
