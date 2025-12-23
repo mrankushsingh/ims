@@ -1840,8 +1840,7 @@ export default function ClientDetailsModal({ client, onClose, onSuccess }: Props
                   <span>Required Documents</span>
                 </h3>
                 <div className="flex items-center space-x-2">
-                  {clientData.required_documents && clientData.required_documents.length > 0 && 
-                   clientData.required_documents.some((d: any) => !d.isOptional) && (
+                  {clientData.required_documents && clientData.required_documents.length > 0 && (
                     <>
                       {(() => {
                         const allDocuments = clientData.required_documents.map((d: any) => d.code);
