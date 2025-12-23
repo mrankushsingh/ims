@@ -456,10 +456,12 @@ export default function Dashboard({ onNavigate }: DashboardProps) {
   });
   
   // APORTAR DOCUMENTACIÓN: Clients that have APORTAR DOCUMENTACIÓN documents (like REQUERIMIENTO shows clients with requested documents)
+  // Only show clients that have documents in their aportar_documentacion array (not missing required documents)
   const aportarDocumentacion = clients.filter((client) => {
     const aportarDocs = client.aportar_documentacion || [];
     // Show clients that have any APORTAR DOCUMENTACIÓN documents
-    const hasDocs = aportarDocs.length > 0;
+    // Make sure we're checking the correct field and it's an array with items
+    const hasDocs = Array.isArray(aportarDocs) && aportarDocs.length > 0;
     if (hasDocs) {
       console.log(`Client ${client.first_name} ${client.last_name} has ${aportarDocs.length} APORTAR DOCUMENTACIÓN documents:`, aportarDocs);
     }
@@ -468,8 +470,10 @@ export default function Dashboard({ onNavigate }: DashboardProps) {
   
   // Debug: Log all clients with APORTAR DOCUMENTACIÓN documents
   console.log('APORTAR DOCUMENTACIÓN clients count:', aportarDocumentacion.length);
+  console.log('Total clients:', clients.length);
   aportarDocumentacion.forEach((client) => {
-    console.log(`- ${client.first_name} ${client.last_name}:`, client.aportar_documentacion?.length || 0, 'documents');
+    const aportarDocs = client.aportar_documentacion || [];
+    console.log(`- ${client.first_name} ${client.last_name}:`, aportarDocs.length, 'APORTAR DOCUMENTACIÓN documents', aportarDocs);
   });
 
   
