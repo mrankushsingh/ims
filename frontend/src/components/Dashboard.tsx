@@ -1020,7 +1020,8 @@ export default function Dashboard({ onNavigate }: DashboardProps) {
                               try {
                                 const client = await api.getClient(reminder.client_id!);
                                 if (client) {
-                                  setReturnToAportarDocumentacion(true);
+                                  // Don't set returnToAportarDocumentacion - just open client details
+                                  // User can manually reopen modal if needed
                                   setSelectedClient(client);
                                   setShowAportarDocumentacionModal(false);
                                 }
@@ -1114,7 +1115,8 @@ export default function Dashboard({ onNavigate }: DashboardProps) {
                       <div
                         key={client.id}
                         onClick={() => {
-                          setReturnToAportarDocumentacion(true);
+                          // Don't set returnToAportarDocumentacion - just open client details
+                          // User can manually reopen modal if needed
                           setSelectedClient(client);
                           setShowAportarDocumentacionModal(false);
                         }}
@@ -2640,20 +2642,14 @@ export default function Dashboard({ onNavigate }: DashboardProps) {
               setReturnToRequerimiento(false);
               setShowRequerimientoModal(true);
             }
-            // Only reopen APORTAR DOCUMENTACIÓN modal if user explicitly closed client details
-            // Don't reopen if document was just created (reset the flag)
-            if (returnToAportarDocumentacion) {
-              setReturnToAportarDocumentacion(false);
-              // Don't automatically reopen - let user click the box if they want
-            }
+            // Always reset returnToAportarDocumentacion - never reopen modal automatically
+            setReturnToAportarDocumentacion(false);
           }}
           onSuccess={async () => {
             await loadData();
-            // Reset returnToAportarDocumentacion after successful document creation
+            // Always reset returnToAportarDocumentacion after any success action
             // This prevents modal from reopening when client details closes
-            if (returnToAportarDocumentacion) {
-              setReturnToAportarDocumentacion(false);
-            }
+            setReturnToAportarDocumentacion(false);
           }}
         />
       )}
