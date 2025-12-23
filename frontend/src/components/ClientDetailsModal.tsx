@@ -586,13 +586,18 @@ export default function ClientDetailsModal({ client, onClose, onSuccess, onOpenA
           setAportarDocForm({ name: '', description: '', file: null, reminder_days: 10 });
           setShowAportarDocForm(false);
           await loadClient();
-          onSuccess();
+          // Call onSuccess first to refresh data, then open modal
+          await new Promise<void>((resolve) => {
+            onSuccess();
+            // Wait a bit for loadData to complete
+            setTimeout(() => {
+              resolve();
+            }, 500);
+          });
           showToast('Document created successfully', 'success');
           // Automatically open APORTAR DOCUMENTACIÓN modal after creating a document with file
           if (onOpenAportarDocumentacion) {
-            setTimeout(() => {
-              onOpenAportarDocumentacion();
-            }, 300); // Small delay to ensure state updates
+            onOpenAportarDocumentacion();
           }
         } catch (error: any) {
           const errorMessage = error.message || 'Failed to create document';
@@ -615,13 +620,18 @@ export default function ClientDetailsModal({ client, onClose, onSuccess, onOpenA
           setAportarDocForm({ name: '', description: '', file: null, reminder_days: 10 });
           setShowAportarDocForm(false);
           await loadClient();
-          onSuccess();
+          // Call onSuccess first to refresh data, then open modal
+          await new Promise<void>((resolve) => {
+            onSuccess();
+            // Wait a bit for loadData to complete
+            setTimeout(() => {
+              resolve();
+            }, 500);
+          });
           showToast('Document entry created successfully. You can upload the file later.', 'success');
           // Automatically open APORTAR DOCUMENTACIÓN modal after creating a document
           if (onOpenAportarDocumentacion) {
-            setTimeout(() => {
-              onOpenAportarDocumentacion();
-            }, 300); // Small delay to ensure state updates
+            onOpenAportarDocumentacion();
           }
         } catch (error: any) {
           const errorMessage = error.message || 'Failed to create document';
