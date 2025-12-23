@@ -9,7 +9,7 @@ import { showToast } from './Toast';
 interface Props {
   client: Client;
   onClose: () => void;
-  onSuccess: () => void;
+  onSuccess: () => void | Promise<void>;
   onOpenAportarDocumentacion?: () => void;
 }
 
