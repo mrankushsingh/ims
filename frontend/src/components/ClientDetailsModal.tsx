@@ -1275,19 +1275,8 @@ export default function ClientDetailsModal({ client, onClose, onSuccess }: Props
       // For relative paths, use the current origin
       url = window.location.origin + fileUrl;
     }
-    
-    // Check file extension to determine if it's a PDF or image
-    const fileExtension = fileName.split('.').pop()?.toLowerCase();
-    const isPdf = fileExtension === 'pdf';
-    const isImage = ['jpg', 'jpeg', 'png', 'gif', 'webp'].includes(fileExtension || '');
-    
-    // For PDFs and images, open in new tab with proper headers
-    if (isPdf || isImage) {
-      window.open(url, '_blank', 'noopener,noreferrer');
-    } else {
-      // For other file types, show in modal
-      setViewingDocument({ url, fileName });
-    }
+    // Always show document in modal
+    setViewingDocument({ url, fileName });
   };
 
   const handleDownloadAllAsZip = async () => {
