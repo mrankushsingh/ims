@@ -381,6 +381,29 @@ export default function ClientDetailsModal({ client, onClose, onSuccess }: Props
     }
   };
 
+  const handleSelectAllOptional = () => {
+    if (!clientData.required_documents) return;
+    const allOptional = clientData.required_documents
+      .filter((d: any) => d.isOptional)
+      .map((d: any) => d.code);
+    
+    // If all optional are already selected, deselect only optional; otherwise, select all optional
+    const allOptionalSelected = allOptional.length > 0 && 
+      allOptional.every(code => selectedDocuments.has(code));
+    
+    if (allOptionalSelected) {
+      // Deselect only optional documents, keep required selected
+      const newSelected = new Set(selectedDocuments);
+      allOptional.forEach(code => newSelected.delete(code));
+      setSelectedDocuments(newSelected);
+    } else {
+      // Add all optional to selection, keep existing required selected
+      const newSelected = new Set(selectedDocuments);
+      allOptional.forEach(code => newSelected.add(code));
+      setSelectedDocuments(newSelected);
+    }
+  };
+
 
   const handleMakeSelectedOptional = async () => {
     if (selectedDocuments.size === 0) {
@@ -408,6 +431,38 @@ export default function ClientDetailsModal({ client, onClose, onSuccess }: Props
       await loadClient();
       // Don't call onSuccess() here as it might cause duplicate reloads
       showToast(`${selectedCount} document(s) marked as optional`, 'success');
+    } catch (error: any) {
+      setError(error.message || 'Failed to update documents');
+      showToast(error.message || 'Failed to update documents', 'error');
+    }
+  };
+
+  const handleMakeSelectedRequired = async () => {
+    if (selectedDocuments.size === 0) {
+      showToast('Please select at least one document', 'error');
+      return;
+    }
+
+    const selectedCount = selectedDocuments.size;
+    setError('');
+    try {
+      const updatedDocuments = clientData.required_documents.map((doc: any) => {
+        if (selectedDocuments.has(doc.code)) {
+          return {
+            ...doc,
+            isOptional: false,
+          };
+        }
+        return doc;
+      });
+
+      await api.updateClient(client.id, {
+        required_documents: updatedDocuments,
+      });
+      setSelectedDocuments(new Set());
+      await loadClient();
+      // Don't call onSuccess() here as it might cause duplicate reloads
+      showToast(`${selectedCount} document(s) marked as required`, 'success');
     } catch (error: any) {
       setError(error.message || 'Failed to update documents');
       showToast(error.message || 'Failed to update documents', 'error');
@@ -1816,27 +1871,58 @@ export default function ClientDetailsModal({ client, onClose, onSuccess }: Props
                         const allRequiredNonOptional = clientData.required_documents
                           .filter((d: any) => !d.isOptional)
                           .map((d: any) => d.code);
-                        const allSelected = allRequiredNonOptional.length > 0 && 
+                        const allOptional = clientData.required_documents
+                          .filter((d: any) => d.isOptional)
+                          .map((d: any) => d.code);
+                        const allRequiredSelected = allRequiredNonOptional.length > 0 && 
                           allRequiredNonOptional.every(code => selectedDocuments.has(code));
+                        const allOptionalSelected = allOptional.length > 0 && 
+                          allOptional.every(code => selectedDocuments.has(code));
+                        const hasSelectedOptional = allOptional.some(code => selectedDocuments.has(code));
+                        const hasSelectedRequired = allRequiredNonOptional.some(code => selectedDocuments.has(code));
                         return (
                           <>
                             <button
                               onClick={handleSelectAllDocuments}
                               className="px-2 py-1.5 text-xs font-semibold text-gray-600 bg-gray-100 hover:bg-gray-200 rounded-lg transition-colors flex items-center space-x-1"
-                              title={allSelected ? 'Deselect all' : 'Select all required documents'}
+                              title={allRequiredSelected ? 'Deselect all required' : 'Select all required documents'}
                             >
                               <CheckSquare className="w-4 h-4" />
-                              <span>{allSelected ? 'Deselect All' : 'Select All'}</span>
+                              <span>{allRequiredSelected ? 'Deselect Required' : 'Select Required'}</span>
                             </button>
-                            {selectedDocuments.size > 0 && (
+                            {allOptional.length > 0 && (
                               <button
-                                onClick={handleMakeSelectedOptional}
-                                className="px-3 py-1.5 text-xs font-semibold text-amber-700 bg-amber-100 hover:bg-amber-200 rounded-lg transition-colors flex items-center space-x-1"
-                                title={`Make ${selectedDocuments.size} selected document(s) optional`}
+                                onClick={handleSelectAllOptional}
+                                className="px-2 py-1.5 text-xs font-semibold text-blue-600 bg-blue-100 hover:bg-blue-200 rounded-lg transition-colors flex items-center space-x-1"
+                                title={allOptionalSelected ? 'Deselect all optional' : 'Select all optional documents'}
                               >
-                                <ToggleRight className="w-4 h-4" />
-                                <span>Make Selected Optional ({selectedDocuments.size})</span>
+                                <CheckSquare className="w-4 h-4" />
+                                <span>{allOptionalSelected ? 'Deselect Optional' : 'Select Optional'}</span>
                               </button>
+                            )}
+                            {selectedDocuments.size > 0 && (
+                              <>
+                                {hasSelectedRequired && (
+                                  <button
+                                    onClick={handleMakeSelectedOptional}
+                                    className="px-3 py-1.5 text-xs font-semibold text-amber-700 bg-amber-100 hover:bg-amber-200 rounded-lg transition-colors flex items-center space-x-1"
+                                    title={`Make selected document(s) optional`}
+                                  >
+                                    <ToggleRight className="w-4 h-4" />
+                                    <span>Make Optional ({selectedDocuments.size})</span>
+                                  </button>
+                                )}
+                                {hasSelectedOptional && (
+                                  <button
+                                    onClick={handleMakeSelectedRequired}
+                                    className="px-3 py-1.5 text-xs font-semibold text-green-700 bg-green-100 hover:bg-green-200 rounded-lg transition-colors flex items-center space-x-1"
+                                    title={`Make selected document(s) required`}
+                                  >
+                                    <ToggleLeft className="w-4 h-4" />
+                                    <span>Make Required ({selectedDocuments.size})</span>
+                                  </button>
+                                )}
+                              </>
                             )}
                             <button
                               onClick={() => {
@@ -1939,22 +2025,20 @@ export default function ClientDetailsModal({ client, onClose, onSuccess }: Props
                 >
                   <div className="flex items-start justify-between">
                     <div className="flex items-center space-x-2 mr-3">
-                      {!doc.isOptional && (
-                        <button
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            handleToggleDocumentSelection(doc.code || '');
-                          }}
-                          className="p-1 hover:bg-gray-100 rounded transition-colors flex-shrink-0"
-                          title={selectedDocuments.has(doc.code || '') ? 'Deselect' : 'Select'}
-                        >
-                          {selectedDocuments.has(doc.code || '') ? (
-                            <CheckSquare className="w-5 h-5 text-blue-600" />
-                          ) : (
-                            <Square className="w-5 h-5 text-gray-400" />
-                          )}
-                        </button>
-                      )}
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleToggleDocumentSelection(doc.code || '');
+                        }}
+                        className="p-1 hover:bg-gray-100 rounded transition-colors flex-shrink-0"
+                        title={selectedDocuments.has(doc.code || '') ? 'Deselect' : 'Select'}
+                      >
+                        {selectedDocuments.has(doc.code || '') ? (
+                          <CheckSquare className="w-5 h-5 text-blue-600" />
+                        ) : (
+                          <Square className="w-5 h-5 text-gray-400" />
+                        )}
+                      </button>
                       <div className="cursor-grab active:cursor-grabbing">
                         <GripVertical className="w-5 h-5 text-gray-400 hover:text-gray-600" />
                       </div>
