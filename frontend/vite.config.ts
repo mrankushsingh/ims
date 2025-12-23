@@ -7,16 +7,25 @@ export default defineConfig({
     rollupOptions: {
       output: {
         manualChunks(id) {
-          // Vendor chunks - third-party libraries
+          // Vendor chunks - split by library type
           if (id.includes('node_modules')) {
+            // React core libraries
             if (id.includes('react') || id.includes('react-dom') || id.includes('react-router')) {
               return 'react-vendor';
             }
-            // Other node_modules can be grouped or left as default
+            // Lucide icons (can be large)
+            if (id.includes('lucide-react')) {
+              return 'icons';
+            }
+            // Firebase (large SDK)
+            if (id.includes('firebase')) {
+              return 'firebase';
+            }
+            // Other vendor libraries
             return 'vendor';
           }
           
-          // Large component chunks
+          // Large component chunks - split by feature
           if (id.includes('Dashboard.tsx')) {
             return 'dashboard';
           }
@@ -24,19 +33,24 @@ export default defineConfig({
             return 'client-details';
           }
           
+          // Modal components
+          if (id.includes('CreateClientModal') || id.includes('CreateTemplateModal')) {
+            return 'modals';
+          }
+          
           // Utils chunks
           if (id.includes('utils/api.ts') || id.includes('utils/firebase.ts')) {
             return 'utils';
           }
           
-          // Other components
+          // Other components (smaller ones can be grouped)
           if (id.includes('components/')) {
             return 'components';
           }
         }
       }
     },
-    chunkSizeWarningLimit: 1000 // Increase limit to 1MB for better chunking
+    chunkSizeWarningLimit: 1000 // Increase limit to 1MB
   },
   server: {
     host: '0.0.0.0',
