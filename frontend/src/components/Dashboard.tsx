@@ -420,6 +420,12 @@ export default function Dashboard({ onNavigate }: DashboardProps) {
       setTemplates(templatesData);
       setClients(clientsData);
       setReminders(remindersData);
+      // Debug: Log clients with APORTAR DOCUMENTACIÓN documents
+      const clientsWithAportar = clientsData.filter((c: any) => (c.aportar_documentacion || []).length > 0);
+      console.log('Dashboard loadData: Found', clientsWithAportar.length, 'clients with APORTAR DOCUMENTACIÓN documents');
+      clientsWithAportar.forEach((c: any) => {
+        console.log(`  - ${c.first_name} ${c.last_name}:`, c.aportar_documentacion?.length || 0, 'documents');
+      });
     } catch (error) {
       console.error('Failed to load data:', error);
     } finally {
