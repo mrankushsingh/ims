@@ -943,7 +943,16 @@ async function handleDocumentRemove(
 }
 
 // APORTAR DOCUMENTACIÓN routes
-router.post('/:id/aportar-documentacion', upload.single('file'), (req: any, res) => 
+router.post('/:id/aportar-documentacion', (req: any, res: any, next: any) => {
+  // Only use multer if Content-Type is multipart/form-data
+  const contentType = req.headers['content-type'] || '';
+  if (contentType.includes('multipart/form-data')) {
+    upload.single('file')(req, res, next);
+  } else {
+    // For JSON requests, skip multer and proceed
+    next();
+  }
+}, (req: any, res) => 
   handleDocumentUpload(req, res, 'aportar_documentacion')
 );
 router.put('/:id/aportar-documentacion/:docId', (req: any, res) => 
