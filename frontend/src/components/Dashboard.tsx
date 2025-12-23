@@ -2590,8 +2590,8 @@ export default function Dashboard({ onNavigate }: DashboardProps) {
               setShowAportarDocumentacionModal(true);
             }
           }}
-          onSuccess={() => {
-            loadData();
+          onSuccess={async () => {
+            await loadData();
           }}
           onOpenAportarDocumentacion={() => {
             setReturnToAportarDocumentacion(true);
