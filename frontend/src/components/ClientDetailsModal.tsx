@@ -19,7 +19,8 @@ export default function ClientDetailsModal({ client, onClose, onSuccess }: Props
   const [showPaymentForm, setShowPaymentForm] = useState(false);
   const [showAdditionalDocForm, setShowAdditionalDocForm] = useState(false);
   const [paymentForm, setPaymentForm] = useState({ amount: '', method: 'Cash', note: '' });
-  const [additionalDocForm, setAdditionalDocForm] = useState({ name: '', description: '', file: null as File | null });
+  const [additionalDocForm, setAdditionalDocForm] = useState({ name: '', description: '', file: null as File | null, reminder_days: 10 });
+  const [editingAdditionalDoc, setEditingAdditionalDoc] = useState<string | null>(null);
   const [currentUserName, setCurrentUserName] = useState<string>('');
   const [notes, setNotes] = useState(client.notes || '');
   const [savingNotes, setSavingNotes] = useState(false);
@@ -38,13 +39,17 @@ export default function ClientDetailsModal({ client, onClose, onSuccess }: Props
   const [showDurationModal, setShowDurationModal] = useState(false);
   const [durationDays, setDurationDays] = useState(client.requested_documents_reminder_duration_days || 10);
   const [showAportarDocForm, setShowAportarDocForm] = useState(false);
-  const [aportarDocForm, setAportarDocForm] = useState({ name: '', description: '', file: null as File | null });
+  const [aportarDocForm, setAportarDocForm] = useState({ name: '', description: '', file: null as File | null, reminder_days: 10 });
+  const [editingAportarDoc, setEditingAportarDoc] = useState<string | null>(null);
   const [showRequerimientoForm, setShowRequerimientoForm] = useState(false);
-  const [requerimientoForm, setRequerimientoForm] = useState({ name: '', description: '', file: null as File | null });
+  const [requerimientoForm, setRequerimientoForm] = useState({ name: '', description: '', file: null as File | null, reminder_days: 10 });
+  const [editingRequerimientoDoc, setEditingRequerimientoDoc] = useState<string | null>(null);
   const [showResolucionForm, setShowResolucionForm] = useState(false);
-  const [resolucionForm, setResolucionForm] = useState({ name: '', description: '', file: null as File | null });
+  const [resolucionForm, setResolucionForm] = useState({ name: '', description: '', file: null as File | null, reminder_days: 10 });
+  const [editingResolucionDoc, setEditingResolucionDoc] = useState<string | null>(null);
   const [showJustificanteForm, setShowJustificanteForm] = useState(false);
-  const [justificanteForm, setJustificanteForm] = useState({ name: '', description: '', file: null as File | null });
+  const [justificanteForm, setJustificanteForm] = useState({ name: '', description: '', file: null as File | null, reminder_days: 10 });
+  const [editingJustificanteDoc, setEditingJustificanteDoc] = useState<string | null>(null);
   const [draggedIndex, setDraggedIndex] = useState<number | null>(null);
   const [dragOverIndex, setDragOverIndex] = useState<number | null>(null);
   const [templates, setTemplates] = useState<CaseTemplate[]>([]);
@@ -522,37 +527,95 @@ export default function ClientDetailsModal({ client, onClose, onSuccess }: Props
       return;
     }
 
-    if (!aportarDocForm.file) {
-      setError('Please select a file');
-      return;
-    }
-
-    if (!currentUserName.trim()) {
-      setError('User account information not available');
-      showToast('Unable to identify user account. Please refresh the page.', 'error');
-      return;
-    }
-
-    setUploading('aportar');
-    try {
-      await api.uploadAportarDocumentacion(
-        client.id,
-        aportarDocForm.name,
-        aportarDocForm.description,
-        aportarDocForm.file,
-        currentUserName
-      );
-      setAportarDocForm({ name: '', description: '', file: null });
-      setShowAportarDocForm(false);
-      await loadClient();
-      onSuccess();
-      showToast('Document uploaded successfully', 'success');
-    } catch (error: any) {
-      const errorMessage = error.message || 'Failed to upload document';
-      setError(errorMessage);
-      showToast(errorMessage, 'error');
-    } finally {
-      setUploading(null);
+    if (editingAportarDoc) {
+      // Update existing document
+      setUploading('aportar');
+      try {
+        if (aportarDocForm.file && currentUserName.trim()) {
+          await api.uploadAportarDocumentacion(
+            client.id,
+            aportarDocForm.name,
+            aportarDocForm.description,
+            aportarDocForm.file,
+            currentUserName
+          );
+        } else {
+          await api.updateAportarDocumentacion(
+            client.id,
+            editingAportarDoc,
+            {
+              name: aportarDocForm.name,
+              description: aportarDocForm.description,
+              reminder_days: aportarDocForm.reminder_days,
+            }
+          );
+        }
+        setAportarDocForm({ name: '', description: '', file: null, reminder_days: 10 });
+        setEditingAportarDoc(null);
+        setShowAportarDocForm(false);
+        await loadClient();
+        onSuccess();
+        showToast('Document updated successfully', 'success');
+      } catch (error: any) {
+        const errorMessage = error.message || 'Failed to update document';
+        setError(errorMessage);
+        showToast(errorMessage, 'error');
+      } finally {
+        setUploading(null);
+      }
+    } else {
+      // Create new document
+      if (aportarDocForm.file) {
+        if (!currentUserName.trim()) {
+          setError('User account information not available');
+          showToast('Unable to identify user account. Please refresh the page.', 'error');
+          return;
+        }
+        setUploading('aportar');
+        try {
+          await api.uploadAportarDocumentacion(
+            client.id,
+            aportarDocForm.name,
+            aportarDocForm.description,
+            aportarDocForm.file,
+            currentUserName
+          );
+          setAportarDocForm({ name: '', description: '', file: null, reminder_days: 10 });
+          setShowAportarDocForm(false);
+          await loadClient();
+          onSuccess();
+          showToast('Document created successfully', 'success');
+        } catch (error: any) {
+          const errorMessage = error.message || 'Failed to create document';
+          setError(errorMessage);
+          showToast(errorMessage, 'error');
+        } finally {
+          setUploading(null);
+        }
+      } else {
+        setUploading('aportar');
+        try {
+          await api.createAportarDocumentacion(
+            client.id,
+            {
+              name: aportarDocForm.name,
+              description: aportarDocForm.description,
+              reminder_days: aportarDocForm.reminder_days,
+            }
+          );
+          setAportarDocForm({ name: '', description: '', file: null, reminder_days: 10 });
+          setShowAportarDocForm(false);
+          await loadClient();
+          onSuccess();
+          showToast('Document entry created successfully. You can upload the file later.', 'success');
+        } catch (error: any) {
+          const errorMessage = error.message || 'Failed to create document';
+          setError(errorMessage);
+          showToast(errorMessage, 'error');
+        } finally {
+          setUploading(null);
+        }
+      }
     }
   };
 
@@ -589,37 +652,95 @@ export default function ClientDetailsModal({ client, onClose, onSuccess }: Props
       return;
     }
 
-    if (!requerimientoForm.file) {
-      setError('Please select a file');
-      return;
-    }
-
-    if (!currentUserName.trim()) {
-      setError('User account information not available');
-      showToast('Unable to identify user account. Please refresh the page.', 'error');
-      return;
-    }
-
-    setUploading('requerimiento');
-    try {
-      await api.uploadRequerimiento(
-        client.id,
-        requerimientoForm.name,
-        requerimientoForm.description,
-        requerimientoForm.file,
-        currentUserName
-      );
-      setRequerimientoForm({ name: '', description: '', file: null });
-      setShowRequerimientoForm(false);
-      await loadClient();
-      onSuccess();
-      showToast('Document uploaded successfully', 'success');
-    } catch (error: any) {
-      const errorMessage = error.message || 'Failed to upload document';
-      setError(errorMessage);
-      showToast(errorMessage, 'error');
-    } finally {
-      setUploading(null);
+    if (editingRequerimientoDoc) {
+      // Update existing document
+      setUploading('requerimiento');
+      try {
+        if (requerimientoForm.file && currentUserName.trim()) {
+          await api.uploadRequerimiento(
+            client.id,
+            requerimientoForm.name,
+            requerimientoForm.description,
+            requerimientoForm.file,
+            currentUserName
+          );
+        } else {
+          await api.updateRequerimiento(
+            client.id,
+            editingRequerimientoDoc,
+            {
+              name: requerimientoForm.name,
+              description: requerimientoForm.description,
+              reminder_days: requerimientoForm.reminder_days,
+            }
+          );
+        }
+        setRequerimientoForm({ name: '', description: '', file: null, reminder_days: 10 });
+        setEditingRequerimientoDoc(null);
+        setShowRequerimientoForm(false);
+        await loadClient();
+        onSuccess();
+        showToast('Document updated successfully', 'success');
+      } catch (error: any) {
+        const errorMessage = error.message || 'Failed to update document';
+        setError(errorMessage);
+        showToast(errorMessage, 'error');
+      } finally {
+        setUploading(null);
+      }
+    } else {
+      // Create new document
+      if (requerimientoForm.file) {
+        if (!currentUserName.trim()) {
+          setError('User account information not available');
+          showToast('Unable to identify user account. Please refresh the page.', 'error');
+          return;
+        }
+        setUploading('requerimiento');
+        try {
+          await api.uploadRequerimiento(
+            client.id,
+            requerimientoForm.name,
+            requerimientoForm.description,
+            requerimientoForm.file,
+            currentUserName
+          );
+          setRequerimientoForm({ name: '', description: '', file: null, reminder_days: 10 });
+          setShowRequerimientoForm(false);
+          await loadClient();
+          onSuccess();
+          showToast('Document created successfully', 'success');
+        } catch (error: any) {
+          const errorMessage = error.message || 'Failed to create document';
+          setError(errorMessage);
+          showToast(errorMessage, 'error');
+        } finally {
+          setUploading(null);
+        }
+      } else {
+        setUploading('requerimiento');
+        try {
+          await api.createRequerimiento(
+            client.id,
+            {
+              name: requerimientoForm.name,
+              description: requerimientoForm.description,
+              reminder_days: requerimientoForm.reminder_days,
+            }
+          );
+          setRequerimientoForm({ name: '', description: '', file: null, reminder_days: 10 });
+          setShowRequerimientoForm(false);
+          await loadClient();
+          onSuccess();
+          showToast('Document entry created successfully. You can upload the file later.', 'success');
+        } catch (error: any) {
+          const errorMessage = error.message || 'Failed to create document';
+          setError(errorMessage);
+          showToast(errorMessage, 'error');
+        } finally {
+          setUploading(null);
+        }
+      }
     }
   };
 
@@ -655,37 +776,95 @@ export default function ClientDetailsModal({ client, onClose, onSuccess }: Props
       return;
     }
 
-    if (!resolucionForm.file) {
-      setError('Please select a file');
-      return;
-    }
-
-    if (!currentUserName.trim()) {
-      setError('User account information not available');
-      showToast('Unable to identify user account. Please refresh the page.', 'error');
-      return;
-    }
-
-    setUploading('resolucion');
-    try {
-      await api.uploadResolucion(
-        client.id,
-        resolucionForm.name,
-        resolucionForm.description,
-        resolucionForm.file,
-        currentUserName
-      );
-      setResolucionForm({ name: '', description: '', file: null });
-      setShowResolucionForm(false);
-      await loadClient();
-      onSuccess();
-      showToast('Document uploaded successfully', 'success');
-    } catch (error: any) {
-      const errorMessage = error.message || 'Failed to upload document';
-      setError(errorMessage);
-      showToast(errorMessage, 'error');
-    } finally {
-      setUploading(null);
+    if (editingResolucionDoc) {
+      // Update existing document
+      setUploading('resolucion');
+      try {
+        if (resolucionForm.file && currentUserName.trim()) {
+          await api.uploadResolucion(
+            client.id,
+            resolucionForm.name,
+            resolucionForm.description,
+            resolucionForm.file,
+            currentUserName
+          );
+        } else {
+          await api.updateResolucion(
+            client.id,
+            editingResolucionDoc,
+            {
+              name: resolucionForm.name,
+              description: resolucionForm.description,
+              reminder_days: resolucionForm.reminder_days,
+            }
+          );
+        }
+        setResolucionForm({ name: '', description: '', file: null, reminder_days: 10 });
+        setEditingResolucionDoc(null);
+        setShowResolucionForm(false);
+        await loadClient();
+        onSuccess();
+        showToast('Document updated successfully', 'success');
+      } catch (error: any) {
+        const errorMessage = error.message || 'Failed to update document';
+        setError(errorMessage);
+        showToast(errorMessage, 'error');
+      } finally {
+        setUploading(null);
+      }
+    } else {
+      // Create new document
+      if (resolucionForm.file) {
+        if (!currentUserName.trim()) {
+          setError('User account information not available');
+          showToast('Unable to identify user account. Please refresh the page.', 'error');
+          return;
+        }
+        setUploading('resolucion');
+        try {
+          await api.uploadResolucion(
+            client.id,
+            resolucionForm.name,
+            resolucionForm.description,
+            resolucionForm.file,
+            currentUserName
+          );
+          setResolucionForm({ name: '', description: '', file: null, reminder_days: 10 });
+          setShowResolucionForm(false);
+          await loadClient();
+          onSuccess();
+          showToast('Document created successfully', 'success');
+        } catch (error: any) {
+          const errorMessage = error.message || 'Failed to create document';
+          setError(errorMessage);
+          showToast(errorMessage, 'error');
+        } finally {
+          setUploading(null);
+        }
+      } else {
+        setUploading('resolucion');
+        try {
+          await api.createResolucion(
+            client.id,
+            {
+              name: resolucionForm.name,
+              description: resolucionForm.description,
+              reminder_days: resolucionForm.reminder_days,
+            }
+          );
+          setResolucionForm({ name: '', description: '', file: null, reminder_days: 10 });
+          setShowResolucionForm(false);
+          await loadClient();
+          onSuccess();
+          showToast('Document entry created successfully. You can upload the file later.', 'success');
+        } catch (error: any) {
+          const errorMessage = error.message || 'Failed to create document';
+          setError(errorMessage);
+          showToast(errorMessage, 'error');
+        } finally {
+          setUploading(null);
+        }
+      }
     }
   };
 
@@ -721,37 +900,95 @@ export default function ClientDetailsModal({ client, onClose, onSuccess }: Props
       return;
     }
 
-    if (!justificanteForm.file) {
-      setError('Please select a file');
-      return;
-    }
-
-    if (!currentUserName.trim()) {
-      setError('User account information not available');
-      showToast('Unable to identify user account. Please refresh the page.', 'error');
-      return;
-    }
-
-    setUploading('justificante');
-    try {
-      await api.uploadJustificante(
-        client.id,
-        justificanteForm.name,
-        justificanteForm.description,
-        justificanteForm.file,
-        currentUserName
-      );
-      setJustificanteForm({ name: '', description: '', file: null });
-      setShowJustificanteForm(false);
-      await loadClient();
-      onSuccess();
-      showToast('Document uploaded successfully', 'success');
-    } catch (error: any) {
-      const errorMessage = error.message || 'Failed to upload document';
-      setError(errorMessage);
-      showToast(errorMessage, 'error');
-    } finally {
-      setUploading(null);
+    if (editingJustificanteDoc) {
+      // Update existing document
+      setUploading('justificante');
+      try {
+        if (justificanteForm.file && currentUserName.trim()) {
+          await api.uploadJustificante(
+            client.id,
+            justificanteForm.name,
+            justificanteForm.description,
+            justificanteForm.file,
+            currentUserName
+          );
+        } else {
+          await api.updateJustificante(
+            client.id,
+            editingJustificanteDoc,
+            {
+              name: justificanteForm.name,
+              description: justificanteForm.description,
+              reminder_days: justificanteForm.reminder_days,
+            }
+          );
+        }
+        setJustificanteForm({ name: '', description: '', file: null, reminder_days: 10 });
+        setEditingJustificanteDoc(null);
+        setShowJustificanteForm(false);
+        await loadClient();
+        onSuccess();
+        showToast('Document updated successfully', 'success');
+      } catch (error: any) {
+        const errorMessage = error.message || 'Failed to update document';
+        setError(errorMessage);
+        showToast(errorMessage, 'error');
+      } finally {
+        setUploading(null);
+      }
+    } else {
+      // Create new document
+      if (justificanteForm.file) {
+        if (!currentUserName.trim()) {
+          setError('User account information not available');
+          showToast('Unable to identify user account. Please refresh the page.', 'error');
+          return;
+        }
+        setUploading('justificante');
+        try {
+          await api.uploadJustificante(
+            client.id,
+            justificanteForm.name,
+            justificanteForm.description,
+            justificanteForm.file,
+            currentUserName
+          );
+          setJustificanteForm({ name: '', description: '', file: null, reminder_days: 10 });
+          setShowJustificanteForm(false);
+          await loadClient();
+          onSuccess();
+          showToast('Document created successfully', 'success');
+        } catch (error: any) {
+          const errorMessage = error.message || 'Failed to create document';
+          setError(errorMessage);
+          showToast(errorMessage, 'error');
+        } finally {
+          setUploading(null);
+        }
+      } else {
+        setUploading('justificante');
+        try {
+          await api.createJustificante(
+            client.id,
+            {
+              name: justificanteForm.name,
+              description: justificanteForm.description,
+              reminder_days: justificanteForm.reminder_days,
+            }
+          );
+          setJustificanteForm({ name: '', description: '', file: null, reminder_days: 10 });
+          setShowJustificanteForm(false);
+          await loadClient();
+          onSuccess();
+          showToast('Document entry created successfully. You can upload the file later.', 'success');
+        } catch (error: any) {
+          const errorMessage = error.message || 'Failed to create document';
+          setError(errorMessage);
+          showToast(errorMessage, 'error');
+        } finally {
+          setUploading(null);
+        }
+      }
     }
   };
 
@@ -903,37 +1140,99 @@ export default function ClientDetailsModal({ client, onClose, onSuccess }: Props
       return;
     }
 
-    if (!additionalDocForm.file) {
-      setError('Please select a file');
-      return;
-    }
-
-    if (!currentUserName.trim()) {
-      setError('User account information not available');
-      showToast('Unable to identify user account. Please refresh the page.', 'error');
-      return;
-    }
-
-    setUploading('additional');
-    try {
-      await api.uploadAdditionalDocument(
-        client.id,
-        additionalDocForm.name,
-        additionalDocForm.description,
-        additionalDocForm.file,
-        currentUserName
-      );
-      setAdditionalDocForm({ name: '', description: '', file: null });
-      setShowAdditionalDocForm(false);
-      await loadClient();
-      onSuccess();
-      showToast('Additional document uploaded successfully', 'success');
-    } catch (error: any) {
-      const errorMessage = error.message || 'Failed to upload document';
-      setError(errorMessage);
-      showToast(errorMessage, 'error');
-    } finally {
-      setUploading(null);
+    if (editingAdditionalDoc) {
+      // Update existing document (reminder only, or upload file if provided)
+      setUploading('additional');
+      try {
+        if (additionalDocForm.file && currentUserName.trim()) {
+          // Upload file to existing document
+          await api.uploadAdditionalDocument(
+            client.id,
+            additionalDocForm.name,
+            additionalDocForm.description,
+            additionalDocForm.file,
+            currentUserName
+          );
+        } else {
+          // Update reminder only
+          await api.updateAdditionalDocument(
+            client.id,
+            editingAdditionalDoc,
+            {
+              name: additionalDocForm.name,
+              description: additionalDocForm.description,
+              reminder_days: additionalDocForm.reminder_days,
+            }
+          );
+        }
+        setAdditionalDocForm({ name: '', description: '', file: null, reminder_days: 10 });
+        setEditingAdditionalDoc(null);
+        setShowAdditionalDocForm(false);
+        await loadClient();
+        onSuccess();
+        showToast('Document updated successfully', 'success');
+      } catch (error: any) {
+        const errorMessage = error.message || 'Failed to update document';
+        setError(errorMessage);
+        showToast(errorMessage, 'error');
+      } finally {
+        setUploading(null);
+      }
+    } else {
+      // Create new document (file optional)
+      if (additionalDocForm.file) {
+        // Create with file
+        if (!currentUserName.trim()) {
+          setError('User account information not available');
+          showToast('Unable to identify user account. Please refresh the page.', 'error');
+          return;
+        }
+        setUploading('additional');
+        try {
+          await api.uploadAdditionalDocument(
+            client.id,
+            additionalDocForm.name,
+            additionalDocForm.description,
+            additionalDocForm.file,
+            currentUserName
+          );
+          setAdditionalDocForm({ name: '', description: '', file: null, reminder_days: 10 });
+          setShowAdditionalDocForm(false);
+          await loadClient();
+          onSuccess();
+          showToast('Additional document created successfully', 'success');
+        } catch (error: any) {
+          const errorMessage = error.message || 'Failed to create document';
+          setError(errorMessage);
+          showToast(errorMessage, 'error');
+        } finally {
+          setUploading(null);
+        }
+      } else {
+        // Create without file (just name, description, reminder)
+        setUploading('additional');
+        try {
+          await api.createAdditionalDocument(
+            client.id,
+            {
+              name: additionalDocForm.name,
+              description: additionalDocForm.description,
+              reminder_days: additionalDocForm.reminder_days,
+            }
+          );
+          setAdditionalDocForm({ name: '', description: '', file: null, reminder_days: 10 });
+          setShowAdditionalDocForm(false);
+          await loadClient();
+          onSuccess();
+          showToast('Document entry created successfully. You can upload the file later.', 'success');
+        } catch (error: any) {
+          const errorMessage = error.message || 'Failed to create document';
+          setError(errorMessage);
+          showToast(errorMessage, 'error');
+        } finally {
+          setUploading(null);
+        }
+      }
     }
   };
 
@@ -1015,6 +1314,7 @@ export default function ClientDetailsModal({ client, onClose, onSuccess }: Props
       // Fetch and add additional documents
       for (const doc of additionalDocs) {
         try {
+          if (!doc.fileUrl) continue;
           const response = await fetch(doc.fileUrl);
           const blob = await response.blob();
           zip.file(`Additional_Documents/${doc.fileName}`, blob);
@@ -2230,10 +2530,20 @@ export default function ClientDetailsModal({ client, onClose, onSuccess }: Props
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">File *</label>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Reminder Days (default: 10)</label>
+                  <input
+                    type="number"
+                    min="1"
+                    value={additionalDocForm.reminder_days}
+                    onChange={(e) => setAdditionalDocForm({ ...additionalDocForm, reminder_days: parseInt(e.target.value) || 10 })}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 outline-none"
+                    placeholder="10"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">File (optional - can upload later)</label>
                   <input
                     type="file"
-                    required
                     onChange={(e) => {
                       const file = e.target.files?.[0];
                       if (file) {
@@ -2249,7 +2559,8 @@ export default function ClientDetailsModal({ client, onClose, onSuccess }: Props
                   type="button"
                   onClick={() => {
                     setShowAdditionalDocForm(false);
-                    setAdditionalDocForm({ name: '', description: '', file: null });
+                    setAdditionalDocForm({ name: '', description: '', file: null, reminder_days: 10 });
+                    setEditingAdditionalDoc(null);
                   }}
                   className="px-4 py-2 text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200 transition-colors text-sm"
                 >
@@ -2260,7 +2571,7 @@ export default function ClientDetailsModal({ client, onClose, onSuccess }: Props
                   disabled={uploading === 'additional'}
                   className="px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors text-sm disabled:opacity-50"
                 >
-                  {uploading === 'additional' ? 'Uploading...' : 'Upload Document'}
+                  {uploading === 'additional' ? 'Saving...' : editingAdditionalDoc ? 'Update' : 'Create Document'}
                 </button>
               </div>
             </form>
@@ -2287,30 +2598,95 @@ export default function ClientDetailsModal({ client, onClose, onSuccess }: Props
                       {doc.description && (
                         <p className="text-sm text-gray-600 mb-2">{doc.description}</p>
                       )}
-                      <p className="text-xs text-gray-500">
-                        File: {doc.fileName} ({`${(doc.fileSize / 1024).toFixed(2)} KB`})
-                      </p>
-                      <p className="text-xs text-gray-500 mt-1">
-                        Uploaded: {new Date(doc.uploadedAt).toLocaleDateString()}
-                        {doc.uploadedBy && (
-                          <span className="ml-2">by <span className="font-medium">{doc.uploadedBy}</span></span>
-                        )}
-                      </p>
+                      {doc.fileUrl && doc.fileName ? (
+                        <>
+                          <p className="text-xs text-gray-500">
+                            File: {doc.fileName} ({doc.fileSize ? `${(doc.fileSize / 1024).toFixed(2)} KB` : 'N/A'})
+                          </p>
+                          <p className="text-xs text-gray-500 mt-1">
+                            Uploaded: {doc.uploadedAt ? new Date(doc.uploadedAt).toLocaleDateString() : 'N/A'}
+                            {doc.uploadedBy && (
+                              <span className="ml-2">by <span className="font-medium">{doc.uploadedBy}</span></span>
+                            )}
+                          </p>
+                        </>
+                      ) : (
+                        <p className="text-xs text-amber-600 font-medium">File not uploaded yet</p>
+                      )}
+                      {doc.reminder_days && (
+                        <p className="text-xs text-blue-600 mt-1 flex items-center space-x-1">
+                          <Clock className="w-3 h-3" />
+                          <span>Reminder: {doc.reminder_days} days</span>
+                          {doc.reminder_date && (
+                            <span className="text-gray-500">
+                              (Due: {new Date(doc.reminder_date).toLocaleDateString()})
+                            </span>
+                          )}
+                        </p>
+                      )}
                     </div>
                     <div className="flex items-center space-x-2 ml-4">
+                      {doc.fileUrl ? (
+                        <>
+                          <button
+                            onClick={() => handleViewDocument(doc.fileUrl!, doc.fileName!)}
+                            className="p-2 text-green-600 hover:bg-green-50 rounded-lg transition-colors border border-green-200 hover:border-green-300"
+                            title="View Document"
+                          >
+                            <Eye className="w-4 h-4" />
+                          </button>
+                          <button
+                            onClick={() => handleDownload(doc.fileUrl!, doc.fileName!)}
+                            className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors border border-blue-200 hover:border-blue-300"
+                            title="Download"
+                          >
+                            <Download className="w-4 h-4" />
+                          </button>
+                        </>
+                      ) : (
+                        <label className="cursor-pointer">
+                          <input
+                            type="file"
+                            className="hidden"
+                            onChange={async (e) => {
+                              const file = e.target.files?.[0];
+                              if (file && currentUserName) {
+                                setUploading('additional');
+                                try {
+                                  await api.uploadAdditionalDocumentFile(client.id, doc.id, file, currentUserName);
+                                  await loadClient();
+                                  onSuccess();
+                                  showToast('File uploaded successfully', 'success');
+                                } catch (error: any) {
+                                  showToast(error.message || 'Failed to upload file', 'error');
+                                } finally {
+                                  setUploading(null);
+                                }
+                              }
+                            }}
+                            disabled={uploading === 'additional'}
+                          />
+                          <div className="px-3 py-2 text-xs font-medium text-white bg-purple-600 hover:bg-purple-700 rounded-lg transition-colors border border-purple-700">
+                            <Upload className="w-4 h-4 inline mr-1" />
+                            Upload File
+                          </div>
+                        </label>
+                      )}
                       <button
-                        onClick={() => handleViewDocument(doc.fileUrl, doc.fileName)}
-                        className="p-2 text-green-600 hover:bg-green-50 rounded-lg transition-colors border border-green-200 hover:border-green-300"
-                        title="View Document"
+                        onClick={() => {
+                          setEditingAdditionalDoc(doc.id);
+                          setAdditionalDocForm({
+                            name: doc.name,
+                            description: doc.description || '',
+                            file: null,
+                            reminder_days: doc.reminder_days || 10,
+                          });
+                          setShowAdditionalDocForm(true);
+                        }}
+                        className="p-2 text-amber-600 hover:bg-amber-50 rounded-lg transition-colors border border-amber-200 hover:border-amber-300"
+                        title="Edit Reminder"
                       >
-                        <Eye className="w-4 h-4" />
-                      </button>
-                      <button
-                        onClick={() => handleDownload(doc.fileUrl, doc.fileName)}
-                        className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors border border-blue-200 hover:border-blue-300"
-                        title="Download"
-                      >
-                        <Download className="w-4 h-4" />
+                        <Edit2 className="w-4 h-4" />
                       </button>
                       <button
                         onClick={() => handleRemoveAdditionalDocument(doc.id)}
@@ -2368,10 +2744,20 @@ export default function ClientDetailsModal({ client, onClose, onSuccess }: Props
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">File *</label>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Reminder Days (default: 10)</label>
+                  <input
+                    type="number"
+                    min="1"
+                    value={justificanteForm.reminder_days}
+                    onChange={(e) => setJustificanteForm({ ...justificanteForm, reminder_days: parseInt(e.target.value) || 10 })}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 outline-none"
+                    placeholder="10"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">File (optional - can upload later)</label>
                   <input
                     type="file"
-                    required
                     onChange={(e) => {
                       const file = e.target.files?.[0];
                       if (file) {
@@ -2387,7 +2773,8 @@ export default function ClientDetailsModal({ client, onClose, onSuccess }: Props
                   type="button"
                   onClick={() => {
                     setShowJustificanteForm(false);
-                    setJustificanteForm({ name: '', description: '', file: null });
+                    setJustificanteForm({ name: '', description: '', file: null, reminder_days: 10 });
+                    setEditingJustificanteDoc(null);
                   }}
                   className="px-4 py-2 text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200 transition-colors text-sm"
                 >
@@ -2398,7 +2785,7 @@ export default function ClientDetailsModal({ client, onClose, onSuccess }: Props
                   disabled={uploading === 'justificante'}
                   className="px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors text-sm disabled:opacity-50"
                 >
-                  {uploading === 'justificante' ? 'Uploading...' : 'Upload Document'}
+                  {uploading === 'justificante' ? 'Saving...' : editingJustificanteDoc ? 'Update' : 'Create Document'}
                 </button>
               </div>
             </form>
@@ -2425,30 +2812,95 @@ export default function ClientDetailsModal({ client, onClose, onSuccess }: Props
                       {doc.description && (
                         <p className="text-sm text-gray-600 mb-2">{doc.description}</p>
                       )}
-                      <p className="text-xs text-gray-500">
-                        File: {doc.fileName} ({`${(doc.fileSize / 1024).toFixed(2)} KB`})
-                      </p>
-                      <p className="text-xs text-gray-500 mt-1">
-                        Uploaded: {new Date(doc.uploadedAt).toLocaleDateString()}
-                        {doc.uploadedBy && (
-                          <span className="ml-2">by <span className="font-medium">{doc.uploadedBy}</span></span>
-                        )}
-                      </p>
+                      {doc.fileUrl && doc.fileName ? (
+                        <>
+                          <p className="text-xs text-gray-500">
+                            File: {doc.fileName} ({doc.fileSize ? `${(doc.fileSize / 1024).toFixed(2)} KB` : 'N/A'})
+                          </p>
+                          <p className="text-xs text-gray-500 mt-1">
+                            Uploaded: {doc.uploadedAt ? new Date(doc.uploadedAt).toLocaleDateString() : 'N/A'}
+                            {doc.uploadedBy && (
+                              <span className="ml-2">by <span className="font-medium">{doc.uploadedBy}</span></span>
+                            )}
+                          </p>
+                        </>
+                      ) : (
+                        <p className="text-xs text-amber-600 font-medium">File not uploaded yet</p>
+                      )}
+                      {doc.reminder_days && (
+                        <p className="text-xs text-blue-600 mt-1 flex items-center space-x-1">
+                          <Clock className="w-3 h-3" />
+                          <span>Reminder: {doc.reminder_days} days</span>
+                          {doc.reminder_date && (
+                            <span className="text-gray-500">
+                              (Due: {new Date(doc.reminder_date).toLocaleDateString()})
+                            </span>
+                          )}
+                        </p>
+                      )}
                     </div>
                     <div className="flex items-center space-x-2 ml-4">
+                      {doc.fileUrl ? (
+                        <>
+                          <button
+                            onClick={() => handleViewDocument(doc.fileUrl!, doc.fileName!)}
+                            className="p-2 text-green-600 hover:bg-green-50 rounded-lg transition-colors border border-green-200 hover:border-green-300"
+                            title="View Document"
+                          >
+                            <Eye className="w-4 h-4" />
+                          </button>
+                          <button
+                            onClick={() => handleDownload(doc.fileUrl!, doc.fileName!)}
+                            className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors border border-blue-200 hover:border-blue-300"
+                            title="Download"
+                          >
+                            <Download className="w-4 h-4" />
+                          </button>
+                        </>
+                      ) : (
+                        <label className="cursor-pointer">
+                          <input
+                            type="file"
+                            className="hidden"
+                            onChange={async (e) => {
+                              const file = e.target.files?.[0];
+                              if (file && currentUserName) {
+                                setUploading('justificante');
+                                try {
+                                  await api.uploadJustificanteFile(client.id, doc.id, file, currentUserName);
+                                  await loadClient();
+                                  onSuccess();
+                                  showToast('File uploaded successfully', 'success');
+                                } catch (error: any) {
+                                  showToast(error.message || 'Failed to upload file', 'error');
+                                } finally {
+                                  setUploading(null);
+                                }
+                              }
+                            }}
+                            disabled={uploading === 'justificante'}
+                          />
+                          <div className="px-3 py-2 text-xs font-medium text-white bg-indigo-600 hover:bg-indigo-700 rounded-lg transition-colors border border-indigo-700">
+                            <Upload className="w-4 h-4 inline mr-1" />
+                            Upload File
+                          </div>
+                        </label>
+                      )}
                       <button
-                        onClick={() => handleViewDocument(doc.fileUrl, doc.fileName)}
-                        className="p-2 text-green-600 hover:bg-green-50 rounded-lg transition-colors border border-green-200 hover:border-green-300"
-                        title="View Document"
+                        onClick={() => {
+                          setEditingJustificanteDoc(doc.id);
+                          setJustificanteForm({
+                            name: doc.name,
+                            description: doc.description || '',
+                            file: null,
+                            reminder_days: doc.reminder_days || 10,
+                          });
+                          setShowJustificanteForm(true);
+                        }}
+                        className="p-2 text-amber-600 hover:bg-amber-50 rounded-lg transition-colors border border-amber-200 hover:border-amber-300"
+                        title="Edit Reminder"
                       >
-                        <Eye className="w-4 h-4" />
-                      </button>
-                      <button
-                        onClick={() => handleDownload(doc.fileUrl, doc.fileName)}
-                        className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors border border-blue-200 hover:border-blue-300"
-                        title="Download"
-                      >
-                        <Download className="w-4 h-4" />
+                        <Edit2 className="w-4 h-4" />
                       </button>
                       <button
                         onClick={() => handleRemoveJustificante(doc.id)}
@@ -2525,7 +2977,7 @@ export default function ClientDetailsModal({ client, onClose, onSuccess }: Props
                   type="button"
                   onClick={() => {
                     setShowAportarDocForm(false);
-                    setAportarDocForm({ name: '', description: '', file: null });
+                    setAportarDocForm({ name: '', description: '', file: null, reminder_days: 10 });
                   }}
                   className="px-4 py-2 text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200 transition-colors text-sm"
                 >
@@ -2563,30 +3015,95 @@ export default function ClientDetailsModal({ client, onClose, onSuccess }: Props
                       {doc.description && (
                         <p className="text-sm text-gray-600 mb-2">{doc.description}</p>
                       )}
-                      <p className="text-xs text-gray-500">
-                        File: {doc.fileName} ({`${(doc.fileSize / 1024).toFixed(2)} KB`})
-                      </p>
-                      <p className="text-xs text-gray-500 mt-1">
-                        Uploaded: {new Date(doc.uploadedAt).toLocaleDateString()}
-                        {doc.uploadedBy && (
-                          <span className="ml-2">by <span className="font-medium">{doc.uploadedBy}</span></span>
-                        )}
-                      </p>
+                      {doc.fileUrl && doc.fileName ? (
+                        <>
+                          <p className="text-xs text-gray-500">
+                            File: {doc.fileName} ({doc.fileSize ? `${(doc.fileSize / 1024).toFixed(2)} KB` : 'N/A'})
+                          </p>
+                          <p className="text-xs text-gray-500 mt-1">
+                            Uploaded: {doc.uploadedAt ? new Date(doc.uploadedAt).toLocaleDateString() : 'N/A'}
+                            {doc.uploadedBy && (
+                              <span className="ml-2">by <span className="font-medium">{doc.uploadedBy}</span></span>
+                            )}
+                          </p>
+                        </>
+                      ) : (
+                        <p className="text-xs text-amber-600 font-medium">File not uploaded yet</p>
+                      )}
+                      {doc.reminder_days && (
+                        <p className="text-xs text-blue-600 mt-1 flex items-center space-x-1">
+                          <Clock className="w-3 h-3" />
+                          <span>Reminder: {doc.reminder_days} days</span>
+                          {doc.reminder_date && (
+                            <span className="text-gray-500">
+                              (Due: {new Date(doc.reminder_date).toLocaleDateString()})
+                            </span>
+                          )}
+                        </p>
+                      )}
                     </div>
                     <div className="flex items-center space-x-2 ml-4">
+                      {doc.fileUrl ? (
+                        <>
+                          <button
+                            onClick={() => handleViewDocument(doc.fileUrl!, doc.fileName!)}
+                            className="p-2 text-green-600 hover:bg-green-50 rounded-lg transition-colors border border-green-200 hover:border-green-300"
+                            title="View Document"
+                          >
+                            <Eye className="w-4 h-4" />
+                          </button>
+                          <button
+                            onClick={() => handleDownload(doc.fileUrl!, doc.fileName!)}
+                            className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors border border-blue-200 hover:border-blue-300"
+                            title="Download"
+                          >
+                            <Download className="w-4 h-4" />
+                          </button>
+                        </>
+                      ) : (
+                        <label className="cursor-pointer">
+                          <input
+                            type="file"
+                            className="hidden"
+                            onChange={async (e) => {
+                              const file = e.target.files?.[0];
+                              if (file && currentUserName) {
+                                setUploading('aportar');
+                                try {
+                                  await api.uploadAportarDocumentacionFile(client.id, doc.id, file, currentUserName);
+                                  await loadClient();
+                                  onSuccess();
+                                  showToast('File uploaded successfully', 'success');
+                                } catch (error: any) {
+                                  showToast(error.message || 'Failed to upload file', 'error');
+                                } finally {
+                                  setUploading(null);
+                                }
+                              }
+                            }}
+                            disabled={uploading === 'aportar'}
+                          />
+                          <div className="px-3 py-2 text-xs font-medium text-white bg-blue-600 hover:bg-blue-700 rounded-lg transition-colors border border-blue-700">
+                            <Upload className="w-4 h-4 inline mr-1" />
+                            Upload File
+                          </div>
+                        </label>
+                      )}
                       <button
-                        onClick={() => handleViewDocument(doc.fileUrl, doc.fileName)}
-                        className="p-2 text-green-600 hover:bg-green-50 rounded-lg transition-colors border border-green-200 hover:border-green-300"
-                        title="View Document"
+                        onClick={() => {
+                          setEditingAportarDoc(doc.id);
+                          setAportarDocForm({
+                            name: doc.name,
+                            description: doc.description || '',
+                            file: null,
+                            reminder_days: doc.reminder_days || 10,
+                          });
+                          setShowAportarDocForm(true);
+                        }}
+                        className="p-2 text-amber-600 hover:bg-amber-50 rounded-lg transition-colors border border-amber-200 hover:border-amber-300"
+                        title="Edit Reminder"
                       >
-                        <Eye className="w-4 h-4" />
-                      </button>
-                      <button
-                        onClick={() => handleDownload(doc.fileUrl, doc.fileName)}
-                        className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors border border-blue-200 hover:border-blue-300"
-                        title="Download"
-                      >
-                        <Download className="w-4 h-4" />
+                        <Edit2 className="w-4 h-4" />
                       </button>
                       <button
                         onClick={() => handleRemoveAportarDocumentacion(doc.id)}
@@ -2644,10 +3161,20 @@ export default function ClientDetailsModal({ client, onClose, onSuccess }: Props
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">File *</label>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Reminder Days (default: 10)</label>
+                  <input
+                    type="number"
+                    min="1"
+                    value={requerimientoForm.reminder_days}
+                    onChange={(e) => setRequerimientoForm({ ...requerimientoForm, reminder_days: parseInt(e.target.value) || 10 })}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-amber-500 outline-none"
+                    placeholder="10"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">File (optional - can upload later)</label>
                   <input
                     type="file"
-                    required
                     onChange={(e) => {
                       const file = e.target.files?.[0];
                       if (file) {
@@ -2663,7 +3190,8 @@ export default function ClientDetailsModal({ client, onClose, onSuccess }: Props
                   type="button"
                   onClick={() => {
                     setShowRequerimientoForm(false);
-                    setRequerimientoForm({ name: '', description: '', file: null });
+                    setRequerimientoForm({ name: '', description: '', file: null, reminder_days: 10 });
+                    setEditingRequerimientoDoc(null);
                   }}
                   className="px-4 py-2 text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200 transition-colors text-sm"
                 >
@@ -2674,7 +3202,7 @@ export default function ClientDetailsModal({ client, onClose, onSuccess }: Props
                   disabled={uploading === 'requerimiento'}
                   className="px-4 py-2 bg-amber-600 text-white rounded-lg hover:bg-amber-700 transition-colors text-sm disabled:opacity-50"
                 >
-                  {uploading === 'requerimiento' ? 'Uploading...' : 'Upload Document'}
+                  {uploading === 'requerimiento' ? 'Saving...' : editingRequerimientoDoc ? 'Update' : 'Create Document'}
                 </button>
               </div>
             </form>
@@ -2701,30 +3229,95 @@ export default function ClientDetailsModal({ client, onClose, onSuccess }: Props
                       {doc.description && (
                         <p className="text-sm text-gray-600 mb-2">{doc.description}</p>
                       )}
-                      <p className="text-xs text-gray-500">
-                        File: {doc.fileName} ({`${(doc.fileSize / 1024).toFixed(2)} KB`})
-                      </p>
-                      <p className="text-xs text-gray-500 mt-1">
-                        Uploaded: {new Date(doc.uploadedAt).toLocaleDateString()}
-                        {doc.uploadedBy && (
-                          <span className="ml-2">by <span className="font-medium">{doc.uploadedBy}</span></span>
-                        )}
-                      </p>
+                      {doc.fileUrl && doc.fileName ? (
+                        <>
+                          <p className="text-xs text-gray-500">
+                            File: {doc.fileName} ({doc.fileSize ? `${(doc.fileSize / 1024).toFixed(2)} KB` : 'N/A'})
+                          </p>
+                          <p className="text-xs text-gray-500 mt-1">
+                            Uploaded: {doc.uploadedAt ? new Date(doc.uploadedAt).toLocaleDateString() : 'N/A'}
+                            {doc.uploadedBy && (
+                              <span className="ml-2">by <span className="font-medium">{doc.uploadedBy}</span></span>
+                            )}
+                          </p>
+                        </>
+                      ) : (
+                        <p className="text-xs text-amber-600 font-medium">File not uploaded yet</p>
+                      )}
+                      {doc.reminder_days && (
+                        <p className="text-xs text-blue-600 mt-1 flex items-center space-x-1">
+                          <Clock className="w-3 h-3" />
+                          <span>Reminder: {doc.reminder_days} days</span>
+                          {doc.reminder_date && (
+                            <span className="text-gray-500">
+                              (Due: {new Date(doc.reminder_date).toLocaleDateString()})
+                            </span>
+                          )}
+                        </p>
+                      )}
                     </div>
                     <div className="flex items-center space-x-2 ml-4">
+                      {doc.fileUrl ? (
+                        <>
+                          <button
+                            onClick={() => handleViewDocument(doc.fileUrl!, doc.fileName!)}
+                            className="p-2 text-green-600 hover:bg-green-50 rounded-lg transition-colors border border-green-200 hover:border-green-300"
+                            title="View Document"
+                          >
+                            <Eye className="w-4 h-4" />
+                          </button>
+                          <button
+                            onClick={() => handleDownload(doc.fileUrl!, doc.fileName!)}
+                            className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors border border-blue-200 hover:border-blue-300"
+                            title="Download"
+                          >
+                            <Download className="w-4 h-4" />
+                          </button>
+                        </>
+                      ) : (
+                        <label className="cursor-pointer">
+                          <input
+                            type="file"
+                            className="hidden"
+                            onChange={async (e) => {
+                              const file = e.target.files?.[0];
+                              if (file && currentUserName) {
+                                setUploading('requerimiento');
+                                try {
+                                  await api.uploadRequerimientoFile(client.id, doc.id, file, currentUserName);
+                                  await loadClient();
+                                  onSuccess();
+                                  showToast('File uploaded successfully', 'success');
+                                } catch (error: any) {
+                                  showToast(error.message || 'Failed to upload file', 'error');
+                                } finally {
+                                  setUploading(null);
+                                }
+                              }
+                            }}
+                            disabled={uploading === 'requerimiento'}
+                          />
+                          <div className="px-3 py-2 text-xs font-medium text-white bg-amber-600 hover:bg-amber-700 rounded-lg transition-colors border border-amber-700">
+                            <Upload className="w-4 h-4 inline mr-1" />
+                            Upload File
+                          </div>
+                        </label>
+                      )}
                       <button
-                        onClick={() => handleViewDocument(doc.fileUrl, doc.fileName)}
-                        className="p-2 text-green-600 hover:bg-green-50 rounded-lg transition-colors border border-green-200 hover:border-green-300"
-                        title="View Document"
+                        onClick={() => {
+                          setEditingRequerimientoDoc(doc.id);
+                          setRequerimientoForm({
+                            name: doc.name,
+                            description: doc.description || '',
+                            file: null,
+                            reminder_days: doc.reminder_days || 10,
+                          });
+                          setShowRequerimientoForm(true);
+                        }}
+                        className="p-2 text-amber-600 hover:bg-amber-50 rounded-lg transition-colors border border-amber-200 hover:border-amber-300"
+                        title="Edit Reminder"
                       >
-                        <Eye className="w-4 h-4" />
-                      </button>
-                      <button
-                        onClick={() => handleDownload(doc.fileUrl, doc.fileName)}
-                        className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors border border-blue-200 hover:border-blue-300"
-                        title="Download"
-                      >
-                        <Download className="w-4 h-4" />
+                        <Edit2 className="w-4 h-4" />
                       </button>
                       <button
                         onClick={() => handleRemoveRequerimiento(doc.id)}
@@ -2782,10 +3375,20 @@ export default function ClientDetailsModal({ client, onClose, onSuccess }: Props
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">File *</label>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Reminder Days (default: 10)</label>
+                  <input
+                    type="number"
+                    min="1"
+                    value={resolucionForm.reminder_days}
+                    onChange={(e) => setResolucionForm({ ...resolucionForm, reminder_days: parseInt(e.target.value) || 10 })}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 outline-none"
+                    placeholder="10"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">File (optional - can upload later)</label>
                   <input
                     type="file"
-                    required
                     onChange={(e) => {
                       const file = e.target.files?.[0];
                       if (file) {
@@ -2801,7 +3404,8 @@ export default function ClientDetailsModal({ client, onClose, onSuccess }: Props
                   type="button"
                   onClick={() => {
                     setShowResolucionForm(false);
-                    setResolucionForm({ name: '', description: '', file: null });
+                    setResolucionForm({ name: '', description: '', file: null, reminder_days: 10 });
+                    setEditingResolucionDoc(null);
                   }}
                   className="px-4 py-2 text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200 transition-colors text-sm"
                 >
@@ -2812,7 +3416,7 @@ export default function ClientDetailsModal({ client, onClose, onSuccess }: Props
                   disabled={uploading === 'resolucion'}
                   className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors text-sm disabled:opacity-50"
                 >
-                  {uploading === 'resolucion' ? 'Uploading...' : 'Upload Document'}
+                  {uploading === 'resolucion' ? 'Saving...' : editingResolucionDoc ? 'Update' : 'Create Document'}
                 </button>
               </div>
             </form>
@@ -2839,30 +3443,95 @@ export default function ClientDetailsModal({ client, onClose, onSuccess }: Props
                       {doc.description && (
                         <p className="text-sm text-gray-600 mb-2">{doc.description}</p>
                       )}
-                      <p className="text-xs text-gray-500">
-                        File: {doc.fileName} ({`${(doc.fileSize / 1024).toFixed(2)} KB`})
-                      </p>
-                      <p className="text-xs text-gray-500 mt-1">
-                        Uploaded: {new Date(doc.uploadedAt).toLocaleDateString()}
-                        {doc.uploadedBy && (
-                          <span className="ml-2">by <span className="font-medium">{doc.uploadedBy}</span></span>
-                        )}
-                      </p>
+                      {doc.fileUrl && doc.fileName ? (
+                        <>
+                          <p className="text-xs text-gray-500">
+                            File: {doc.fileName} ({doc.fileSize ? `${(doc.fileSize / 1024).toFixed(2)} KB` : 'N/A'})
+                          </p>
+                          <p className="text-xs text-gray-500 mt-1">
+                            Uploaded: {doc.uploadedAt ? new Date(doc.uploadedAt).toLocaleDateString() : 'N/A'}
+                            {doc.uploadedBy && (
+                              <span className="ml-2">by <span className="font-medium">{doc.uploadedBy}</span></span>
+                            )}
+                          </p>
+                        </>
+                      ) : (
+                        <p className="text-xs text-amber-600 font-medium">File not uploaded yet</p>
+                      )}
+                      {doc.reminder_days && (
+                        <p className="text-xs text-blue-600 mt-1 flex items-center space-x-1">
+                          <Clock className="w-3 h-3" />
+                          <span>Reminder: {doc.reminder_days} days</span>
+                          {doc.reminder_date && (
+                            <span className="text-gray-500">
+                              (Due: {new Date(doc.reminder_date).toLocaleDateString()})
+                            </span>
+                          )}
+                        </p>
+                      )}
                     </div>
                     <div className="flex items-center space-x-2 ml-4">
+                      {doc.fileUrl ? (
+                        <>
+                          <button
+                            onClick={() => handleViewDocument(doc.fileUrl!, doc.fileName!)}
+                            className="p-2 text-green-600 hover:bg-green-50 rounded-lg transition-colors border border-green-200 hover:border-green-300"
+                            title="View Document"
+                          >
+                            <Eye className="w-4 h-4" />
+                          </button>
+                          <button
+                            onClick={() => handleDownload(doc.fileUrl!, doc.fileName!)}
+                            className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors border border-blue-200 hover:border-blue-300"
+                            title="Download"
+                          >
+                            <Download className="w-4 h-4" />
+                          </button>
+                        </>
+                      ) : (
+                        <label className="cursor-pointer">
+                          <input
+                            type="file"
+                            className="hidden"
+                            onChange={async (e) => {
+                              const file = e.target.files?.[0];
+                              if (file && currentUserName) {
+                                setUploading('resolucion');
+                                try {
+                                  await api.uploadResolucionFile(client.id, doc.id, file, currentUserName);
+                                  await loadClient();
+                                  onSuccess();
+                                  showToast('File uploaded successfully', 'success');
+                                } catch (error: any) {
+                                  showToast(error.message || 'Failed to upload file', 'error');
+                                } finally {
+                                  setUploading(null);
+                                }
+                              }
+                            }}
+                            disabled={uploading === 'resolucion'}
+                          />
+                          <div className="px-3 py-2 text-xs font-medium text-white bg-green-600 hover:bg-green-700 rounded-lg transition-colors border border-green-700">
+                            <Upload className="w-4 h-4 inline mr-1" />
+                            Upload File
+                          </div>
+                        </label>
+                      )}
                       <button
-                        onClick={() => handleViewDocument(doc.fileUrl, doc.fileName)}
-                        className="p-2 text-green-600 hover:bg-green-50 rounded-lg transition-colors border border-green-200 hover:border-green-300"
-                        title="View Document"
+                        onClick={() => {
+                          setEditingResolucionDoc(doc.id);
+                          setResolucionForm({
+                            name: doc.name,
+                            description: doc.description || '',
+                            file: null,
+                            reminder_days: doc.reminder_days || 10,
+                          });
+                          setShowResolucionForm(true);
+                        }}
+                        className="p-2 text-amber-600 hover:bg-amber-50 rounded-lg transition-colors border border-amber-200 hover:border-amber-300"
+                        title="Edit Reminder"
                       >
-                        <Eye className="w-4 h-4" />
-                      </button>
-                      <button
-                        onClick={() => handleDownload(doc.fileUrl, doc.fileName)}
-                        className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors border border-blue-200 hover:border-blue-300"
-                        title="Download"
-                      >
-                        <Download className="w-4 h-4" />
+                        <Edit2 className="w-4 h-4" />
                       </button>
                       <button
                         onClick={() => handleRemoveResolucion(doc.id)}

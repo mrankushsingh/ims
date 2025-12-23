@@ -177,6 +177,63 @@ export const api = {
     return response.json();
   },
 
+  async createAdditionalDocument(clientId: string, data: { name: string; description?: string; reminder_days?: number }) {
+    const headers = await getAuthHeaders();
+    const response = await fetch(`${API_URL}/clients/${clientId}/additional-documents`, {
+      method: 'POST',
+      headers,
+      body: JSON.stringify(data),
+    });
+
+    if (!response.ok) {
+      const error = await response.json().catch(() => ({ error: 'Failed to create document' }));
+      throw new Error(error.error || 'Failed to create document');
+    }
+
+    return response.json();
+  },
+
+  async updateAdditionalDocument(clientId: string, documentId: string, data: { name?: string; description?: string; reminder_days?: number }) {
+    const headers = await getAuthHeaders();
+    const response = await fetch(`${API_URL}/clients/${clientId}/additional-documents/${documentId}`, {
+      method: 'PUT',
+      headers,
+      body: JSON.stringify(data),
+    });
+
+    if (!response.ok) {
+      const error = await response.json().catch(() => ({ error: 'Failed to update document' }));
+      throw new Error(error.error || 'Failed to update document');
+    }
+
+    return response.json();
+  },
+
+  async uploadAdditionalDocumentFile(clientId: string, documentId: string, file: File, userName: string) {
+    const formData = new FormData();
+    formData.append('file', file);
+    formData.append('userName', userName);
+
+    const token = await (await import('./firebase.js')).getIdToken();
+    const headers: HeadersInit = {};
+    if (token) {
+      headers['Authorization'] = `Bearer ${token}`;
+    }
+
+    const response = await fetch(`${API_URL}/clients/${clientId}/additional-documents/${documentId}/file`, {
+      method: 'POST',
+      headers,
+      body: formData,
+    });
+
+    if (!response.ok) {
+      const error = await response.json().catch(() => ({ error: 'Failed to upload file' }));
+      throw new Error(error.error || 'Failed to upload file');
+    }
+
+    return response.json();
+  },
+
   async removeDocument(clientId: string, documentCode: string) {
     const headers = await getAuthHeaders();
     const response = await fetch(`${API_URL}/clients/${clientId}/documents/${documentCode}`, {
@@ -307,6 +364,55 @@ export const api = {
     return response.json();
   },
 
+  async createAportarDocumentacion(clientId: string, data: { name: string; description?: string; reminder_days?: number }) {
+    const headers = await getAuthHeaders();
+    const response = await fetch(`${API_URL}/clients/${clientId}/aportar-documentacion`, {
+      method: 'POST',
+      headers,
+      body: JSON.stringify(data),
+    });
+    if (!response.ok) {
+      const error = await response.json().catch(() => ({ error: 'Failed to create document' }));
+      throw new Error(error.error || 'Failed to create document');
+    }
+    return response.json();
+  },
+
+  async updateAportarDocumentacion(clientId: string, documentId: string, data: { name?: string; description?: string; reminder_days?: number }) {
+    const headers = await getAuthHeaders();
+    const response = await fetch(`${API_URL}/clients/${clientId}/aportar-documentacion/${documentId}`, {
+      method: 'PUT',
+      headers,
+      body: JSON.stringify(data),
+    });
+    if (!response.ok) {
+      const error = await response.json().catch(() => ({ error: 'Failed to update document' }));
+      throw new Error(error.error || 'Failed to update document');
+    }
+    return response.json();
+  },
+
+  async uploadAportarDocumentacionFile(clientId: string, documentId: string, file: File, userName: string) {
+    const formData = new FormData();
+    formData.append('file', file);
+    formData.append('userName', userName);
+    const token = await (await import('./firebase.js')).getIdToken();
+    const headers: HeadersInit = {};
+    if (token) {
+      headers['Authorization'] = `Bearer ${token}`;
+    }
+    const response = await fetch(`${API_URL}/clients/${clientId}/aportar-documentacion/${documentId}/file`, {
+      method: 'POST',
+      headers,
+      body: formData,
+    });
+    if (!response.ok) {
+      const error = await response.json().catch(() => ({ error: 'Failed to upload file' }));
+      throw new Error(error.error || 'Failed to upload file');
+    }
+    return response.json();
+  },
+
   async removeAportarDocumentacion(clientId: string, documentId: string) {
     const headers = await getAuthHeaders();
     const response = await fetch(`${API_URL}/clients/${clientId}/aportar-documentacion/${documentId}`, {
@@ -342,6 +448,55 @@ export const api = {
     if (!response.ok) {
       const error = await response.json().catch(() => ({ error: 'Failed to upload document' }));
       throw new Error(error.error || 'Failed to upload document');
+    }
+    return response.json();
+  },
+
+  async createRequerimiento(clientId: string, data: { name: string; description?: string; reminder_days?: number }) {
+    const headers = await getAuthHeaders();
+    const response = await fetch(`${API_URL}/clients/${clientId}/requerimiento`, {
+      method: 'POST',
+      headers,
+      body: JSON.stringify(data),
+    });
+    if (!response.ok) {
+      const error = await response.json().catch(() => ({ error: 'Failed to create document' }));
+      throw new Error(error.error || 'Failed to create document');
+    }
+    return response.json();
+  },
+
+  async updateRequerimiento(clientId: string, documentId: string, data: { name?: string; description?: string; reminder_days?: number }) {
+    const headers = await getAuthHeaders();
+    const response = await fetch(`${API_URL}/clients/${clientId}/requerimiento/${documentId}`, {
+      method: 'PUT',
+      headers,
+      body: JSON.stringify(data),
+    });
+    if (!response.ok) {
+      const error = await response.json().catch(() => ({ error: 'Failed to update document' }));
+      throw new Error(error.error || 'Failed to update document');
+    }
+    return response.json();
+  },
+
+  async uploadRequerimientoFile(clientId: string, documentId: string, file: File, userName: string) {
+    const formData = new FormData();
+    formData.append('file', file);
+    formData.append('userName', userName);
+    const token = await (await import('./firebase.js')).getIdToken();
+    const headers: HeadersInit = {};
+    if (token) {
+      headers['Authorization'] = `Bearer ${token}`;
+    }
+    const response = await fetch(`${API_URL}/clients/${clientId}/requerimiento/${documentId}/file`, {
+      method: 'POST',
+      headers,
+      body: formData,
+    });
+    if (!response.ok) {
+      const error = await response.json().catch(() => ({ error: 'Failed to upload file' }));
+      throw new Error(error.error || 'Failed to upload file');
     }
     return response.json();
   },
@@ -385,6 +540,55 @@ export const api = {
     return response.json();
   },
 
+  async createResolucion(clientId: string, data: { name: string; description?: string; reminder_days?: number }) {
+    const headers = await getAuthHeaders();
+    const response = await fetch(`${API_URL}/clients/${clientId}/resolucion`, {
+      method: 'POST',
+      headers,
+      body: JSON.stringify(data),
+    });
+    if (!response.ok) {
+      const error = await response.json().catch(() => ({ error: 'Failed to create document' }));
+      throw new Error(error.error || 'Failed to create document');
+    }
+    return response.json();
+  },
+
+  async updateResolucion(clientId: string, documentId: string, data: { name?: string; description?: string; reminder_days?: number }) {
+    const headers = await getAuthHeaders();
+    const response = await fetch(`${API_URL}/clients/${clientId}/resolucion/${documentId}`, {
+      method: 'PUT',
+      headers,
+      body: JSON.stringify(data),
+    });
+    if (!response.ok) {
+      const error = await response.json().catch(() => ({ error: 'Failed to update document' }));
+      throw new Error(error.error || 'Failed to update document');
+    }
+    return response.json();
+  },
+
+  async uploadResolucionFile(clientId: string, documentId: string, file: File, userName: string) {
+    const formData = new FormData();
+    formData.append('file', file);
+    formData.append('userName', userName);
+    const token = await (await import('./firebase.js')).getIdToken();
+    const headers: HeadersInit = {};
+    if (token) {
+      headers['Authorization'] = `Bearer ${token}`;
+    }
+    const response = await fetch(`${API_URL}/clients/${clientId}/resolucion/${documentId}/file`, {
+      method: 'POST',
+      headers,
+      body: formData,
+    });
+    if (!response.ok) {
+      const error = await response.json().catch(() => ({ error: 'Failed to upload file' }));
+      throw new Error(error.error || 'Failed to upload file');
+    }
+    return response.json();
+  },
+
   async removeResolucion(clientId: string, documentId: string) {
     const headers = await getAuthHeaders();
     const response = await fetch(`${API_URL}/clients/${clientId}/resolucion/${documentId}`, {
@@ -399,6 +603,55 @@ export const api = {
   },
 
   // JUSTIFICANTE DE PRESENTACION
+  async createJustificante(clientId: string, data: { name: string; description?: string; reminder_days?: number }) {
+    const headers = await getAuthHeaders();
+    const response = await fetch(`${API_URL}/clients/${clientId}/justificante-presentacion`, {
+      method: 'POST',
+      headers,
+      body: JSON.stringify(data),
+    });
+    if (!response.ok) {
+      const error = await response.json().catch(() => ({ error: 'Failed to create document' }));
+      throw new Error(error.error || 'Failed to create document');
+    }
+    return response.json();
+  },
+
+  async updateJustificante(clientId: string, documentId: string, data: { name?: string; description?: string; reminder_days?: number }) {
+    const headers = await getAuthHeaders();
+    const response = await fetch(`${API_URL}/clients/${clientId}/justificante-presentacion/${documentId}`, {
+      method: 'PUT',
+      headers,
+      body: JSON.stringify(data),
+    });
+    if (!response.ok) {
+      const error = await response.json().catch(() => ({ error: 'Failed to update document' }));
+      throw new Error(error.error || 'Failed to update document');
+    }
+    return response.json();
+  },
+
+  async uploadJustificanteFile(clientId: string, documentId: string, file: File, userName: string) {
+    const formData = new FormData();
+    formData.append('file', file);
+    formData.append('userName', userName);
+    const token = await (await import('./firebase.js')).getIdToken();
+    const headers: HeadersInit = {};
+    if (token) {
+      headers['Authorization'] = `Bearer ${token}`;
+    }
+    const response = await fetch(`${API_URL}/clients/${clientId}/justificante-presentacion/${documentId}/file`, {
+      method: 'POST',
+      headers,
+      body: formData,
+    });
+    if (!response.ok) {
+      const error = await response.json().catch(() => ({ error: 'Failed to upload file' }));
+      throw new Error(error.error || 'Failed to upload file');
+    }
+    return response.json();
+  },
+
   async uploadJustificante(clientId: string, name: string, description: string, file: File, userName: string) {
     const formData = new FormData();
     formData.append('file', file);

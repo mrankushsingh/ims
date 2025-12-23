@@ -591,17 +591,10 @@ async function handleDocumentUpload(
   documentType: 'aportar_documentacion' | 'requerimiento' | 'resolucion' | 'justificante_presentacion'
 ) {
   try {
-    if (!req.file) {
-      return res.status(400).json({ error: 'No file uploaded' });
-    }
-
-    const { name, description } = req.body;
+    const { name, description, reminder_days } = req.body;
     if (!name || !name.trim()) {
       return res.status(400).json({ error: 'Document name is required' });
     }
-
-    // Get user name (optional - will use 'Unknown User' if not authenticated)
-    const userName = await getUserName(req);
 
     const client = await memoryDb.getClient(req.params.id);
     if (!client) {
@@ -609,11 +602,139 @@ async function handleDocumentUpload(
     }
 
     const documents = (client as any)[documentType] || [];
-    const file = req.file;
-    let fileUrl: string;
-    let fileName: string;
+    const reminderDays = reminder_days ? parseInt(reminder_days) : 10;
+    const reminderDate = new Date();
+    reminderDate.setDate(reminderDate.getDate() + reminderDays);
 
-    if (isUsingBucketStorage()) {
+    // If file is provided, upload it
+    if (req.file) {
+      const userName = await getUserName(req);
+      const file = req.file;
+      let fileUrl: string;
+      let fileName: string;
+
+      if (isUsingBucketStorage()) {
+        const ext = extname(file.originalname);
+        const uniqueSuffix = `${Date.now()}_${Math.round(Math.random() * 1E9)}`;
+        const name = file.originalname.replace(ext, '').replace(/[^a-zA-Z0-9]/g, '_');
+        fileName = `${name}_${uniqueSuffix}${ext}`;
+        fileUrl = await uploadFile(file.buffer, `clients/${req.params.id}/${documentType}/${fileName}`, file.mimetype);
+      } else {
+        fileName = file.filename || file.originalname;
+        fileUrl = `/uploads/${fileName}`;
+      }
+
+      const newDoc: any = {
+        id: `doc_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
+        name: name.trim(),
+        description: description ? description.trim() : undefined,
+        fileUrl,
+        fileName: file.originalname,
+        fileSize: file.size,
+        uploadedAt: new Date().toISOString(),
+        uploadedBy: userName,
+        reminder_days: reminderDays,
+        reminder_date: reminderDate.toISOString(),
+        created_at: new Date().toISOString(),
+      };
+
+      documents.push(newDoc);
+    } else {
+      // Create document without file
+      const newDoc: any = {
+        id: `doc_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
+        name: name.trim(),
+        description: description ? description.trim() : undefined,
+        reminder_days: reminderDays,
+        reminder_date: reminderDate.toISOString(),
+        created_at: new Date().toISOString(),
+      };
+
+      documents.push(newDoc);
+    }
+
+    const updated = await memoryDb.updateClient(req.params.id, {
+      [documentType]: documents,
+    } as any);
+
+    res.json(updated);
+  } catch (error: any) {
+    res.status(500).json({ error: error.message || `Failed to create ${documentType} document` });
+  }
+}
+
+// Helper function to handle document update for different types
+async function handleDocumentUpdate(
+  req: any,
+  res: any,
+  documentType: 'aportar_documentacion' | 'requerimiento' | 'resolucion' | 'justificante_presentacion'
+) {
+  try {
+    const client = await memoryDb.getClient(req.params.id);
+    if (!client) {
+      return res.status(404).json({ error: 'Client not found' });
+    }
+
+    const { name, description, reminder_days } = req.body;
+    const documents = (client as any)[documentType] || [];
+    const docIndex = documents.findIndex((d: any) => d.id === req.params.docId);
+    
+    if (docIndex === -1) {
+      return res.status(404).json({ error: 'Document not found' });
+    }
+
+    const reminderDays = reminder_days ? parseInt(reminder_days) : documents[docIndex].reminder_days || 10;
+    const reminderDate = new Date();
+    reminderDate.setDate(reminderDate.getDate() + reminderDays);
+
+    const updatedDoc = {
+      ...documents[docIndex],
+      ...(name && { name: name.trim() }),
+      ...(description !== undefined && { description: description ? description.trim() : undefined }),
+      reminder_days: reminderDays,
+      reminder_date: reminderDate.toISOString(),
+    };
+
+    documents[docIndex] = updatedDoc;
+    const updated = await memoryDb.updateClient(req.params.id, {
+      [documentType]: documents,
+    } as any);
+
+    res.json(updated);
+  } catch (error: any) {
+    res.status(500).json({ error: error.message || `Failed to update ${documentType} document` });
+  }
+}
+
+// Helper function to handle file upload to existing document
+async function handleDocumentFileUpload(
+  req: any,
+  res: any,
+  documentType: 'aportar_documentacion' | 'requerimiento' | 'resolucion' | 'justificante_presentacion'
+) {
+  try {
+    if (!req.file) {
+      return res.status(400).json({ error: 'No file uploaded' });
+    }
+
+    const client = await memoryDb.getClient(req.params.id);
+    if (!client) {
+      return res.status(404).json({ error: 'Client not found' });
+    }
+
+    const userName = await getUserName(req);
+    const documents = (client as any)[documentType] || [];
+    const docIndex = documents.findIndex((d: any) => d.id === req.params.docId);
+    
+    if (docIndex === -1) {
+      return res.status(404).json({ error: 'Document not found' });
+    }
+
+    const file = req.file;
+    let fileName: string;
+    let fileUrl: string;
+    
+    if (isUsingBucketStorage() && file.buffer) {
       const ext = extname(file.originalname);
       const uniqueSuffix = `${Date.now()}_${Math.round(Math.random() * 1E9)}`;
       const name = file.originalname.replace(ext, '').replace(/[^a-zA-Z0-9]/g, '_');
@@ -624,26 +745,23 @@ async function handleDocumentUpload(
       fileUrl = `/uploads/${fileName}`;
     }
 
-    const newDoc: any = {
-      id: `doc_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
-      name: name.trim(),
-      description: description ? description.trim() : undefined,
-      fileUrl,
+    const updatedDoc = {
+      ...documents[docIndex],
+      fileUrl: fileUrl,
       fileName: file.originalname,
       fileSize: file.size,
       uploadedAt: new Date().toISOString(),
       uploadedBy: userName,
     };
 
-    documents.push(newDoc);
-
+    documents[docIndex] = updatedDoc;
     const updated = await memoryDb.updateClient(req.params.id, {
       [documentType]: documents,
     } as any);
 
     res.json(updated);
   } catch (error: any) {
-    res.status(500).json({ error: error.message || `Failed to upload ${documentType} document` });
+    res.status(500).json({ error: error.message || `Failed to upload file` });
   }
 }
 
@@ -694,6 +812,12 @@ async function handleDocumentRemove(
 router.post('/:id/aportar-documentacion', upload.single('file'), (req: any, res) => 
   handleDocumentUpload(req, res, 'aportar_documentacion')
 );
+router.put('/:id/aportar-documentacion/:docId', (req: any, res) => 
+  handleDocumentUpdate(req, res, 'aportar_documentacion')
+);
+router.post('/:id/aportar-documentacion/:docId/file', upload.single('file'), (req: any, res) => 
+  handleDocumentFileUpload(req, res, 'aportar_documentacion')
+);
 router.delete('/:id/aportar-documentacion/:docId', (req, res) => 
   handleDocumentRemove(req, res, 'aportar_documentacion')
 );
@@ -701,6 +825,12 @@ router.delete('/:id/aportar-documentacion/:docId', (req, res) =>
 // REQUERIMIENTO routes
 router.post('/:id/requerimiento', upload.single('file'), (req: any, res) => 
   handleDocumentUpload(req, res, 'requerimiento')
+);
+router.put('/:id/requerimiento/:docId', (req: any, res) => 
+  handleDocumentUpdate(req, res, 'requerimiento')
+);
+router.post('/:id/requerimiento/:docId/file', upload.single('file'), (req: any, res) => 
+  handleDocumentFileUpload(req, res, 'requerimiento')
 );
 router.delete('/:id/requerimiento/:docId', (req, res) => 
   handleDocumentRemove(req, res, 'requerimiento')
@@ -710,6 +840,12 @@ router.delete('/:id/requerimiento/:docId', (req, res) =>
 router.post('/:id/resolucion', upload.single('file'), (req: any, res) => 
   handleDocumentUpload(req, res, 'resolucion')
 );
+router.put('/:id/resolucion/:docId', (req: any, res) => 
+  handleDocumentUpdate(req, res, 'resolucion')
+);
+router.post('/:id/resolucion/:docId/file', upload.single('file'), (req: any, res) => 
+  handleDocumentFileUpload(req, res, 'resolucion')
+);
 router.delete('/:id/resolucion/:docId', (req, res) => 
   handleDocumentRemove(req, res, 'resolucion')
 );
@@ -717,6 +853,12 @@ router.delete('/:id/resolucion/:docId', (req, res) =>
 // JUSTIFICANTE DE PRESENTACION routes
 router.post('/:id/justificante-presentacion', upload.single('file'), (req: any, res) => 
   handleDocumentUpload(req, res, 'justificante_presentacion')
+);
+router.put('/:id/justificante-presentacion/:docId', (req: any, res) => 
+  handleDocumentUpdate(req, res, 'justificante_presentacion')
+);
+router.post('/:id/justificante-presentacion/:docId/file', upload.single('file'), (req: any, res) => 
+  handleDocumentFileUpload(req, res, 'justificante_presentacion')
 );
 router.delete('/:id/justificante-presentacion/:docId', (req, res) => 
   handleDocumentRemove(req, res, 'justificante_presentacion')

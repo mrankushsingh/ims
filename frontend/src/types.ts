@@ -92,11 +92,14 @@ export interface AdditionalDocument {
   id: string;
   name: string;
   description?: string;
-  fileUrl: string;
-  fileName: string;
-  fileSize: number;
-  uploadedAt: string;
+  fileUrl?: string; // Optional - file can be uploaded later
+  fileName?: string; // Optional - file can be uploaded later
+  fileSize?: number; // Optional - file can be uploaded later
+  uploadedAt?: string; // Optional - only set when file is uploaded
   uploadedBy?: string; // Name of the user who uploaded the file
+  reminder_days?: number; // Reminder days (default 10)
+  reminder_date?: string; // Calculated reminder date (ISO string)
+  created_at?: string; // When document entry was created
 }
 
 export interface User {
