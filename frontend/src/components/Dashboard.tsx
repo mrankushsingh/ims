@@ -837,10 +837,23 @@ export default function Dashboard({ onNavigate }: DashboardProps) {
               <div className="mb-4">
                 <button
                   onClick={() => setShowRequerimientoReminderForm(!showRequerimientoReminderForm)}
-                  className="w-full sm:w-auto px-4 py-2 bg-amber-600 text-white text-sm rounded-lg hover:bg-amber-700 transition-colors flex items-center justify-center space-x-2"
+                  className={`w-full sm:w-auto px-4 py-2 text-sm rounded-lg transition-colors flex items-center justify-center space-x-2 ${
+                    showRequerimientoReminderForm 
+                      ? 'bg-gray-200 text-gray-700 hover:bg-gray-300' 
+                      : 'bg-amber-600 text-white hover:bg-amber-700'
+                  }`}
                 >
-                  <Plus className="w-4 h-4" />
-                  <span>Nuevo Recordatorio</span>
+                  {showRequerimientoReminderForm ? (
+                    <>
+                      <X className="w-4 h-4" />
+                      <span>Cancelar</span>
+                    </>
+                  ) : (
+                    <>
+                      <Plus className="w-4 h-4" />
+                      <span>Nuevo Recordatorio</span>
+                    </>
+                  )}
                 </button>
               </div>
 
@@ -1033,7 +1046,7 @@ export default function Dashboard({ onNavigate }: DashboardProps) {
               )}
 
               {/* REQUERIMIENTO Clients */}
-              {requerimiento.length === 0 && requerimientoReminders.length === 0 ? (
+              {requerimiento.length === 0 && requerimientoReminders.length === 0 && !showRequerimientoReminderForm ? (
                 <div className="text-center py-12">
                   <AlertCircle className="w-16 h-16 mx-auto text-amber-400 mb-4" />
                   <p className="text-gray-500 font-medium text-lg">{t('dashboard.allSubmitted')}</p>
