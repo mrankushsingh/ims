@@ -63,18 +63,19 @@ self.addEventListener('fetch', (event) => {
 
         return fetch(event.request).then((response) => {
           // Don't cache if not a valid response
-          if (!response || response.status !== 200 || response.type !== 'opaque') {
-            // Cache GET requests for same-origin resources
-            if (event.request.method === 'GET' && 
-                event.request.url.startsWith(self.location.origin) &&
-                response.type === 'basic') {
-              const responseToCache = response.clone();
-              caches.open(CACHE_NAME)
-                .then((cache) => {
-                  cache.put(event.request, responseToCache);
-                });
-            }
+          if (!response || response.status !== 200) {
             return response;
+          }
+
+          // Cache GET requests for same-origin resources
+          if (event.request.method === 'GET' && 
+              event.request.url.startsWith(self.location.origin) &&
+              response.type === 'basic') {
+            const responseToCache = response.clone();
+            caches.open(CACHE_NAME)
+              .then((cache) => {
+                cache.put(event.request, responseToCache);
+              });
           }
           return response;
         });
