@@ -17,6 +17,7 @@ export default function Dashboard({ onNavigate }: DashboardProps) {
   const [reminders, setReminders] = useState<Reminder[]>([]);
   const [loading, setLoading] = useState(true);
   const [selectedClient, setSelectedClient] = useState<Client | null>(null);
+  const [returnToRequerimiento, setReturnToRequerimiento] = useState(false);
   const [showReadyToSubmitModal, setShowReadyToSubmitModal] = useState(false);
   const [showAwaitingModal, setShowAwaitingModal] = useState(false);
   const [showSubmittedModal, setShowSubmittedModal] = useState(false);
@@ -1062,6 +1063,7 @@ export default function Dashboard({ onNavigate }: DashboardProps) {
                       <div
                         key={client.id}
                         onClick={() => {
+                          setReturnToRequerimiento(true);
                           setSelectedClient(client);
                           setShowRequerimientoModal(false);
                         }}
@@ -1965,7 +1967,13 @@ export default function Dashboard({ onNavigate }: DashboardProps) {
       {selectedClient && (
         <ClientDetailsModal
           client={selectedClient}
-          onClose={() => setSelectedClient(null)}
+          onClose={() => {
+            setSelectedClient(null);
+            if (returnToRequerimiento) {
+              setReturnToRequerimiento(false);
+              setShowRequerimientoModal(true);
+            }
+          }}
           onSuccess={() => {
             loadData();
           }}
