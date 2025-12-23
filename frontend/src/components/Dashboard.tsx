@@ -2648,11 +2648,6 @@ export default function Dashboard({ onNavigate }: DashboardProps) {
           onSuccess={async () => {
             await loadData();
           }}
-          onOpenAportarDocumentacion={() => {
-            setReturnToAportarDocumentacion(true);
-            setSelectedClient(null);
-            setShowAportarDocumentacionModal(true);
-          }}
         />
       )}
 
