@@ -831,12 +831,33 @@ export default function Dashboard({ onNavigate }: DashboardProps) {
                   <h2 className="text-2xl font-bold text-amber-900">{t('dashboard.requerimiento')}</h2>
                   <p className="text-amber-700 mt-1">{t('dashboard.requerimientoDesc')}</p>
                 </div>
-                <button
-                  onClick={() => setShowRequerimientoModal(false)}
-                  className="p-2 text-gray-400 hover:text-gray-600 rounded-lg transition-colors"
-                >
-                  <X className="w-6 h-6" />
-                </button>
+                <div className="flex items-center space-x-2">
+                  <button
+                    onClick={() => {
+                      setShowRequerimientoReminderForm(!showRequerimientoReminderForm);
+                      if (!showRequerimientoReminderForm) {
+                        setEditingRequerimientoReminder(null);
+                        setRequerimientoReminderForm({
+                          client_name: '',
+                          client_surname: '',
+                          phone: '',
+                          reminder_date: '',
+                          notes: '',
+                        });
+                      }
+                    }}
+                    className="p-2 bg-amber-600 text-white rounded-lg hover:bg-amber-700 transition-colors"
+                    title="Nuevo REQUERIMIENTO"
+                  >
+                    <Plus className="w-5 h-5" />
+                  </button>
+                  <button
+                    onClick={() => setShowRequerimientoModal(false)}
+                    className="p-2 text-gray-400 hover:text-gray-600 rounded-lg transition-colors"
+                  >
+                    <X className="w-6 h-6" />
+                  </button>
+                </div>
               </div>
             </div>
             <div className="flex-1 overflow-y-auto p-6">
