@@ -268,14 +268,33 @@ router.post('/:id/documents/:documentCode', upload.single('file'), async (req: a
 });
 
 // Create or upload additional document
-router.post('/:id/additional-documents', upload.single('file'), async (req: any, res) => {
+router.post('/:id/additional-documents', (req: any, res: any, next: any) => {
+  // Only use multer if Content-Type is multipart/form-data
+  const contentType = req.headers['content-type'] || '';
+  if (contentType.includes('multipart/form-data')) {
+    upload.single('file')(req, res, next);
+  } else {
+    // For JSON requests, skip multer and proceed
+    next();
+  }
+}, async (req: any, res) => {
   try {
     const client = await memoryDb.getClient(req.params.id);
     if (!client) {
       return res.status(404).json({ error: 'Client not found' });
     }
 
-    const { name, description, reminder_days } = req.body;
+    // Parse body - if it's a string (from JSON), parse it
+    let body = req.body;
+    if (typeof body === 'string') {
+      try {
+        body = JSON.parse(body);
+      } catch (e) {
+        // If parsing fails, use as-is
+      }
+    }
+
+    const { name, description, reminder_days } = body;
     if (!name || !name.trim()) {
       return res.status(400).json({ error: 'Document name is required' });
     }
