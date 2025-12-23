@@ -348,13 +348,8 @@ export default function Dashboard({ onNavigate }: DashboardProps) {
   });
 
   // Also add reminders that are within 3 days to urgent list
-  // Exclude REQUERIMIENTO type reminders - they should only show in REQUERIMIENTO box
+  // Include all reminders including REQUERIMIENTO type
   const urgentReminders = reminders.filter((reminder) => {
-    // Explicitly exclude REQUERIMIENTO reminders (case-insensitive check)
-    const reminderType = reminder.reminder_type?.toUpperCase();
-    if (reminderType === 'REQUERIMIENTO') {
-      return false;
-    }
     const now = new Date();
     const reminderDate = new Date(reminder.reminder_date);
     const days3 = 3 * 24 * 60 * 60 * 1000; // 3 days in milliseconds
