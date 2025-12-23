@@ -439,11 +439,11 @@ export default function Dashboard({ onNavigate }: DashboardProps) {
     return requiredDocs.length > 0 && requiredDocs.some((d: any) => !d.submitted);
   });
   
-  // APORTAR DOCUMENTACIÓN: Clients that need to add missing documents (not submitted, has missing required docs)
+  // APORTAR DOCUMENTACIÓN: Clients that have APORTAR DOCUMENTACIÓN documents missing files (created but not uploaded)
   const aportarDocumentacion = clients.filter((client) => {
-    if (client.submitted_to_immigration) return false;
-    const requiredDocs = client.required_documents?.filter((d: any) => !d.isOptional) || [];
-    return requiredDocs.length > 0 && requiredDocs.some((d: any) => !d.submitted);
+    const aportarDocs = client.aportar_documentacion || [];
+    // Show clients that have at least one APORTAR DOCUMENTACIÓN document without a file
+    return aportarDocs.length > 0 && aportarDocs.some((d: any) => !d.fileUrl);
   });
   
   // REQUERIMIENTO: Clients with pending requested documents (submitted clients with pending requested docs)
@@ -1068,12 +1068,12 @@ export default function Dashboard({ onNavigate }: DashboardProps) {
                 <div className="text-center py-12">
                   <FilePlus className="w-16 h-16 mx-auto text-amber-400 mb-4" />
                   <p className="text-gray-500 font-medium text-lg">{t('dashboard.allSubmitted')}</p>
-                  <p className="text-sm text-gray-400 mt-1">Todos los documentos requeridos han sido proporcionados</p>
+                  <p className="text-sm text-gray-400 mt-1">Todos los documentos de APORTAR DOCUMENTACIÓN tienen archivos</p>
                 </div>
               ) : (
                 <div className="space-y-4">
                   {aportarDocumentacion.length > 0 && (
-                    <h3 className="text-lg font-semibold text-amber-900 mb-3">Clientes con Documentos Pendientes</h3>
+                    <h3 className="text-lg font-semibold text-amber-900 mb-3">Clientes con Documentos sin Archivo en APORTAR DOCUMENTACIÓN</h3>
                   )}
                   {aportarDocumentacion.map((client) => {
                     const missingDocs = (client.required_documents || []).filter((d: any) => !d.submitted && !d.isOptional);
