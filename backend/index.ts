@@ -40,15 +40,24 @@ if (!isUsingBucketStorage()) {
   const uploadsDir = db.getUploadsDir();
   app.use('/uploads', express.static(uploadsDir));
 } else {
-  // Proxy files from Railway bucket
+  // Proxy files from Railway bucket (serve through our domain instead of redirecting)
   app.get('/uploads/:filename', async (req, res) => {
     try {
       const fileUrl = `/uploads/${req.params.filename}`;
       const signedUrl = await getFileUrl(fileUrl, 3600); // 1 hour expiry
       
       if (signedUrl && signedUrl.startsWith('http')) {
-        // Redirect to signed URL for direct access
-        res.redirect(signedUrl);
+        // Fetch file from bucket and proxy it through our domain
+        const response = await fetch(signedUrl);
+        if (response.ok) {
+          const buffer = await response.arrayBuffer();
+          const contentType = response.headers.get('Content-Type') || 'application/octet-stream';
+          res.setHeader('Content-Type', contentType);
+          res.setHeader('Content-Disposition', `inline; filename="${req.params.filename}"`);
+          res.send(Buffer.from(buffer));
+        } else {
+          res.status(404).json({ error: 'File not found' });
+        }
       } else {
         // Fallback: try to fetch and proxy the file
         const response = await fetch(signedUrl || fileUrl);
