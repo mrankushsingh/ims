@@ -439,9 +439,11 @@ export default function Dashboard({ onNavigate }: DashboardProps) {
     return requiredDocs.length > 0 && requiredDocs.some((d: any) => !d.submitted);
   });
   
-  // APORTAR DOCUMENTACIÓN: Clients that have documents in their APORTAR DOCUMENTACIÓN section
+  // APORTAR DOCUMENTACIÓN: Clients that have documents in their APORTAR DOCUMENTACIÓN section (only those added via APORTAR DOCUMENTACIÓN section)
   const aportarDocumentacion = clients.filter((client) => {
     const aportarDocs = client.aportar_documentacion || [];
+    // Only show clients that have documents specifically added to APORTAR DOCUMENTACIÓN section
+    // This excludes clients with only pending required documents
     return aportarDocs.length > 0;
   });
   
