@@ -586,22 +586,11 @@ export default function ClientDetailsModal({ client, onClose, onSuccess, onOpenA
           setAportarDocForm({ name: '', description: '', file: null, reminder_days: 10 });
           setShowAportarDocForm(false);
           await loadClient();
-          console.log('Client loaded after uploading APORTAR DOCUMENTACIÓN document:', clientData.aportar_documentacion);
-          // Call onSuccess to refresh data and wait for it to complete
+          // Call onSuccess to refresh data
           if (onSuccess) {
             await onSuccess();
-            // Additional delay to ensure Dashboard state is fully updated
-            await new Promise(resolve => setTimeout(resolve, 300));
           }
           showToast('Document created successfully', 'success');
-          // Automatically open APORTAR DOCUMENTACIÓN modal after creating a document with file
-          if (onOpenAportarDocumentacion) {
-            // Delay to ensure Dashboard data is refreshed
-            setTimeout(() => {
-              console.log('Opening APORTAR DOCUMENTACIÓN modal');
-              onOpenAportarDocumentacion();
-            }, 500);
-          }
         } catch (error: any) {
           const errorMessage = error.message || 'Failed to create document';
           setError(errorMessage);
@@ -623,22 +612,11 @@ export default function ClientDetailsModal({ client, onClose, onSuccess, onOpenA
           setAportarDocForm({ name: '', description: '', file: null, reminder_days: 10 });
           setShowAportarDocForm(false);
           await loadClient();
-          console.log('Client loaded after creating APORTAR DOCUMENTACIÓN document:', clientData.aportar_documentacion);
-          // Call onSuccess to refresh data and wait for it to complete
+          // Call onSuccess to refresh data
           if (onSuccess) {
             await onSuccess();
-            // Additional delay to ensure Dashboard state is fully updated
-            await new Promise(resolve => setTimeout(resolve, 300));
           }
           showToast('Document entry created successfully. You can upload the file later.', 'success');
-          // Automatically open APORTAR DOCUMENTACIÓN modal after creating a document
-          if (onOpenAportarDocumentacion) {
-            // Delay to ensure Dashboard data is refreshed
-            setTimeout(() => {
-              console.log('Opening APORTAR DOCUMENTACIÓN modal');
-              onOpenAportarDocumentacion();
-            }, 500);
-          }
         } catch (error: any) {
           const errorMessage = error.message || 'Failed to create document';
           setError(errorMessage);
