@@ -366,41 +366,17 @@ export default function ClientDetailsModal({ client, onClose, onSuccess }: Props
 
   const handleSelectAllDocuments = () => {
     if (!clientData.required_documents) return;
-    const allRequiredNonOptional = clientData.required_documents
-      .filter((d: any) => !d.isOptional)
+    const allDocuments = clientData.required_documents
       .map((d: any) => d.code);
     
     // If all are already selected, deselect all; otherwise, select all
-    const allSelected = allRequiredNonOptional.length > 0 && 
-      allRequiredNonOptional.every(code => selectedDocuments.has(code));
+    const allSelected = allDocuments.length > 0 && 
+      allDocuments.every(code => selectedDocuments.has(code));
     
     if (allSelected) {
       setSelectedDocuments(new Set());
     } else {
-      setSelectedDocuments(new Set(allRequiredNonOptional));
-    }
-  };
-
-  const handleSelectAllOptional = () => {
-    if (!clientData.required_documents) return;
-    const allOptional = clientData.required_documents
-      .filter((d: any) => d.isOptional)
-      .map((d: any) => d.code);
-    
-    // If all optional are already selected, deselect only optional; otherwise, select all optional
-    const allOptionalSelected = allOptional.length > 0 && 
-      allOptional.every(code => selectedDocuments.has(code));
-    
-    if (allOptionalSelected) {
-      // Deselect only optional documents, keep required selected
-      const newSelected = new Set(selectedDocuments);
-      allOptional.forEach(code => newSelected.delete(code));
-      setSelectedDocuments(newSelected);
-    } else {
-      // Add all optional to selection, keep existing required selected
-      const newSelected = new Set(selectedDocuments);
-      allOptional.forEach(code => newSelected.add(code));
-      setSelectedDocuments(newSelected);
+      setSelectedDocuments(new Set(allDocuments));
     }
   };
 
@@ -1868,41 +1844,32 @@ export default function ClientDetailsModal({ client, onClose, onSuccess }: Props
                    clientData.required_documents.some((d: any) => !d.isOptional) && (
                     <>
                       {(() => {
+                        const allDocuments = clientData.required_documents.map((d: any) => d.code);
+                        const allSelected = allDocuments.length > 0 && 
+                          allDocuments.every(code => selectedDocuments.has(code));
                         const allRequiredNonOptional = clientData.required_documents
                           .filter((d: any) => !d.isOptional)
                           .map((d: any) => d.code);
                         const allOptional = clientData.required_documents
                           .filter((d: any) => d.isOptional)
                           .map((d: any) => d.code);
-                        const allRequiredSelected = allRequiredNonOptional.length > 0 && 
-                          allRequiredNonOptional.every(code => selectedDocuments.has(code));
-                        const allOptionalSelected = allOptional.length > 0 && 
-                          allOptional.every(code => selectedDocuments.has(code));
                         const hasSelectedOptional = allOptional.some(code => selectedDocuments.has(code));
                         const hasSelectedRequired = allRequiredNonOptional.some(code => selectedDocuments.has(code));
+                        const onlyOptionalSelected = hasSelectedOptional && !hasSelectedRequired;
+                        const onlyRequiredSelected = hasSelectedRequired && !hasSelectedOptional;
                         return (
                           <>
                             <button
                               onClick={handleSelectAllDocuments}
                               className="px-2 py-1.5 text-xs font-semibold text-gray-600 bg-gray-100 hover:bg-gray-200 rounded-lg transition-colors flex items-center space-x-1"
-                              title={allRequiredSelected ? 'Deselect all required' : 'Select all required documents'}
+                              title={allSelected ? 'Deselect all' : 'Select all documents'}
                             >
                               <CheckSquare className="w-4 h-4" />
-                              <span>{allRequiredSelected ? 'Deselect Required' : 'Select Required'}</span>
+                              <span>{allSelected ? 'Deselect All' : 'Select All'}</span>
                             </button>
-                            {allOptional.length > 0 && (
-                              <button
-                                onClick={handleSelectAllOptional}
-                                className="px-2 py-1.5 text-xs font-semibold text-blue-600 bg-blue-100 hover:bg-blue-200 rounded-lg transition-colors flex items-center space-x-1"
-                                title={allOptionalSelected ? 'Deselect all optional' : 'Select all optional documents'}
-                              >
-                                <CheckSquare className="w-4 h-4" />
-                                <span>{allOptionalSelected ? 'Deselect Optional' : 'Select Optional'}</span>
-                              </button>
-                            )}
                             {selectedDocuments.size > 0 && (
                               <>
-                                {hasSelectedRequired && (
+                                {onlyRequiredSelected && (
                                   <button
                                     onClick={handleMakeSelectedOptional}
                                     className="px-3 py-1.5 text-xs font-semibold text-amber-700 bg-amber-100 hover:bg-amber-200 rounded-lg transition-colors flex items-center space-x-1"
@@ -1912,7 +1879,7 @@ export default function ClientDetailsModal({ client, onClose, onSuccess }: Props
                                     <span>Make Optional ({selectedDocuments.size})</span>
                                   </button>
                                 )}
-                                {hasSelectedOptional && (
+                                {onlyOptionalSelected && (
                                   <button
                                     onClick={handleMakeSelectedRequired}
                                     className="px-3 py-1.5 text-xs font-semibold text-green-700 bg-green-100 hover:bg-green-200 rounded-lg transition-colors flex items-center space-x-1"
@@ -1921,6 +1888,26 @@ export default function ClientDetailsModal({ client, onClose, onSuccess }: Props
                                     <ToggleLeft className="w-4 h-4" />
                                     <span>Make Required ({selectedDocuments.size})</span>
                                   </button>
+                                )}
+                                {hasSelectedRequired && hasSelectedOptional && (
+                                  <>
+                                    <button
+                                      onClick={handleMakeSelectedOptional}
+                                      className="px-3 py-1.5 text-xs font-semibold text-amber-700 bg-amber-100 hover:bg-amber-200 rounded-lg transition-colors flex items-center space-x-1"
+                                      title={`Make selected document(s) optional`}
+                                    >
+                                      <ToggleRight className="w-4 h-4" />
+                                      <span>Make Optional ({selectedDocuments.size})</span>
+                                    </button>
+                                    <button
+                                      onClick={handleMakeSelectedRequired}
+                                      className="px-3 py-1.5 text-xs font-semibold text-green-700 bg-green-100 hover:bg-green-200 rounded-lg transition-colors flex items-center space-x-1"
+                                      title={`Make selected document(s) required`}
+                                    >
+                                      <ToggleLeft className="w-4 h-4" />
+                                      <span>Make Required ({selectedDocuments.size})</span>
+                                    </button>
+                                  </>
                                 )}
                               </>
                             )}
