@@ -366,15 +366,21 @@ export default function ClientDetailsModal({ client, onClose, onSuccess }: Props
 
   const handleSelectAllDocuments = () => {
     if (!clientData.required_documents) return;
-    const allCodes = clientData.required_documents
+    const allRequiredNonOptional = clientData.required_documents
       .filter((d: any) => !d.isOptional)
       .map((d: any) => d.code);
-    setSelectedDocuments(new Set(allCodes));
+    
+    // If all are already selected, deselect all; otherwise, select all
+    const allSelected = allRequiredNonOptional.length > 0 && 
+      allRequiredNonOptional.every(code => selectedDocuments.has(code));
+    
+    if (allSelected) {
+      setSelectedDocuments(new Set());
+    } else {
+      setSelectedDocuments(new Set(allRequiredNonOptional));
+    }
   };
 
-  const handleDeselectAllDocuments = () => {
-    setSelectedDocuments(new Set());
-  };
 
   const handleMakeSelectedOptional = async () => {
     if (selectedDocuments.size === 0) {
@@ -1806,55 +1812,54 @@ export default function ClientDetailsModal({ client, onClose, onSuccess }: Props
                   {clientData.required_documents && clientData.required_documents.length > 0 && 
                    clientData.required_documents.some((d: any) => !d.isOptional) && (
                     <>
-                      {selectedDocuments.size > 0 ? (
-                        <>
-                          <button
-                            onClick={handleMakeSelectedOptional}
-                            className="px-3 py-1.5 text-xs font-semibold text-amber-700 bg-amber-100 hover:bg-amber-200 rounded-lg transition-colors flex items-center space-x-1"
-                            title={`Make ${selectedDocuments.size} selected document(s) optional`}
-                          >
-                            <ToggleRight className="w-4 h-4" />
-                            <span>Make Selected Optional ({selectedDocuments.size})</span>
-                          </button>
-                          <button
-                            onClick={handleDeselectAllDocuments}
-                            className="px-2 py-1.5 text-xs font-semibold text-gray-600 bg-gray-100 hover:bg-gray-200 rounded-lg transition-colors"
-                            title="Deselect all"
-                          >
-                            Clear
-                          </button>
-                        </>
-                      ) : (
-                        <>
-                          <button
-                            onClick={handleSelectAllDocuments}
-                            className="px-2 py-1.5 text-xs font-semibold text-gray-600 bg-gray-100 hover:bg-gray-200 rounded-lg transition-colors flex items-center space-x-1"
-                            title="Select all required documents"
-                          >
-                            <CheckSquare className="w-4 h-4" />
-                            <span>Select All</span>
-                          </button>
-                          <button
-                            onClick={() => {
-                              setConfirmDialog({
-                                isOpen: true,
-                                title: 'Make All Documents Optional',
-                                message: 'Are you sure you want to mark all required documents as optional? This action cannot be undone.',
-                                type: 'warning',
-                                onConfirm: () => {
-                                  handleMakeAllOptional();
-                                  setConfirmDialog({ ...confirmDialog, isOpen: false });
-                                },
-                              });
-                            }}
-                            className="px-3 py-1.5 text-xs font-semibold text-amber-700 bg-amber-100 hover:bg-amber-200 rounded-lg transition-colors flex items-center space-x-1"
-                            title="Make all documents optional"
-                          >
-                            <ToggleRight className="w-4 h-4" />
-                            <span>Make All Optional</span>
-                          </button>
-                        </>
-                      )}
+                      {(() => {
+                        const allRequiredNonOptional = clientData.required_documents
+                          .filter((d: any) => !d.isOptional)
+                          .map((d: any) => d.code);
+                        const allSelected = allRequiredNonOptional.length > 0 && 
+                          allRequiredNonOptional.every(code => selectedDocuments.has(code));
+                        return (
+                          <>
+                            <button
+                              onClick={handleSelectAllDocuments}
+                              className="px-2 py-1.5 text-xs font-semibold text-gray-600 bg-gray-100 hover:bg-gray-200 rounded-lg transition-colors flex items-center space-x-1"
+                              title={allSelected ? 'Deselect all' : 'Select all required documents'}
+                            >
+                              <CheckSquare className="w-4 h-4" />
+                              <span>{allSelected ? 'Deselect All' : 'Select All'}</span>
+                            </button>
+                            {selectedDocuments.size > 0 && (
+                              <button
+                                onClick={handleMakeSelectedOptional}
+                                className="px-3 py-1.5 text-xs font-semibold text-amber-700 bg-amber-100 hover:bg-amber-200 rounded-lg transition-colors flex items-center space-x-1"
+                                title={`Make ${selectedDocuments.size} selected document(s) optional`}
+                              >
+                                <ToggleRight className="w-4 h-4" />
+                                <span>Make Selected Optional ({selectedDocuments.size})</span>
+                              </button>
+                            )}
+                            <button
+                              onClick={() => {
+                                setConfirmDialog({
+                                  isOpen: true,
+                                  title: 'Make All Documents Optional',
+                                  message: 'Are you sure you want to mark all required documents as optional? This action cannot be undone.',
+                                  type: 'warning',
+                                  onConfirm: () => {
+                                    handleMakeAllOptional();
+                                    setConfirmDialog({ ...confirmDialog, isOpen: false });
+                                  },
+                                });
+                              }}
+                              className="px-3 py-1.5 text-xs font-semibold text-amber-700 bg-amber-100 hover:bg-amber-200 rounded-lg transition-colors flex items-center space-x-1"
+                              title="Make all documents optional"
+                            >
+                              <ToggleRight className="w-4 h-4" />
+                              <span>Make All Optional</span>
+                            </button>
+                          </>
+                        );
+                      })()}
                     </>
                   )}
                 </div>
