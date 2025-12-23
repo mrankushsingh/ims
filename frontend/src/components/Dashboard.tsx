@@ -50,6 +50,157 @@ export default function Dashboard({ onNavigate }: DashboardProps) {
     reminder: null,
     isOpen: false,
   });
+  
+  // Generic reminder form states for all modals
+  const [showAportarReminderForm, setShowAportarReminderForm] = useState(false);
+  const [showRecursoReminderForm, setShowRecursoReminderForm] = useState(false);
+  const [showUrgentesReminderForm, setShowUrgentesReminderForm] = useState(false);
+  const [showPagosReminderForm, setShowPagosReminderForm] = useState(false);
+  
+  const [genericReminderForm, setGenericReminderForm] = useState({
+    client_name: '',
+    client_surname: '',
+    phone: '',
+    reminder_date: '',
+    notes: '',
+  });
+  
+  const handleCreateGenericReminder = async (reminderType: string) => {
+    try {
+      if (!genericReminderForm.client_name.trim() || !genericReminderForm.client_surname.trim() || !genericReminderForm.reminder_date) {
+        showToast('Nombre, Apellido y Fecha son requeridos', 'error');
+        return;
+      }
+
+      const reminderDate = new Date(genericReminderForm.reminder_date);
+      const reminderData = {
+        client_id: '',
+        client_name: genericReminderForm.client_name.trim(),
+        client_surname: genericReminderForm.client_surname.trim(),
+        phone: genericReminderForm.phone.trim() || undefined,
+        reminder_date: reminderDate.toISOString(),
+        notes: genericReminderForm.notes.trim() || undefined,
+        reminder_type: reminderType,
+      };
+
+      await api.createReminder(reminderData);
+      showToast('Recordatorio creado exitosamente', 'success');
+      
+      // Reset form
+      setGenericReminderForm({
+        client_name: '',
+        client_surname: '',
+        phone: '',
+        reminder_date: '',
+        notes: '',
+      });
+      
+      // Close form
+      setShowAportarReminderForm(false);
+      setShowRecursoReminderForm(false);
+      setShowUrgentesReminderForm(false);
+      setShowPagosReminderForm(false);
+      
+      // Reload data
+      await loadData();
+    } catch (error: any) {
+      showToast(error.message || 'Error al crear recordatorio', 'error');
+    }
+  };
+  
+  const renderGenericReminderForm = (isOpen: boolean, onClose: () => void, reminderType: string, title: string) => {
+    if (!isOpen) return null;
+    
+    return (
+      <form
+        onSubmit={(e) => {
+          e.preventDefault();
+          handleCreateGenericReminder(reminderType);
+        }}
+        className="mb-6 p-4 bg-amber-50 rounded-lg border border-amber-200"
+      >
+        <h3 className="text-lg font-semibold text-amber-900 mb-4">{title}</h3>
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">Nombre *</label>
+            <input
+              type="text"
+              required
+              value={genericReminderForm.client_name}
+              onChange={(e) => setGenericReminderForm({ ...genericReminderForm, client_name: e.target.value })}
+              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-amber-500 outline-none"
+              placeholder="Nombre del cliente"
+            />
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">Apellido *</label>
+            <input
+              type="text"
+              required
+              value={genericReminderForm.client_surname}
+              onChange={(e) => setGenericReminderForm({ ...genericReminderForm, client_surname: e.target.value })}
+              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-amber-500 outline-none"
+              placeholder="Apellido del cliente"
+            />
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">Teléfono</label>
+            <input
+              type="tel"
+              value={genericReminderForm.phone}
+              onChange={(e) => setGenericReminderForm({ ...genericReminderForm, phone: e.target.value })}
+              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-amber-500 outline-none"
+              placeholder="Número de teléfono"
+            />
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">Fecha y Hora *</label>
+            <input
+              type="datetime-local"
+              required
+              value={genericReminderForm.reminder_date}
+              onChange={(e) => setGenericReminderForm({ ...genericReminderForm, reminder_date: e.target.value })}
+              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-amber-500 outline-none"
+            />
+          </div>
+          <div className="sm:col-span-2">
+            <label className="block text-sm font-medium text-gray-700 mb-1">Notas</label>
+            <textarea
+              value={genericReminderForm.notes}
+              onChange={(e) => setGenericReminderForm({ ...genericReminderForm, notes: e.target.value })}
+              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-amber-500 outline-none"
+              rows={3}
+              placeholder="Notas adicionales (opcional)"
+            />
+          </div>
+        </div>
+        <div className="flex items-center justify-end space-x-3 mt-4">
+          <button
+            type="button"
+            onClick={() => {
+              onClose();
+              setGenericReminderForm({
+                client_name: '',
+                client_surname: '',
+                phone: '',
+                reminder_date: '',
+                notes: '',
+              });
+            }}
+            className="px-4 py-2 text-gray-700 bg-gray-200 rounded-lg hover:bg-gray-300 transition-colors"
+          >
+            Cancelar
+          </button>
+          <button
+            type="submit"
+            className="px-4 py-2 bg-amber-600 text-white rounded-lg hover:bg-amber-700 transition-colors"
+          >
+            Guardar
+          </button>
+        </div>
+      </form>
+    );
+  };
   const [paymentsUnlocked, setPaymentsUnlocked] = useState(false);
   const [showPasscodeModal, setShowPasscodeModal] = useState(false);
   const [passcodeInput, setPasscodeInput] = useState('');
@@ -773,15 +924,36 @@ export default function Dashboard({ onNavigate }: DashboardProps) {
                   <h2 className="text-2xl font-bold text-amber-900">{t('dashboard.aportarDocumentacion')}</h2>
                   <p className="text-amber-700 mt-1">{t('dashboard.aportarDocumentacionDesc')}</p>
                 </div>
-                <button
-                  onClick={() => setShowAportarDocumentacionModal(false)}
-                  className="p-2 text-gray-400 hover:text-gray-600 rounded-lg transition-colors"
-                >
-                  <X className="w-6 h-6" />
-                </button>
+                <div className="flex items-center space-x-2">
+                  <button
+                    onClick={() => {
+                      setShowAportarReminderForm(!showAportarReminderForm);
+                      if (!showAportarReminderForm) {
+                        setGenericReminderForm({
+                          client_name: '',
+                          client_surname: '',
+                          phone: '',
+                          reminder_date: '',
+                          notes: '',
+                        });
+                      }
+                    }}
+                    className="p-2 bg-amber-600 text-white rounded-lg hover:bg-amber-700 transition-colors"
+                    title="Nuevo Recordatorio"
+                  >
+                    <Plus className="w-5 h-5" />
+                  </button>
+                  <button
+                    onClick={() => setShowAportarDocumentacionModal(false)}
+                    className="p-2 text-gray-400 hover:text-gray-600 rounded-lg transition-colors"
+                  >
+                    <X className="w-6 h-6" />
+                  </button>
+                </div>
               </div>
             </div>
             <div className="flex-1 overflow-y-auto p-6">
+              {renderGenericReminderForm(showAportarReminderForm, () => setShowAportarReminderForm(false), 'APORTAR_DOCUMENTACION', 'Nuevo Recordatorio')}
               {aportarDocumentacion.length === 0 ? (
                 <div className="text-center py-12">
                   <FilePlus className="w-16 h-16 mx-auto text-amber-400 mb-4" />
@@ -1124,15 +1296,36 @@ export default function Dashboard({ onNavigate }: DashboardProps) {
                   <h2 className="text-2xl font-bold text-amber-900">{t('dashboard.recurso')}</h2>
                   <p className="text-amber-700 mt-1">{t('dashboard.recursoDesc')}</p>
                 </div>
-                <button
-                  onClick={() => setShowRecursoModal(false)}
-                  className="p-2 text-gray-400 hover:text-gray-600 rounded-lg transition-colors"
-                >
-                  <X className="w-6 h-6" />
-                </button>
+                <div className="flex items-center space-x-2">
+                  <button
+                    onClick={() => {
+                      setShowRecursoReminderForm(!showRecursoReminderForm);
+                      if (!showRecursoReminderForm) {
+                        setGenericReminderForm({
+                          client_name: '',
+                          client_surname: '',
+                          phone: '',
+                          reminder_date: '',
+                          notes: '',
+                        });
+                      }
+                    }}
+                    className="p-2 bg-amber-600 text-white rounded-lg hover:bg-amber-700 transition-colors"
+                    title="Nuevo Recordatorio"
+                  >
+                    <Plus className="w-5 h-5" />
+                  </button>
+                  <button
+                    onClick={() => setShowRecursoModal(false)}
+                    className="p-2 text-gray-400 hover:text-gray-600 rounded-lg transition-colors"
+                  >
+                    <X className="w-6 h-6" />
+                  </button>
+                </div>
               </div>
             </div>
             <div className="flex-1 overflow-y-auto p-6">
+              {renderGenericReminderForm(showRecursoReminderForm, () => setShowRecursoReminderForm(false), 'RECURSO', 'Nuevo Recordatorio')}
               {recurso.length === 0 ? (
                 <div className="text-center py-12">
                   <Gavel className="w-16 h-16 mx-auto text-amber-400 mb-4" />
@@ -1181,15 +1374,36 @@ export default function Dashboard({ onNavigate }: DashboardProps) {
                   <h2 className="text-2xl font-bold text-red-900">{t('dashboard.urgentes')}</h2>
                   <p className="text-red-700 mt-1">{t('dashboard.urgentesDesc')}</p>
                 </div>
-                <button
-                  onClick={() => setShowUrgentesModal(false)}
-                  className="p-2 text-gray-400 hover:text-gray-600 rounded-lg transition-colors"
-                >
-                  <X className="w-6 h-6" />
-                </button>
+                <div className="flex items-center space-x-2">
+                  <button
+                    onClick={() => {
+                      setShowUrgentesReminderForm(!showUrgentesReminderForm);
+                      if (!showUrgentesReminderForm) {
+                        setGenericReminderForm({
+                          client_name: '',
+                          client_surname: '',
+                          phone: '',
+                          reminder_date: '',
+                          notes: '',
+                        });
+                      }
+                    }}
+                    className="p-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors"
+                    title="Nuevo Recordatorio"
+                  >
+                    <Plus className="w-5 h-5" />
+                  </button>
+                  <button
+                    onClick={() => setShowUrgentesModal(false)}
+                    className="p-2 text-gray-400 hover:text-gray-600 rounded-lg transition-colors"
+                  >
+                    <X className="w-6 h-6" />
+                  </button>
+                </div>
               </div>
             </div>
             <div className="flex-1 overflow-y-auto p-6">
+              {renderGenericReminderForm(showUrgentesReminderForm, () => setShowUrgentesReminderForm(false), 'URGENTES', 'Nuevo Recordatorio')}
               {urgentes.length === 0 && urgentReminders.length === 0 ? (
                 <div className="text-center py-12">
                   <AlertTriangle className="w-16 h-16 mx-auto text-red-400 mb-4" />
@@ -1689,15 +1903,36 @@ export default function Dashboard({ onNavigate }: DashboardProps) {
                   <h2 className="text-2xl font-bold text-amber-900">{t('dashboard.pagos')}</h2>
                   <p className="text-amber-700 mt-1">{t('dashboard.pagosDesc')}</p>
                 </div>
-                <button
-                  onClick={() => setShowPagosModal(false)}
-                  className="p-2 text-gray-400 hover:text-gray-600 rounded-lg transition-colors"
-                >
-                  <X className="w-6 h-6" />
-                </button>
+                <div className="flex items-center space-x-2">
+                  <button
+                    onClick={() => {
+                      setShowPagosReminderForm(!showPagosReminderForm);
+                      if (!showPagosReminderForm) {
+                        setGenericReminderForm({
+                          client_name: '',
+                          client_surname: '',
+                          phone: '',
+                          reminder_date: '',
+                          notes: '',
+                        });
+                      }
+                    }}
+                    className="p-2 bg-amber-600 text-white rounded-lg hover:bg-amber-700 transition-colors"
+                    title="Nuevo Recordatorio"
+                  >
+                    <Plus className="w-5 h-5" />
+                  </button>
+                  <button
+                    onClick={() => setShowPagosModal(false)}
+                    className="p-2 text-gray-400 hover:text-gray-600 rounded-lg transition-colors"
+                  >
+                    <X className="w-6 h-6" />
+                  </button>
+                </div>
               </div>
             </div>
             <div className="flex-1 overflow-y-auto p-6">
+              {renderGenericReminderForm(showPagosReminderForm, () => setShowPagosReminderForm(false), 'PAGOS', 'Nuevo Recordatorio')}
               {/* Payment Statistics Summary */}
               <div className="mb-6 grid grid-cols-1 sm:grid-cols-3 gap-4">
                 <div className="bg-amber-50 border-2 border-amber-200 rounded-xl p-4">
