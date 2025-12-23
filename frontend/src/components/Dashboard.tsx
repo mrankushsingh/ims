@@ -439,18 +439,17 @@ export default function Dashboard({ onNavigate }: DashboardProps) {
     return requiredDocs.length > 0 && requiredDocs.some((d: any) => !d.submitted);
   });
   
-  // APORTAR DOCUMENTACIÓN: Clients that have APORTAR DOCUMENTACIÓN documents missing files (created but not uploaded)
+  // APORTAR DOCUMENTACIÓN: Clients that have APORTAR DOCUMENTACIÓN documents (like REQUERIMIENTO shows clients with requested documents)
   const aportarDocumentacion = clients.filter((client) => {
     const aportarDocs = client.aportar_documentacion || [];
-    // Show clients that have at least one APORTAR DOCUMENTACIÓN document without a file
-    return aportarDocs.length > 0 && aportarDocs.some((d: any) => !d.fileUrl);
+    // Show clients that have any APORTAR DOCUMENTACIÓN documents
+    return aportarDocs.length > 0;
   });
 
-  // Count total missing APORTAR DOCUMENTACIÓN documents (documents without files)
-  const totalMissingAportarDocs = clients.reduce((total, client) => {
+  // Count total APORTAR DOCUMENTACIÓN documents
+  const totalAportarDocs = clients.reduce((total, client) => {
     const aportarDocs = client.aportar_documentacion || [];
-    const missingDocs = aportarDocs.filter((d: any) => !d.fileUrl);
-    return total + missingDocs.length;
+    return total + aportarDocs.length;
   }, 0);
   
   // REQUERIMIENTO: Clients with pending requested documents (submitted clients with pending requested docs)
@@ -681,7 +680,7 @@ export default function Dashboard({ onNavigate }: DashboardProps) {
             </div>
             <span className="text-[10px] sm:text-xs font-semibold text-amber-700/70 uppercase tracking-wider">{t('dashboard.aportarDocumentacion')}</span>
           </div>
-          <p className="text-3xl sm:text-4xl font-bold bg-gradient-to-r from-amber-800 to-amber-600 bg-clip-text text-transparent mb-1 sm:mb-2">{totalMissingAportarDocs + aportarReminders.length}</p>
+          <p className="text-3xl sm:text-4xl font-bold bg-gradient-to-r from-amber-800 to-amber-600 bg-clip-text text-transparent mb-1 sm:mb-2">{aportarDocumentacion.length + aportarReminders.length}</p>
           <p className="text-xs sm:text-sm text-amber-700/70 font-medium leading-relaxed mb-1 sm:mb-2">{t('dashboard.aportarDocumentacionDesc')}</p>
         </div>
 
@@ -1071,82 +1070,46 @@ export default function Dashboard({ onNavigate }: DashboardProps) {
                 </div>
               )}
               
-              {(() => {
-                // Collect all APORTAR DOCUMENTACIÓN documents missing files
-                const allMissingDocs: Array<{ client: Client; doc: any }> = [];
-                aportarDocumentacion.forEach((client) => {
-                  const aportarDocs = client.aportar_documentacion || [];
-                  const missingFileDocs = aportarDocs.filter((d: any) => !d.fileUrl);
-                  missingFileDocs.forEach((doc) => {
-                    allMissingDocs.push({ client, doc });
-                  });
-                });
-
-                if (allMissingDocs.length === 0 && aportarReminders.length === 0 && !showAportarReminderForm) {
-                  return (
-                    <div className="text-center py-12">
-                      <FilePlus className="w-16 h-16 mx-auto text-amber-400 mb-4" />
-                      <p className="text-gray-500 font-medium text-lg">{t('dashboard.allSubmitted')}</p>
-                      <p className="text-sm text-gray-400 mt-1">Todos los documentos de APORTAR DOCUMENTACIÓN tienen archivos</p>
-                    </div>
-                  );
-                }
-
-                return (
-                  <div className="space-y-4">
-                    {allMissingDocs.length > 0 && (
-                      <h3 className="text-lg font-semibold text-amber-900 mb-3">Documentos sin Archivo en APORTAR DOCUMENTACIÓN</h3>
-                    )}
-                    {allMissingDocs.map(({ client, doc }, index) => {
-                      const reminderDate = doc.reminder_date ? new Date(doc.reminder_date) : null;
-                      const reminderDays = doc.reminder_days || 10;
-                      return (
-                        <div
-                          key={`${client.id}-${doc.id}-${index}`}
-                          className="border-2 border-amber-300 bg-gradient-to-br from-amber-50 to-white rounded-xl p-4 shadow-sm hover:shadow-md transition-all"
-                        >
-                          <div className="flex items-start justify-between">
-                            <div className="flex-1">
-                              <div className="flex items-center space-x-2 mb-2">
-                                <FileText className="w-5 h-5 text-amber-600" />
-                                <h4 className="font-semibold text-gray-900">{doc.name}</h4>
-                                <span className="px-2 py-0.5 bg-blue-100 text-blue-800 text-xs font-semibold rounded">
-                                  {client.first_name} {client.last_name}
-                                </span>
-                              </div>
-                              {doc.description && (
-                                <p className="text-sm text-gray-600 mb-2">{doc.description}</p>
-                              )}
-                              <div className="flex items-center gap-4 text-xs text-amber-600">
-                                <span className="font-medium">File not uploaded yet</span>
-                                {reminderDate && (
-                                  <span className="text-blue-600">
-                                    Reminder: {reminderDays} days (Due: {reminderDate.toLocaleDateString('en-US', { month: 'numeric', day: 'numeric', year: 'numeric' })})
-                                  </span>
-                                )}
-                              </div>
-                            </div>
-                            <div className="flex items-center gap-2 ml-4">
-                              <button
-                                onClick={() => {
-                                  setReturnToAportarDocumentacion(true);
-                                  setSelectedClient(client);
-                                  setShowAportarDocumentacionModal(false);
-                                }}
-                                className="px-3 py-2 bg-blue-600 text-white text-sm rounded-lg hover:bg-blue-700 transition-colors flex items-center space-x-1"
-                                title="Open Client"
-                              >
-                                <FilePlus className="w-4 h-4" />
-                                <span>Open</span>
-                              </button>
-                            </div>
+              {aportarDocumentacion.length === 0 && aportarReminders.length === 0 && !showAportarReminderForm ? (
+                <div className="text-center py-12">
+                  <FilePlus className="w-16 h-16 mx-auto text-amber-400 mb-4" />
+                  <p className="text-gray-500 font-medium text-lg">{t('dashboard.allSubmitted')}</p>
+                  <p className="text-sm text-gray-400 mt-1">No hay documentos en APORTAR DOCUMENTACIÓN</p>
+                </div>
+              ) : (
+                <div className="space-y-4">
+                  {aportarDocumentacion.length > 0 && (
+                    <h3 className="text-lg font-semibold text-amber-900 mb-3">Clientes con Documentos en APORTAR DOCUMENTACIÓN</h3>
+                  )}
+                  {aportarDocumentacion.map((client) => {
+                    const aportarDocs = client.aportar_documentacion || [];
+                    const missingFileDocs = aportarDocs.filter((d: any) => !d.fileUrl);
+                    return (
+                      <div
+                        key={client.id}
+                        onClick={() => {
+                          setReturnToAportarDocumentacion(true);
+                          setSelectedClient(client);
+                          setShowAportarDocumentacionModal(false);
+                        }}
+                        className="p-4 border-2 border-amber-200 rounded-xl hover:border-amber-300 hover:shadow-md transition-all cursor-pointer bg-gradient-to-br from-amber-50 to-white"
+                      >
+                        <div className="flex items-center justify-between">
+                          <div className="flex-1">
+                            <h3 className="font-bold text-amber-900 text-lg">{client.first_name} {client.last_name}</h3>
+                            <p className="text-sm text-amber-700 mt-1">{client.case_type || 'No template'}</p>
+                            <p className="text-xs text-amber-600 mt-2">
+                              {aportarDocs.length} documento(s) en APORTAR DOCUMENTACIÓN
+                              {missingFileDocs.length > 0 && ` (${missingFileDocs.length} sin archivo)`}
+                            </p>
                           </div>
+                          <FilePlus className="w-6 h-6 text-amber-600 ml-4" />
                         </div>
-                      );
-                    })}
-                  </div>
-                );
-              })()}
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
             </div>
           </div>
         </div>
