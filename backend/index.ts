@@ -118,20 +118,30 @@ app.use('/api/reminders', remindersRoutes);
 
 // Serve frontend static files
 const frontendDist = join(__dirname, '../../frontend/dist');
-app.use(express.static(frontendDist));
 
-// Serve service worker with correct headers
+// Serve service worker with correct headers (before static and catch-all)
 app.get('/sw.js', (req, res) => {
   res.setHeader('Content-Type', 'application/javascript');
   res.setHeader('Service-Worker-Allowed', '/');
-  res.sendFile(join(frontendDist, 'sw.js'));
+  res.setHeader('Cache-Control', 'no-cache');
+  res.sendFile(join(frontendDist, 'sw.js'), (err) => {
+    if (err) {
+      res.status(404).send('Service worker not found');
+    }
+  });
 });
 
-// Serve manifest.json with correct headers
+// Serve manifest.json with correct headers (before static and catch-all)
 app.get('/manifest.json', (req, res) => {
   res.setHeader('Content-Type', 'application/manifest+json');
-  res.sendFile(join(frontendDist, 'manifest.json'));
+  res.sendFile(join(frontendDist, 'manifest.json'), (err) => {
+    if (err) {
+      res.status(404).json({ error: 'Manifest not found' });
+    }
+  });
 });
+
+app.use(express.static(frontendDist));
 
 // Serve index.html for all non-API routes (SPA routing)
 app.get('*', (req, res) => {
