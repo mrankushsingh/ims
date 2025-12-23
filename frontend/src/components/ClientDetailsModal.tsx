@@ -3009,15 +3009,7 @@ export default function ClientDetailsModal({ client, onClose, onSuccess, onOpenA
         {/* APORTAR DOCUMENTACIÓN Section */}
         <div className="mb-6 p-5 bg-gradient-to-br from-blue-50/50 to-white rounded-xl border border-gray-200 shadow-sm">
           <div className="flex justify-between items-center mb-4">
-            <h3 
-              onClick={() => {
-                if (onOpenAportarDocumentacion) {
-                  onOpenAportarDocumentacion();
-                }
-              }}
-              className={`text-lg font-bold text-gray-900 flex items-center space-x-2 ${onOpenAportarDocumentacion ? 'cursor-pointer hover:text-blue-600 transition-colors' : ''}`}
-              title={onOpenAportarDocumentacion ? 'Click to open APORTAR DOCUMENTACIÓN modal' : ''}
-            >
+            <h3 className="text-lg font-bold text-gray-900 flex items-center space-x-2">
               <div className="w-1 h-6 bg-gradient-to-b from-blue-600 to-cyan-600 rounded-full"></div>
               <span>APORTAR DOCUMENTACIÓN</span>
             </h3>
