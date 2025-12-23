@@ -440,10 +440,45 @@ router.post('/:id/additional-documents/:documentId/file', upload.single('file'),
       const ext = extname(file.originalname);
       const name = file.originalname.replace(ext, '').replace(/[^a-zA-Z0-9]/g, '_');
       fileName = `${name}_${uniqueSuffix}${ext}`;
-      fileUrl = await uploadFile(file.buffer, fileName, file.mimetype);
+      fileUrl = await uploadFile(file.buffer, `clients/${req.params.id}/additional_documents/${fileName}`, file.mimetype);
     } else {
-      fileName = file.filename || file.originalname;
-      fileUrl = `/uploads/${fileName}`;
+      // For local filesystem, organize files by client ID and document type
+      const ext = extname(file.originalname);
+      const uniqueSuffix = `${Date.now()}_${Math.round(Math.random() * 1E9)}`;
+      const name = file.originalname.replace(ext, '').replace(/[^a-zA-Z0-9]/g, '_');
+      fileName = `${name}_${uniqueSuffix}${ext}`;
+      
+      const uploadsDir = memoryDb.getUploadsDir();
+      const clientDir = join(uploadsDir, req.params.id);
+      const docTypeDir = join(clientDir, 'additional_documents');
+      
+      // Ensure directories exist
+      if (!existsSync(docTypeDir)) {
+        mkdirSync(docTypeDir, { recursive: true });
+      }
+      
+      // Move file from multer's location to organized location
+      const oldPath = join(uploadsDir, file.filename || file.originalname);
+      const newPath = join(docTypeDir, fileName);
+      
+      const fs = await import('fs/promises');
+      try {
+        // If multer saved the file, move it; otherwise copy the buffer
+        if (existsSync(oldPath)) {
+          await fs.rename(oldPath, newPath);
+        } else {
+          // If file doesn't exist (shouldn't happen with disk storage), write buffer
+          await fs.writeFile(newPath, file.buffer || Buffer.from([]));
+        }
+      } catch (error: any) {
+        console.error('Error moving file:', error);
+        // Fallback: try to write buffer directly
+        if (file.buffer) {
+          await fs.writeFile(newPath, file.buffer);
+        }
+      }
+      
+      fileUrl = `/uploads/${req.params.id}/additional_documents/${fileName}`;
     }
 
     const updatedDoc = {
