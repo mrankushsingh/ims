@@ -328,6 +328,26 @@ export default function ClientDetailsModal({ client, onClose, onSuccess }: Props
     }
   };
 
+  const handleMakeAllOptional = async () => {
+    setError('');
+    try {
+      const updatedDocuments = clientData.required_documents.map((doc: any) => ({
+        ...doc,
+        isOptional: true,
+      }));
+
+      await api.updateClient(client.id, {
+        required_documents: updatedDocuments,
+      });
+      await loadClient();
+      onSuccess();
+      showToast('All documents marked as optional', 'success');
+    } catch (error: any) {
+      setError(error.message || 'Failed to update documents');
+      showToast(error.message || 'Failed to update documents', 'error');
+    }
+  };
+
   const handleAddRequestedDocument = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
@@ -1717,10 +1737,34 @@ export default function ClientDetailsModal({ client, onClose, onSuccess }: Props
         <div className="mb-6 p-5 bg-gradient-to-br from-amber-50/50 to-white rounded-xl border border-gray-200 shadow-sm">
           <div className="flex justify-between items-center mb-4">
             <div>
-              <h3 className="text-lg font-bold text-gray-900 mb-1 flex items-center space-x-2">
-                <div className="w-1 h-6 bg-gradient-to-b from-amber-600 to-orange-600 rounded-full"></div>
-                <span>Required Documents</span>
-              </h3>
+              <div className="flex items-center justify-between mb-1">
+                <h3 className="text-lg font-bold text-gray-900 flex items-center space-x-2">
+                  <div className="w-1 h-6 bg-gradient-to-b from-amber-600 to-orange-600 rounded-full"></div>
+                  <span>Required Documents</span>
+                </h3>
+                {clientData.required_documents && clientData.required_documents.length > 0 && 
+                 clientData.required_documents.some((d: any) => !d.isOptional) && (
+                  <button
+                    onClick={() => {
+                      setConfirmDialog({
+                        isOpen: true,
+                        title: 'Make All Documents Optional',
+                        message: 'Are you sure you want to mark all required documents as optional? This action cannot be undone.',
+                        type: 'warning',
+                        onConfirm: () => {
+                          handleMakeAllOptional();
+                          setConfirmDialog({ ...confirmDialog, isOpen: false });
+                        },
+                      });
+                    }}
+                    className="px-3 py-1.5 text-xs font-semibold text-amber-700 bg-amber-100 hover:bg-amber-200 rounded-lg transition-colors flex items-center space-x-1"
+                    title="Make all documents optional"
+                  >
+                    <ToggleRight className="w-4 h-4" />
+                    <span>Make All Optional</span>
+                  </button>
+                )}
+              </div>
               {clientData.required_documents && clientData.required_documents.length > 0 && (
                 <div className="flex items-center space-x-3 text-sm flex-wrap">
                   <span className="text-slate-600">
