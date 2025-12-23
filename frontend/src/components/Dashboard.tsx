@@ -1007,17 +1007,21 @@ export default function Dashboard({ onNavigate }: DashboardProps) {
                             </div>
                             <div className="flex items-center gap-2 ml-4">
                               <button
-                                onClick={(e) => {
+                                onClick={async (e) => {
                                   e.stopPropagation();
+                                  const dateStr = reminder.reminder_date;
+                                  const date = new Date(dateStr);
+                                  const localDate = new Date(date.getTime() - date.getTimezoneOffset() * 60000);
+                                  const formattedDate = localDate.toISOString().slice(0, 16);
+                                  setEditingGenericReminder(reminder);
                                   setGenericReminderForm({
                                     client_name: reminder.client_name || '',
                                     client_surname: reminder.client_surname || '',
                                     phone: reminder.phone || '',
-                                    reminder_date: new Date(reminder.reminder_date).toISOString().slice(0, 16),
+                                    reminder_date: formattedDate,
                                     notes: reminder.notes || '',
                                   });
                                   setShowAportarReminderForm(true);
-                                  // TODO: Add edit functionality
                                 }}
                                 className="p-2 text-amber-700 hover:bg-amber-200 rounded-lg transition-colors"
                                 title="Editar"
