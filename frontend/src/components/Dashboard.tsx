@@ -1,5 +1,5 @@
-import { useEffect, useState } from 'react';
-import { FileText, Users, CheckCircle, Clock, Send, X, AlertCircle, AlertTriangle, Gavel, DollarSign, FilePlus, Lock, Unlock, Bell, Plus, Trash2, Edit2 } from 'lucide-react';
+import { useEffect, useState, useRef } from 'react';
+import { FileText, Users, CheckCircle, Clock, Send, X, AlertCircle, AlertTriangle, Gavel, DollarSign, FilePlus, Lock, Unlock, Bell, Plus, Trash2, Edit2, Search, ChevronDown } from 'lucide-react';
 import { api } from '../utils/api';
 import { CaseTemplate, Client, Reminder } from '../types';
 import ClientDetailsModal from './ClientDetailsModal';
@@ -57,7 +57,11 @@ export default function Dashboard({ onNavigate }: DashboardProps) {
     total_amount: '',
     pending_extra: '',
     notes: '',
+    caseTemplateId: '',
   });
+  const [showTemplateDropdown, setShowTemplateDropdown] = useState(false);
+  const [templateSearchQuery, setTemplateSearchQuery] = useState('');
+  const paymentTemplateDropdownRef = useRef<HTMLDivElement>(null);
   
   // Explicitly reference modal states to satisfy TypeScript
   void showAportarDocumentacionModal;
@@ -147,6 +151,7 @@ export default function Dashboard({ onNavigate }: DashboardProps) {
           lastName: paymentForm.client_surname.trim(),
           phone: paymentForm.phone?.trim() || undefined,
           totalFee: finalTotalAmount,
+          caseTemplateId: paymentForm.caseTemplateId || undefined,
         };
         
         const createdClient = await api.createClient(newClient);
@@ -180,7 +185,10 @@ export default function Dashboard({ onNavigate }: DashboardProps) {
         total_amount: '',
         pending_extra: '',
         notes: '',
+        caseTemplateId: '',
       });
+      setShowTemplateDropdown(false);
+      setTemplateSearchQuery('');
       setShowPaymentForm(false);
       
       // Reload data
@@ -1513,6 +1521,77 @@ export default function Dashboard({ onNavigate }: DashboardProps) {
                         placeholder="Phone (optional)"
                       />
                     </div>
+                    <div className="relative" ref={paymentTemplateDropdownRef}>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">Case Template (Optional)</label>
+                      <button
+                        type="button"
+                        onClick={() => setShowTemplateDropdown(!showTemplateDropdown)}
+                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 outline-none bg-white text-left flex items-center justify-between"
+                      >
+                        <span className={paymentForm.caseTemplateId ? 'text-gray-900' : 'text-gray-500'}>
+                          {paymentForm.caseTemplateId 
+                            ? templates.find(t => t.id === paymentForm.caseTemplateId)?.name || 'Select template'
+                            : 'Select template (optional)'}
+                        </span>
+                        <ChevronDown className={`w-4 h-4 text-gray-400 transition-transform ${showTemplateDropdown ? 'transform rotate-180' : ''}`} />
+                      </button>
+                      {showTemplateDropdown && (
+                        <div className="absolute top-full left-0 mt-1 w-full bg-white border-2 border-gray-200 rounded-lg shadow-xl z-50 max-h-64 overflow-hidden">
+                          <div className="p-2 border-b border-gray-200">
+                            <div className="relative">
+                              <Search className="absolute left-2 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
+                              <input
+                                type="text"
+                                placeholder="Search templates..."
+                                value={templateSearchQuery}
+                                onChange={(e) => setTemplateSearchQuery(e.target.value)}
+                                className="w-full pl-8 pr-3 py-1.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500 outline-none text-sm"
+                              />
+                            </div>
+                          </div>
+                          <div className="overflow-y-auto max-h-48">
+                            {templates.filter((template) => {
+                              if (!templateSearchQuery.trim()) return true;
+                              const query = templateSearchQuery.toLowerCase();
+                              const name = (template.name || '').toLowerCase();
+                              const description = (template.description || '').toLowerCase();
+                              return name.startsWith(query) || description.startsWith(query);
+                            }).length === 0 ? (
+                              <div className="p-3 text-center text-gray-500 text-sm">No templates found</div>
+                            ) : (
+                              templates.filter((template) => {
+                                if (!templateSearchQuery.trim()) return true;
+                                const query = templateSearchQuery.toLowerCase();
+                                const name = (template.name || '').toLowerCase();
+                                const description = (template.description || '').toLowerCase();
+                                return name.startsWith(query) || description.startsWith(query);
+                              }).map((template) => (
+                                <button
+                                  key={template.id}
+                                  type="button"
+                                  onClick={() => {
+                                    setPaymentForm({ ...paymentForm, caseTemplateId: template.id });
+                                    setShowTemplateDropdown(false);
+                                    setTemplateSearchQuery('');
+                                  }}
+                                  className={`w-full text-left px-3 py-2 hover:bg-green-50 transition-colors ${
+                                    paymentForm.caseTemplateId === template.id ? 'bg-green-100 border-l-4 border-green-500' : ''
+                                  }`}
+                                >
+                                  <div className="font-semibold text-gray-900 text-sm flex items-center gap-2">
+                                    {template.name}
+                                    {paymentForm.caseTemplateId === template.id && <CheckCircle className="w-4 h-4 text-green-600" />}
+                                  </div>
+                                  {template.description && (
+                                    <div className="text-xs text-gray-600 mt-0.5">{template.description}</div>
+                                  )}
+                                </button>
+                              ))
+                            )}
+                          </div>
+                        </div>
+                      )}
+                    </div>
                     <div>
                       <label className="block text-sm font-medium text-gray-700 mb-1">Amount Paid (€) *</label>
                       <input
@@ -1575,7 +1654,10 @@ export default function Dashboard({ onNavigate }: DashboardProps) {
                           total_amount: '',
                           pending_extra: '',
                           notes: '',
+                          caseTemplateId: '',
                         });
+                        setShowTemplateDropdown(false);
+                        setTemplateSearchQuery('');
                       }}
                       className="px-4 py-2 text-gray-700 bg-gray-200 rounded-lg hover:bg-gray-300 transition-colors"
                     >
