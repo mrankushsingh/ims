@@ -120,6 +120,19 @@ app.use('/api/reminders', remindersRoutes);
 const frontendDist = join(__dirname, '../../frontend/dist');
 app.use(express.static(frontendDist));
 
+// Serve service worker with correct headers
+app.get('/sw.js', (req, res) => {
+  res.setHeader('Content-Type', 'application/javascript');
+  res.setHeader('Service-Worker-Allowed', '/');
+  res.sendFile(join(frontendDist, 'sw.js'));
+});
+
+// Serve manifest.json with correct headers
+app.get('/manifest.json', (req, res) => {
+  res.setHeader('Content-Type', 'application/manifest+json');
+  res.sendFile(join(frontendDist, 'manifest.json'));
+});
+
 // Serve index.html for all non-API routes (SPA routing)
 app.get('*', (req, res) => {
   // Don't serve index.html for API routes
