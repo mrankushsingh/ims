@@ -323,9 +323,11 @@ export default function ClientDetailsModal({ client, onClose, onSuccess }: Props
         required_documents: updatedDocuments,
       });
       await loadClient();
-      onSuccess();
+      // Don't call onSuccess() here - loadClient() already updates the state
+      // onSuccess() would trigger a full dashboard reload which is unnecessary
     } catch (error: any) {
       setError(error.message || 'Failed to update document');
+      showToast(error.message || 'Failed to update document', 'error');
     }
   };
 
@@ -340,9 +342,9 @@ export default function ClientDetailsModal({ client, onClose, onSuccess }: Props
       await api.updateClient(client.id, {
         required_documents: updatedDocuments,
       });
-      await loadClient();
-      onSuccess();
       setSelectedDocuments(new Set());
+      await loadClient();
+      // Don't call onSuccess() here - loadClient() already updates the state
       showToast('All documents marked as optional', 'success');
     } catch (error: any) {
       setError(error.message || 'Failed to update documents');
@@ -380,6 +382,7 @@ export default function ClientDetailsModal({ client, onClose, onSuccess }: Props
       return;
     }
 
+    const selectedCount = selectedDocuments.size;
     setError('');
     try {
       const updatedDocuments = clientData.required_documents.map((doc: any) => {
@@ -395,10 +398,10 @@ export default function ClientDetailsModal({ client, onClose, onSuccess }: Props
       await api.updateClient(client.id, {
         required_documents: updatedDocuments,
       });
-      await loadClient();
-      onSuccess();
       setSelectedDocuments(new Set());
-      showToast(`${selectedDocuments.size} document(s) marked as optional`, 'success');
+      await loadClient();
+      // Don't call onSuccess() here as it might cause duplicate reloads
+      showToast(`${selectedCount} document(s) marked as optional`, 'success');
     } catch (error: any) {
       setError(error.message || 'Failed to update documents');
       showToast(error.message || 'Failed to update documents', 'error');
