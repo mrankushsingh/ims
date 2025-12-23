@@ -10,9 +10,10 @@ interface Props {
   client: Client;
   onClose: () => void;
   onSuccess: () => void;
+  onOpenAportarDocumentacion?: () => void;
 }
 
-export default function ClientDetailsModal({ client, onClose, onSuccess }: Props) {
+export default function ClientDetailsModal({ client, onClose, onSuccess, onOpenAportarDocumentacion }: Props) {
   const [clientData, setClientData] = useState<Client>(client);
   const [uploading, setUploading] = useState<string | null>(null);
   const [error, setError] = useState('');
