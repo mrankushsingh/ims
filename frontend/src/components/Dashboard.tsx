@@ -851,7 +851,7 @@ export default function Dashboard({ onNavigate }: DashboardProps) {
                   ) : (
                     <>
                       <Plus className="w-4 h-4" />
-                      <span>Nuevo Recordatorio</span>
+                      <span>REQUERIMIENTO</span>
                     </>
                   )}
                 </button>
@@ -900,7 +900,7 @@ export default function Dashboard({ onNavigate }: DashboardProps) {
                   }}
                   className="mb-6 p-4 bg-amber-50 rounded-lg border border-amber-200"
                 >
-                  <h3 className="text-lg font-semibold text-amber-900 mb-4">Nuevo Recordatorio</h3>
+                  <h3 className="text-lg font-semibold text-amber-900 mb-4">REQUERIMIENTO</h3>
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <div>
                       <label className="block text-sm font-medium text-gray-700 mb-1">Nombre *</label>
