@@ -18,6 +18,7 @@ export default function Dashboard({ onNavigate }: DashboardProps) {
   const [loading, setLoading] = useState(true);
   const [selectedClient, setSelectedClient] = useState<Client | null>(null);
   const [returnToRequerimiento, setReturnToRequerimiento] = useState(false);
+  const [returnToAportarDocumentacion, setReturnToAportarDocumentacion] = useState(false);
   const [showReadyToSubmitModal, setShowReadyToSubmitModal] = useState(false);
   const [showAwaitingModal, setShowAwaitingModal] = useState(false);
   const [showSubmittedModal, setShowSubmittedModal] = useState(false);
@@ -978,10 +979,26 @@ export default function Dashboard({ onNavigate }: DashboardProps) {
                   <div className="space-y-3">
                     {aportarReminders.map((reminder) => {
                       const reminderDate = new Date(reminder.reminder_date);
+                      const hasClientId = reminder.client_id && reminder.client_id.trim() !== '';
                       return (
                         <div
                           key={reminder.id}
-                          className="p-4 border-2 border-amber-300 rounded-xl bg-gradient-to-br from-amber-100 to-white"
+                          onClick={async () => {
+                            if (hasClientId) {
+                              try {
+                                const client = await api.getClient(reminder.client_id!);
+                                if (client) {
+                                  setReturnToAportarDocumentacion(true);
+                                  setSelectedClient(client);
+                                  setShowAportarDocumentacionModal(false);
+                                }
+                              } catch (error) {
+                                console.error('Error loading client:', error);
+                                showToast('Error al cargar el cliente', 'error');
+                              }
+                            }
+                          }}
+                          className={`p-4 border-2 border-amber-300 rounded-xl bg-gradient-to-br from-amber-100 to-white ${hasClientId ? 'cursor-pointer hover:border-amber-400 hover:shadow-md transition-all' : ''}`}
                         >
                           <div className="flex items-center justify-between">
                             <div className="flex-1">
@@ -1064,6 +1081,7 @@ export default function Dashboard({ onNavigate }: DashboardProps) {
                       <div
                         key={client.id}
                         onClick={() => {
+                          setReturnToAportarDocumentacion(true);
                           setSelectedClient(client);
                           setShowAportarDocumentacionModal(false);
                         }}
@@ -2563,6 +2581,10 @@ export default function Dashboard({ onNavigate }: DashboardProps) {
             if (returnToRequerimiento) {
               setReturnToRequerimiento(false);
               setShowRequerimientoModal(true);
+            }
+            if (returnToAportarDocumentacion) {
+              setReturnToAportarDocumentacion(false);
+              setShowAportarDocumentacionModal(true);
             }
           }}
           onSuccess={() => {
