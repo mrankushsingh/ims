@@ -348,7 +348,9 @@ export default function Dashboard({ onNavigate }: DashboardProps) {
   });
 
   // Also add reminders that are within 3 days to urgent list
+  // Exclude REQUERIMIENTO type reminders - they should only show in REQUERIMIENTO box
   const urgentReminders = reminders.filter((reminder) => {
+    if (reminder.reminder_type === 'REQUERIMIENTO') return false; // Exclude REQUERIMIENTO reminders
     const now = new Date();
     const reminderDate = new Date(reminder.reminder_date);
     const days3 = 3 * 24 * 60 * 60 * 1000; // 3 days in milliseconds
@@ -569,7 +571,7 @@ export default function Dashboard({ onNavigate }: DashboardProps) {
             </div>
             <span className="text-[10px] sm:text-xs font-semibold text-amber-700/70 uppercase tracking-wider">{t('dashboard.recordatorio')}</span>
           </div>
-          <p className="text-3xl sm:text-4xl font-bold bg-gradient-to-r from-amber-800 to-amber-600 bg-clip-text text-transparent mb-1 sm:mb-2">{reminders.length}</p>
+          <p className="text-3xl sm:text-4xl font-bold bg-gradient-to-r from-amber-800 to-amber-600 bg-clip-text text-transparent mb-1 sm:mb-2">{reminders.filter((r) => r.reminder_type !== 'REQUERIMIENTO').length}</p>
           <p className="text-xs sm:text-sm text-amber-700/70 font-medium leading-relaxed mb-1 sm:mb-2">{t('dashboard.recordatorioDesc')}</p>
         </div>
 
@@ -1294,7 +1296,7 @@ export default function Dashboard({ onNavigate }: DashboardProps) {
               </div>
             </div>
             <div className="flex-1 overflow-y-auto p-6">
-              {reminders.length === 0 ? (
+              {reminders.filter((r) => r.reminder_type !== 'REQUERIMIENTO').length === 0 ? (
                 <div className="text-center py-12">
                   <Bell className="w-16 h-16 mx-auto text-amber-400 mb-4" />
                   <p className="text-gray-500 font-medium text-lg">No hay recordatorios</p>
@@ -1302,7 +1304,7 @@ export default function Dashboard({ onNavigate }: DashboardProps) {
                 </div>
               ) : (
                 <div className="space-y-4">
-                  {reminders.map((reminder) => {
+                  {reminders.filter((r) => r.reminder_type !== 'REQUERIMIENTO').map((reminder) => {
                     const reminderDate = new Date(reminder.reminder_date);
                     const now = new Date();
                     const days3 = 3 * 24 * 60 * 60 * 1000;

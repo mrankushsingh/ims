@@ -224,7 +224,10 @@ export default function Notifications({ onClientClick, onReminderClick }: Props)
       });
 
       // Add RECORDATORIO reminders (standalone reminders)
-      recordatorioReminders.forEach((reminder: ReminderType) => {
+      // Exclude REQUERIMIENTO type reminders - they should only show in REQUERIMIENTO box
+      recordatorioReminders
+        .filter((reminder: ReminderType) => reminder.reminder_type !== 'REQUERIMIENTO')
+        .forEach((reminder: ReminderType) => {
         const reminderDate = new Date(reminder.reminder_date);
         const now = new Date();
         const days3 = 3 * 24 * 60 * 60 * 1000; // 3 days in milliseconds
