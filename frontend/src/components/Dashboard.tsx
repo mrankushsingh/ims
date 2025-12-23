@@ -446,11 +446,6 @@ export default function Dashboard({ onNavigate }: DashboardProps) {
     return aportarDocs.length > 0;
   });
 
-  // Count total APORTAR DOCUMENTACIÓN documents
-  const totalAportarDocs = clients.reduce((total, client) => {
-    const aportarDocs = client.aportar_documentacion || [];
-    return total + aportarDocs.length;
-  }, 0);
   
   // REQUERIMIENTO: Clients with pending requested documents (submitted clients with pending requested docs)
   const requerimiento = clients.filter((client) => {
