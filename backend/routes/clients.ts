@@ -267,58 +267,79 @@ router.post('/:id/documents/:documentCode', upload.single('file'), async (req: a
   }
 });
 
-// Upload additional document
+// Create or upload additional document
 router.post('/:id/additional-documents', upload.single('file'), async (req: any, res) => {
   try {
-    if (!req.file) {
-      return res.status(400).json({ error: 'No file uploaded or file upload failed' });
-    }
-
-    // Get user name (optional - will use 'Unknown User' if not authenticated)
-    const userName = await getUserName(req);
-
-    const file = req.file; // Store in const for TypeScript narrowing
     const client = await memoryDb.getClient(req.params.id);
     if (!client) {
       return res.status(404).json({ error: 'Client not found' });
     }
 
-    // Generate unique filename or use multer-generated filename
-    let fileName: string;
-    let fileUrl: string;
-    
-    if (isUsingBucketStorage() && file.buffer) {
-      // Railway bucket: generate filename and upload from buffer
-      const uniqueSuffix = `${Date.now()}_${Math.round(Math.random() * 1E9)}`;
-      const ext = extname(file.originalname);
-      const name = file.originalname.replace(ext, '').replace(/[^a-zA-Z0-9]/g, '_');
-      fileName = `${name}_${uniqueSuffix}${ext}`;
-      
-      // Upload to Railway bucket
-      fileUrl = await uploadFile(file.buffer, fileName, file.mimetype);
-    } else {
-      // Local filesystem: multer already saved the file, just use the filename
-      fileName = file.filename || file.originalname;
-      fileUrl = `/uploads/${fileName}`;
+    const { name, description, reminder_days } = req.body;
+    if (!name || !name.trim()) {
+      return res.status(400).json({ error: 'Document name is required' });
     }
 
-    const newDocument = {
-      id: `doc_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
-      name: req.body.name || file.originalname,
-      description: req.body.description || undefined,
-      fileUrl: fileUrl,
-      fileName: file.originalname,
-      fileSize: file.size,
-      uploadedAt: new Date().toISOString(),
-      uploadedBy: userName,
-    };
+    const reminderDays = reminder_days ? parseInt(reminder_days) : 10;
+    const reminderDate = new Date();
+    reminderDate.setDate(reminderDate.getDate() + reminderDays);
 
-    const updatedAdditionalDocs = [...(client.additional_documents || []), newDocument];
-    const updated = await memoryDb.updateClient(req.params.id, {
-      additional_documents: updatedAdditionalDocs,
-    });
+    // If file is provided, upload it
+    if (req.file) {
+      const userName = await getUserName(req);
+      const file = req.file;
+      let fileName: string;
+      let fileUrl: string;
+      
+      if (isUsingBucketStorage() && file.buffer) {
+        const uniqueSuffix = `${Date.now()}_${Math.round(Math.random() * 1E9)}`;
+        const ext = extname(file.originalname);
+        const name = file.originalname.replace(ext, '').replace(/[^a-zA-Z0-9]/g, '_');
+        fileName = `${name}_${uniqueSuffix}${ext}`;
+        fileUrl = await uploadFile(file.buffer, fileName, file.mimetype);
+      } else {
+        fileName = file.filename || file.originalname;
+        fileUrl = `/uploads/${fileName}`;
+      }
 
-    res.json(updated);
+      const newDocument = {
+        id: `doc_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
+        name: name.trim(),
+        description: description ? description.trim() : undefined,
+        fileUrl: fileUrl,
+        fileName: file.originalname,
+        fileSize: file.size,
+        uploadedAt: new Date().toISOString(),
+        uploadedBy: userName,
+        reminder_days: reminderDays,
+        reminder_date: reminderDate.toISOString(),
+        created_at: new Date().toISOString(),
+      };
+
+      const updatedAdditionalDocs = [...(client.additional_documents || []), newDocument];
+      const updated = await memoryDb.updateClient(req.params.id, {
+        additional_documents: updatedAdditionalDocs,
+      });
+
+      res.json(updated);
+    } else {
+      // Create document without file
+      const newDocument = {
+        id: `doc_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
+        name: name.trim(),
+        description: description ? description.trim() : undefined,
+        reminder_days: reminderDays,
+        reminder_date: reminderDate.toISOString(),
+        created_at: new Date().toISOString(),
+      };
+
+      const updatedAdditionalDocs = [...(client.additional_documents || []), newDocument];
+      const updated = await memoryDb.updateClient(req.params.id, {
+        additional_documents: updatedAdditionalDocs,
+      });
+
+      res.json(updated);
+    }
   } catch (error: any) {
     // Handle multer errors (file size, file type, etc.)
     if (error.message && error.message.includes('File type')) {
@@ -327,7 +348,101 @@ router.post('/:id/additional-documents', upload.single('file'), async (req: any,
     if (error.message && error.message.includes('File too large')) {
       return res.status(400).json({ error: 'File size exceeds 50MB limit' });
     }
-    res.status(500).json({ error: error.message || 'Failed to upload additional document' });
+    res.status(500).json({ error: error.message || 'Failed to create additional document' });
+  }
+});
+
+// Update additional document (reminder, name, description)
+router.put('/:id/additional-documents/:documentId', async (req: any, res) => {
+  try {
+    const client = await memoryDb.getClient(req.params.id);
+    if (!client) {
+      return res.status(404).json({ error: 'Client not found' });
+    }
+
+    const { name, description, reminder_days } = req.body;
+    const documents = client.additional_documents || [];
+    const docIndex = documents.findIndex((d: any) => d.id === req.params.documentId);
+    
+    if (docIndex === -1) {
+      return res.status(404).json({ error: 'Document not found' });
+    }
+
+    const reminderDays = reminder_days ? parseInt(reminder_days) : documents[docIndex].reminder_days || 10;
+    const reminderDate = new Date();
+    reminderDate.setDate(reminderDate.getDate() + reminderDays);
+
+    const updatedDoc = {
+      ...documents[docIndex],
+      ...(name && { name: name.trim() }),
+      ...(description !== undefined && { description: description ? description.trim() : undefined }),
+      reminder_days: reminderDays,
+      reminder_date: reminderDate.toISOString(),
+    };
+
+    documents[docIndex] = updatedDoc;
+    const updated = await memoryDb.updateClient(req.params.id, {
+      additional_documents: documents,
+    });
+
+    res.json(updated);
+  } catch (error: any) {
+    res.status(500).json({ error: error.message || 'Failed to update additional document' });
+  }
+});
+
+// Upload file to existing additional document
+router.post('/:id/additional-documents/:documentId/file', upload.single('file'), async (req: any, res) => {
+  try {
+    if (!req.file) {
+      return res.status(400).json({ error: 'No file uploaded' });
+    }
+
+    const client = await memoryDb.getClient(req.params.id);
+    if (!client) {
+      return res.status(404).json({ error: 'Client not found' });
+    }
+
+    const userName = await getUserName(req);
+    const documents = client.additional_documents || [];
+    const docIndex = documents.findIndex((d: any) => d.id === req.params.documentId);
+    
+    if (docIndex === -1) {
+      return res.status(404).json({ error: 'Document not found' });
+    }
+
+    const file = req.file;
+    let fileName: string;
+    let fileUrl: string;
+    
+    if (isUsingBucketStorage() && file.buffer) {
+      const uniqueSuffix = `${Date.now()}_${Math.round(Math.random() * 1E9)}`;
+      const ext = extname(file.originalname);
+      const name = file.originalname.replace(ext, '').replace(/[^a-zA-Z0-9]/g, '_');
+      fileName = `${name}_${uniqueSuffix}${ext}`;
+      fileUrl = await uploadFile(file.buffer, fileName, file.mimetype);
+    } else {
+      fileName = file.filename || file.originalname;
+      fileUrl = `/uploads/${fileName}`;
+    }
+
+    const updatedDoc = {
+      ...documents[docIndex],
+      fileUrl: fileUrl,
+      fileName: file.originalname,
+      fileSize: file.size,
+      uploadedAt: new Date().toISOString(),
+      uploadedBy: userName,
+    };
+
+    documents[docIndex] = updatedDoc;
+    const updated = await memoryDb.updateClient(req.params.id, {
+      additional_documents: documents,
+    });
+
+    res.json(updated);
+  } catch (error: any) {
+    res.status(500).json({ error: error.message || 'Failed to upload file' });
   }
 });
 
