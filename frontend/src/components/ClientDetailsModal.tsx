@@ -1121,7 +1121,7 @@ export default function ClientDetailsModal({ client, onClose, onSuccess }: Props
       await loadClient();
       onSuccess();
       setEditingPaymentTotals(false);
-      showToast('Total fee and paid amount updated', 'success');
+      showToast('Payment updated', 'success');
     } catch (error: any) {
       const errorMessage = error.message || 'Failed to update payment amounts';
       setError(errorMessage);
@@ -2106,7 +2106,7 @@ export default function ClientDetailsModal({ client, onClose, onSuccess }: Props
                       className="px-4 py-2 bg-white border border-green-600 text-green-700 text-sm rounded-lg hover:bg-green-50 transition-colors flex items-center space-x-2"
                     >
                       <Edit2 className="w-4 h-4" />
-                      <span>Edit totals</span>
+                      <span>Edit payment</span>
                     </button>
                     <button
                       onClick={() => setShowPaymentForm(!showPaymentForm)}
@@ -2241,7 +2241,7 @@ export default function ClientDetailsModal({ client, onClose, onSuccess }: Props
                       disabled={savingPaymentTotals}
                       className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors text-sm disabled:opacity-50"
                     >
-                      {savingPaymentTotals ? 'Saving...' : 'Save amounts'}
+                      {savingPaymentTotals ? 'Saving...' : 'Save payment'}
                     </button>
                   </div>
                 </div>
