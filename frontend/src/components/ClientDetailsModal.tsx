@@ -66,6 +66,9 @@ export default function ClientDetailsModal({ client, onClose, onSuccess }: Props
     phone: '',
     parent_name: '',
   });
+  const [editingPaymentTotals, setEditingPaymentTotals] = useState(false);
+  const [paymentTotalsForm, setPaymentTotalsForm] = useState({ totalFee: '', paidAmount: '' });
+  const [savingPaymentTotals, setSavingPaymentTotals] = useState(false);
   const [confirmDialog, setConfirmDialog] = useState<{
     isOpen: boolean;
     title: string;
@@ -1088,6 +1091,46 @@ export default function ClientDetailsModal({ client, onClose, onSuccess }: Props
     }
   };
 
+  const handleSavePaymentTotals = async () => {
+    setSavingPaymentTotals(true);
+    setError('');
+    try {
+      const totalFee = parseFloat(paymentTotalsForm.totalFee);
+      const paidAmount = parseFloat(paymentTotalsForm.paidAmount);
+      if (Number.isNaN(totalFee) || totalFee < 0) {
+        showToast('Please enter a valid total fee (€)', 'error');
+        return;
+      }
+      if (Number.isNaN(paidAmount) || paidAmount < 0) {
+        showToast('Please enter a valid paid amount (€)', 'error');
+        return;
+      }
+      const existingPayment = clientData.payment || { totalFee: 0, paidAmount: 0, payments: [] };
+      const remainingAfter = totalFee - paidAmount;
+      const clearReminder = remainingAfter <= 0 && !!clientData.custom_reminder_date;
+      await api.updateClient(client.id, {
+        payment: {
+          ...existingPayment,
+          totalFee,
+          paidAmount,
+          payments: existingPayment.payments || [],
+        },
+        ...(clearReminder ? { custom_reminder_date: null } : {}),
+      });
+      if (clearReminder) setCustomReminderDate('');
+      await loadClient();
+      onSuccess();
+      setEditingPaymentTotals(false);
+      showToast('Total fee and paid amount updated', 'success');
+    } catch (error: any) {
+      const errorMessage = error.message || 'Failed to update payment amounts';
+      setError(errorMessage);
+      showToast(errorMessage, 'error');
+    } finally {
+      setSavingPaymentTotals(false);
+    }
+  };
+
   const handleSaveNotes = async () => {
     setSavingNotes(true);
     setError('');
@@ -2051,6 +2094,21 @@ export default function ClientDetailsModal({ client, onClose, onSuccess }: Props
                       </button>
                     )}
                     <button
+                      type="button"
+                      onClick={() => {
+                        setPaymentTotalsForm({
+                          totalFee: String(clientData.payment?.totalFee ?? 0),
+                          paidAmount: String(clientData.payment?.paidAmount ?? 0),
+                        });
+                        setEditingPaymentTotals(true);
+                        setShowPaymentForm(false);
+                      }}
+                      className="px-4 py-2 bg-white border border-green-600 text-green-700 text-sm rounded-lg hover:bg-green-50 transition-colors flex items-center space-x-2"
+                    >
+                      <Edit2 className="w-4 h-4" />
+                      <span>Edit totals</span>
+                    </button>
+                    <button
                       onClick={() => setShowPaymentForm(!showPaymentForm)}
                       className="px-4 py-2 bg-green-600 text-white text-sm rounded-lg hover:bg-green-700 transition-colors flex items-center space-x-2"
                     >
@@ -2130,20 +2188,81 @@ export default function ClientDetailsModal({ client, onClose, onSuccess }: Props
 
           <div className="bg-white border border-gray-200 rounded-lg p-4">
             <div className="mb-3">
-              <div className="flex justify-between items-center mb-2">
-                <span className="text-sm font-medium text-gray-700">Total Fee:</span>
-                <span className="text-lg font-bold text-gray-900">€{clientData.payment?.totalFee || 0}</span>
-              </div>
-              <div className="flex justify-between items-center mb-2">
-                <span className="text-sm font-medium text-gray-700">Paid Amount:</span>
-                <span className="text-lg font-bold text-green-600">€{clientData.payment?.paidAmount || 0}</span>
-              </div>
-              <div className="flex justify-between items-center">
-                <span className="text-sm font-medium text-gray-700">Remaining:</span>
-                <span className={`text-lg font-bold ${remainingAmount > 0 ? 'text-red-600' : 'text-green-600'}`}>
-                  €{remainingAmount.toFixed(2)}
-                </span>
-              </div>
+              {editingPaymentTotals ? (
+                <div className="space-y-4">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div>
+                      <label htmlFor="edit-total-fee" className="block text-sm font-medium text-gray-700 mb-1">
+                        Total fee (€)
+                      </label>
+                      <input
+                        id="edit-total-fee"
+                        type="number"
+                        step="0.01"
+                        min="0"
+                        value={paymentTotalsForm.totalFee}
+                        onChange={(e) => setPaymentTotalsForm({ ...paymentTotalsForm, totalFee: e.target.value })}
+                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 outline-none"
+                      />
+                    </div>
+                    <div>
+                      <label htmlFor="edit-paid-amount" className="block text-sm font-medium text-gray-700 mb-1">
+                        Paid amount (€)
+                      </label>
+                      <input
+                        id="edit-paid-amount"
+                        type="number"
+                        step="0.01"
+                        min="0"
+                        value={paymentTotalsForm.paidAmount}
+                        onChange={(e) => setPaymentTotalsForm({ ...paymentTotalsForm, paidAmount: e.target.value })}
+                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 outline-none"
+                      />
+                    </div>
+                  </div>
+                  <p className="text-xs text-gray-500">
+                    Adjusting these amounts does not add or remove lines in payment history. Use &quot;Add payment&quot; to record a new payment.
+                  </p>
+                  <div className="flex flex-wrap justify-end gap-2">
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setEditingPaymentTotals(false);
+                        setPaymentTotalsForm({ totalFee: '', paidAmount: '' });
+                      }}
+                      disabled={savingPaymentTotals}
+                      className="px-4 py-2 text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200 transition-colors text-sm disabled:opacity-50"
+                    >
+                      Cancel
+                    </button>
+                    <button
+                      type="button"
+                      onClick={handleSavePaymentTotals}
+                      disabled={savingPaymentTotals}
+                      className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors text-sm disabled:opacity-50"
+                    >
+                      {savingPaymentTotals ? 'Saving...' : 'Save amounts'}
+                    </button>
+                  </div>
+                </div>
+              ) : (
+                <>
+                  <div className="flex justify-between items-center mb-2">
+                    <span className="text-sm font-medium text-gray-700">Total Fee:</span>
+                    <span className="text-lg font-bold text-gray-900">€{clientData.payment?.totalFee || 0}</span>
+                  </div>
+                  <div className="flex justify-between items-center mb-2">
+                    <span className="text-sm font-medium text-gray-700">Paid Amount:</span>
+                    <span className="text-lg font-bold text-green-600">€{clientData.payment?.paidAmount || 0}</span>
+                  </div>
+                  <div className="flex justify-between items-center">
+                    <span className="text-sm font-medium text-gray-700">Remaining:</span>
+                    <span className={`text-lg font-bold ${remainingAmount > 0 ? 'text-red-600' : 'text-green-600'}`}>
+                      €{remainingAmount.toFixed(2)}
+                    </span>
+                  </div>
+                </>
+              )}
             </div>
             {clientData.payment?.payments && clientData.payment.payments.length > 0 && (
               <div className="mt-4 pt-4 border-t">
