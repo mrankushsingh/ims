@@ -411,6 +411,7 @@ export default function Notifications({ onClientClick, onReminderClick }: Props)
                     </button>
                   </div>
                 </div>
+
               </div>
 
               <div className="overflow-y-auto max-h-[500px]">

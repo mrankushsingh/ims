@@ -27,6 +27,7 @@ export default function Dashboard({ onNavigate }: DashboardProps) {
   const [showUrgentesModal, setShowUrgentesModal] = useState(false);
   const [showPagosModal, setShowPagosModal] = useState(false);
   const [showRecordatorioModal, setShowRecordatorioModal] = useState(false);
+  const [recordatorioSearchQuery, setRecordatorioSearchQuery] = useState('');
   const [showReminderForm, setShowReminderForm] = useState(false);
   const [editingReminder, setEditingReminder] = useState<Reminder | null>(null);
   const [reminderForm, setReminderForm] = useState({
@@ -486,6 +487,26 @@ export default function Dashboard({ onNavigate }: DashboardProps) {
   const recursoReminders = reminders.filter((reminder) => reminder.reminder_type === 'RECURSO');
   const urgentesReminders = reminders.filter((reminder) => reminder.reminder_type === 'URGENTES');
   const pagosReminders = reminders.filter((reminder) => reminder.reminder_type === 'PAGOS');
+
+  // RECORDATORIO: all reminder types except REQUERIMIENTO (matches the existing modal logic)
+  const recordatorioReminders = reminders.filter((r) => r.reminder_type !== 'REQUERIMIENTO');
+  const normalizedRecordatorioSearchQuery = recordatorioSearchQuery.trim().toLowerCase();
+  const recordatorioFilteredReminders = normalizedRecordatorioSearchQuery
+    ? recordatorioReminders.filter((reminder) => {
+        const haystack = [
+          reminder.client_name,
+          reminder.client_surname,
+          reminder.phone,
+          reminder.notes,
+          reminder.reminder_type,
+          reminder.reminder_date,
+        ]
+          .filter(Boolean)
+          .join(' ')
+          .toLowerCase();
+        return haystack.includes(normalizedRecordatorioSearchQuery);
+      })
+    : recordatorioReminders;
   
   // RECURSO: Clients that need to file an appeal (placeholder - can be expanded later)
   // For now, this could be clients with expired administrative silence or specific status
@@ -1837,24 +1858,47 @@ export default function Dashboard({ onNavigate }: DashboardProps) {
                     <Plus className="w-5 h-5" />
                   </button>
                   <button
-                    onClick={() => setShowRecordatorioModal(false)}
+                    onClick={() => {
+                      setShowRecordatorioModal(false);
+                      setRecordatorioSearchQuery('');
+                    }}
                     className="p-2 text-gray-400 hover:text-gray-600 rounded-lg transition-colors"
                   >
                     <X className="w-6 h-6" />
                   </button>
                 </div>
               </div>
+              <div className="mt-3">
+                <div className="relative">
+                  <Search className="w-4 h-4 text-amber-400 absolute left-3 top-1/2 -translate-y-1/2" />
+                  <input
+                    value={recordatorioSearchQuery}
+                    onChange={(e) => setRecordatorioSearchQuery(e.target.value)}
+                    placeholder="Buscar recordatorios..."
+                    className="w-full pl-9 pr-3 py-2 text-sm border border-amber-200 rounded-lg bg-white text-amber-900 placeholder:text-amber-400 focus:outline-none focus:ring-2 focus:ring-amber-200"
+                    aria-label="Buscar recordatorios"
+                  />
+                </div>
+              </div>
             </div>
             <div className="flex-1 overflow-y-auto p-6">
-              {reminders.filter((r) => r.reminder_type !== 'REQUERIMIENTO').length === 0 ? (
-                <div className="text-center py-12">
-                  <Bell className="w-16 h-16 mx-auto text-amber-400 mb-4" />
-                  <p className="text-gray-500 font-medium text-lg">No hay recordatorios</p>
-                  <p className="text-sm text-gray-400 mt-1">Agregue recordatorios para hacer seguimiento</p>
-                </div>
+              {recordatorioFilteredReminders.length === 0 ? (
+                normalizedRecordatorioSearchQuery ? (
+                  <div className="text-center py-12">
+                    <Search className="w-16 h-16 mx-auto text-amber-300 mb-4" />
+                    <p className="text-gray-500 font-medium text-lg">Sin coincidencias</p>
+                    <p className="text-sm text-gray-400 mt-1">Pruebe con otro término de búsqueda</p>
+                  </div>
+                ) : (
+                  <div className="text-center py-12">
+                    <Bell className="w-16 h-16 mx-auto text-amber-400 mb-4" />
+                    <p className="text-gray-500 font-medium text-lg">No hay recordatorios</p>
+                    <p className="text-sm text-gray-400 mt-1">Agregue recordatorios para hacer seguimiento</p>
+                  </div>
+                )
               ) : (
                 <div className="space-y-4">
-                  {reminders.filter((r) => r.reminder_type !== 'REQUERIMIENTO').map((reminder) => {
+                  {recordatorioFilteredReminders.map((reminder) => {
                     const reminderDate = new Date(reminder.reminder_date);
                     const now = new Date();
                     const days3 = 3 * 24 * 60 * 60 * 1000;
