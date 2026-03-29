@@ -7,6 +7,115 @@ import { t } from '../utils/i18n';
 import { showToast } from './Toast';
 import ConfirmDialog from './ConfirmDialog';
 
+function dashboardListSearchNormalized(q: string) {
+  return q.trim().toLowerCase();
+}
+
+function clientMatchesDashboardSearch(client: Client, rawQuery: string, extraFields: string[] = []): boolean {
+  const q = dashboardListSearchNormalized(rawQuery);
+  if (!q) return true;
+  const remaining = (client.payment?.totalFee ?? 0) - (client.payment?.paidAmount ?? 0);
+  const hay = [
+    client.first_name,
+    client.last_name,
+    client.case_type,
+    client.phone,
+    client.email,
+    client.details,
+    client.notes,
+    client.id,
+    client.application_date,
+    String(client.payment?.totalFee ?? ''),
+    String(client.payment?.paidAmount ?? ''),
+    String(remaining),
+    ...extraFields,
+  ]
+    .filter(Boolean)
+    .join(' ')
+    .toLowerCase();
+  return hay.includes(q);
+}
+
+function reminderMatchesDashboardSearch(reminder: Reminder, rawQuery: string): boolean {
+  const q = dashboardListSearchNormalized(rawQuery);
+  if (!q) return true;
+  const hay = [
+    reminder.client_name,
+    reminder.client_surname,
+    reminder.phone,
+    reminder.notes,
+    reminder.reminder_type,
+    reminder.reminder_date,
+    reminder.client_id,
+  ]
+    .filter(Boolean)
+    .join(' ')
+    .toLowerCase();
+  return hay.includes(q);
+}
+
+type DashboardSearchBarTone = 'amber' | 'green' | 'red' | 'slate';
+
+function DashboardListSearchBar({
+  id,
+  value,
+  onChange,
+  placeholder,
+  tone = 'amber',
+}: {
+  id: string;
+  value: string;
+  onChange: (next: string) => void;
+  placeholder?: string;
+  tone?: DashboardSearchBarTone;
+}) {
+  const toneClass: Record<DashboardSearchBarTone, { wrap: string; icon: string; input: string }> = {
+    amber: {
+      wrap: 'border-b border-amber-200/80 bg-amber-50/90',
+      icon: 'text-amber-600',
+      input:
+        'border-2 border-amber-300 text-amber-950 placeholder:text-amber-600/70 focus:ring-amber-400 focus:border-amber-500',
+    },
+    green: {
+      wrap: 'border-b border-emerald-200/80 bg-emerald-50/90',
+      icon: 'text-emerald-600',
+      input:
+        'border-2 border-emerald-300 text-emerald-950 placeholder:text-emerald-700/70 focus:ring-emerald-400 focus:border-emerald-500',
+    },
+    red: {
+      wrap: 'border-b border-red-200/80 bg-red-50/90',
+      icon: 'text-red-600',
+      input: 'border-2 border-red-300 text-red-950 placeholder:text-red-700/70 focus:ring-red-400 focus:border-red-500',
+    },
+    slate: {
+      wrap: 'border-b border-slate-200 bg-slate-50',
+      icon: 'text-slate-500',
+      input:
+        'border-2 border-slate-300 text-slate-900 placeholder:text-slate-500 focus:ring-slate-300 focus:border-slate-400',
+    },
+  };
+  const tc = toneClass[tone];
+  return (
+    <div className={`flex-shrink-0 px-6 py-3 ${tc.wrap}`}>
+      <label htmlFor={id} className="sr-only">
+        {placeholder || 'Search'}
+      </label>
+      <div className="relative">
+        <Search className={`w-5 h-5 ${tc.icon} absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none`} />
+        <input
+          id={id}
+          type="search"
+          value={value}
+          onChange={(e) => onChange(e.target.value)}
+          placeholder={placeholder || 'Search...'}
+          autoComplete="off"
+          className={`w-full pl-11 pr-4 py-3 text-base rounded-xl bg-white shadow-sm focus:outline-none focus:ring-2 ${tc.input}`}
+        />
+      </div>
+    </div>
+  );
+}
+
 interface DashboardProps {
   onNavigate?: (view: 'templates' | 'clients') => void;
 }
@@ -28,6 +137,14 @@ export default function Dashboard({ onNavigate }: DashboardProps) {
   const [showPagosModal, setShowPagosModal] = useState(false);
   const [showRecordatorioModal, setShowRecordatorioModal] = useState(false);
   const [recordatorioSearchQuery, setRecordatorioSearchQuery] = useState('');
+  const [awaitingModalSearchQuery, setAwaitingModalSearchQuery] = useState('');
+  const [readyToSubmitModalSearchQuery, setReadyToSubmitModalSearchQuery] = useState('');
+  const [submittedModalSearchQuery, setSubmittedModalSearchQuery] = useState('');
+  const [aportarModalSearchQuery, setAportarModalSearchQuery] = useState('');
+  const [requerimientoModalSearchQuery, setRequerimientoModalSearchQuery] = useState('');
+  const [recursoModalSearchQuery, setRecursoModalSearchQuery] = useState('');
+  const [urgentesModalSearchQuery, setUrgentesModalSearchQuery] = useState('');
+  const [pagosModalSearchQuery, setPagosModalSearchQuery] = useState('');
   const [showReminderForm, setShowReminderForm] = useState(false);
   const [editingReminder, setEditingReminder] = useState<Reminder | null>(null);
   const [reminderForm, setReminderForm] = useState({
@@ -615,6 +732,53 @@ export default function Dashboard({ onNavigate }: DashboardProps) {
     return acc;
   }, { totalDue: 0, totalAdvance: 0, dueCount: 0, advanceCount: 0, noDueCount: 0 });
 
+  const filteredAwaitingSubmission = awaitingSubmission.filter((c) =>
+    clientMatchesDashboardSearch(c, awaitingModalSearchQuery)
+  );
+  const filteredReadyToSubmit = readyToSubmit.filter((c) =>
+    clientMatchesDashboardSearch(c, readyToSubmitModalSearchQuery)
+  );
+  const filteredSubmittedToAdmin = submittedToAdmin.filter((c) =>
+    clientMatchesDashboardSearch(c, submittedModalSearchQuery)
+  );
+
+  const filteredAportarReminders = aportarReminders.filter((r) =>
+    reminderMatchesDashboardSearch(r, aportarModalSearchQuery)
+  );
+  const filteredAportarDocumentacion = aportarDocumentacion.filter((c) =>
+    clientMatchesDashboardSearch(c, aportarModalSearchQuery)
+  );
+
+  const filteredRequerimientoReminders = requerimientoReminders.filter((r) =>
+    reminderMatchesDashboardSearch(r, requerimientoModalSearchQuery)
+  );
+  const filteredRequerimiento = requerimiento.filter((c) => {
+    const pendingDocs = (c.requested_documents || []).filter((d: any) => !d.submitted);
+    return clientMatchesDashboardSearch(
+      c,
+      requerimientoModalSearchQuery,
+      pendingDocs.map((d: any) => d.name)
+    );
+  });
+
+  const filteredRecursoReminders = recursoReminders.filter((r) =>
+    reminderMatchesDashboardSearch(r, recursoModalSearchQuery)
+  );
+  const filteredRecurso = recurso.filter((c) => clientMatchesDashboardSearch(c, recursoModalSearchQuery));
+
+  const filteredUrgentesReminders = urgentesReminders.filter((r) =>
+    reminderMatchesDashboardSearch(r, urgentesModalSearchQuery)
+  );
+  const filteredUrgentReminders = urgentReminders.filter((r) =>
+    reminderMatchesDashboardSearch(r, urgentesModalSearchQuery)
+  );
+  const filteredUrgentes = urgentes.filter((c) => clientMatchesDashboardSearch(c, urgentesModalSearchQuery));
+
+  const filteredPagosReminders = pagosReminders.filter((r) =>
+    reminderMatchesDashboardSearch(r, pagosModalSearchQuery)
+  );
+  const filteredPagos = pagos.filter((c) => clientMatchesDashboardSearch(c, pagosModalSearchQuery));
+
   return (
     <div className="space-y-8 animate-fade-in">
       <div className="border-b border-amber-200/50 pb-4 sm:pb-6">
@@ -981,7 +1145,7 @@ export default function Dashboard({ onNavigate }: DashboardProps) {
       {showAportarDocumentacionModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
           <div className="bg-white rounded-xl sm:rounded-2xl max-w-4xl w-full max-h-[95vh] sm:max-h-[90vh] overflow-hidden flex flex-col m-2 sm:m-0">
-            <div className="p-6 border-b border-gray-200 bg-gradient-to-r from-amber-50 to-amber-100">
+            <div className="flex-shrink-0 p-6 border-b border-gray-200 bg-gradient-to-r from-amber-50 to-amber-100">
               <div className="flex items-center justify-between">
                 <div>
                   <h2 className="text-2xl font-bold text-amber-900">{t('dashboard.aportarDocumentacion')}</h2>
@@ -1008,7 +1172,10 @@ export default function Dashboard({ onNavigate }: DashboardProps) {
                     <Plus className="w-5 h-5" />
                   </button>
                   <button
-                    onClick={() => setShowAportarDocumentacionModal(false)}
+                    onClick={() => {
+                      setShowAportarDocumentacionModal(false);
+                      setAportarModalSearchQuery('');
+                    }}
                     className="p-2 text-gray-400 hover:text-gray-600 rounded-lg transition-colors"
                   >
                     <X className="w-6 h-6" />
@@ -1016,14 +1183,20 @@ export default function Dashboard({ onNavigate }: DashboardProps) {
                 </div>
               </div>
             </div>
-            <div className="flex-1 overflow-y-auto p-6">
+            <DashboardListSearchBar
+              id="dashboard-aportar-search"
+              value={aportarModalSearchQuery}
+              onChange={setAportarModalSearchQuery}
+              placeholder="Buscar por nombre, teléfono, notas..."
+            />
+            <div className="flex-1 min-h-0 overflow-y-auto p-6">
               {renderGenericReminderForm(showAportarReminderForm, () => setShowAportarReminderForm(false), 'APORTAR_DOCUMENTACION', 'Nuevo Recordatorio')}
               
               {/* APORTAR_DOCUMENTACION Reminders */}
-              {aportarReminders.length > 0 && (
+              {filteredAportarReminders.length > 0 && (
                 <div className="mb-6">
                   <div className="space-y-3">
-                    {aportarReminders.map((reminder) => {
+                    {filteredAportarReminders.map((reminder) => {
                       const reminderDate = new Date(reminder.reminder_date);
                       const hasClientId = reminder.client_id && reminder.client_id.trim() !== '';
                       return (
@@ -1117,12 +1290,22 @@ export default function Dashboard({ onNavigate }: DashboardProps) {
                   <p className="text-gray-500 font-medium text-lg">{t('dashboard.allSubmitted')}</p>
                   <p className="text-sm text-gray-400 mt-1">No hay documentos en APORTAR DOCUMENTACIÓN</p>
                 </div>
+              ) : dashboardListSearchNormalized(aportarModalSearchQuery) &&
+                filteredAportarReminders.length === 0 &&
+                filteredAportarDocumentacion.length === 0 &&
+                !showAportarReminderForm &&
+                (aportarDocumentacion.length > 0 || aportarReminders.length > 0) ? (
+                <div className="text-center py-12">
+                  <Search className="w-16 h-16 mx-auto text-amber-300 mb-4" />
+                  <p className="text-gray-500 font-medium text-lg">Sin coincidencias</p>
+                  <p className="text-sm text-gray-400 mt-1">Pruebe con otro término de búsqueda</p>
+                </div>
               ) : (
                 <div className="space-y-4">
-                  {aportarDocumentacion.length > 0 && (
+                  {filteredAportarDocumentacion.length > 0 && (
                     <h3 className="text-lg font-semibold text-amber-900 mb-3">Clientes con Documentos en APORTAR DOCUMENTACIÓN</h3>
                   )}
-                  {aportarDocumentacion.map((client) => {
+                  {filteredAportarDocumentacion.map((client) => {
                     const aportarDocs = client.aportar_documentacion || [];
                     const missingFileDocs = aportarDocs.filter((d: any) => !d.fileUrl);
                     return (
@@ -1161,7 +1344,7 @@ export default function Dashboard({ onNavigate }: DashboardProps) {
       {showRequerimientoModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
           <div className="bg-white rounded-xl sm:rounded-2xl max-w-4xl w-full max-h-[95vh] sm:max-h-[90vh] overflow-hidden flex flex-col m-2 sm:m-0">
-            <div className="p-6 border-b border-gray-200 bg-gradient-to-r from-amber-50 to-amber-100">
+            <div className="flex-shrink-0 p-6 border-b border-gray-200 bg-gradient-to-r from-amber-50 to-amber-100">
               <div className="flex items-center justify-between">
                 <div>
                   <h2 className="text-2xl font-bold text-amber-900">{t('dashboard.requerimiento')}</h2>
@@ -1188,7 +1371,10 @@ export default function Dashboard({ onNavigate }: DashboardProps) {
                     <Plus className="w-5 h-5" />
                   </button>
                   <button
-                    onClick={() => setShowRequerimientoModal(false)}
+                    onClick={() => {
+                      setShowRequerimientoModal(false);
+                      setRequerimientoModalSearchQuery('');
+                    }}
                     className="p-2 text-gray-400 hover:text-gray-600 rounded-lg transition-colors"
                   >
                     <X className="w-6 h-6" />
@@ -1196,7 +1382,13 @@ export default function Dashboard({ onNavigate }: DashboardProps) {
                 </div>
               </div>
             </div>
-            <div className="flex-1 overflow-y-auto p-6">
+            <DashboardListSearchBar
+              id="dashboard-requerimiento-search"
+              value={requerimientoModalSearchQuery}
+              onChange={setRequerimientoModalSearchQuery}
+              placeholder="Buscar por cliente, documentos pendientes, recordatorios..."
+            />
+            <div className="flex-1 min-h-0 overflow-y-auto p-6">
 
               {/* Nuevo Recordatorio Form */}
               {showRequerimientoReminderForm && (
@@ -1344,10 +1536,10 @@ export default function Dashboard({ onNavigate }: DashboardProps) {
               )}
 
               {/* REQUERIMIENTO Reminders */}
-              {requerimientoReminders.length > 0 && (
+              {filteredRequerimientoReminders.length > 0 && (
                 <div className="mb-6">
                   <div className="space-y-3">
-                    {requerimientoReminders.map((reminder) => {
+                    {filteredRequerimientoReminders.map((reminder) => {
                       const reminderDate = new Date(reminder.reminder_date);
                       return (
                         <div
@@ -1425,10 +1617,20 @@ export default function Dashboard({ onNavigate }: DashboardProps) {
                   <p className="text-gray-500 font-medium text-lg">{t('dashboard.allSubmitted')}</p>
                   <p className="text-sm text-gray-400 mt-1">Todos los documentos solicitados han sido proporcionados</p>
                 </div>
-              ) : requerimiento.length > 0 ? (
+              ) : dashboardListSearchNormalized(requerimientoModalSearchQuery) &&
+                filteredRequerimientoReminders.length === 0 &&
+                filteredRequerimiento.length === 0 &&
+                !showRequerimientoReminderForm &&
+                (requerimiento.length > 0 || requerimientoReminders.length > 0) ? (
+                <div className="text-center py-12">
+                  <Search className="w-16 h-16 mx-auto text-amber-300 mb-4" />
+                  <p className="text-gray-500 font-medium text-lg">Sin coincidencias</p>
+                  <p className="text-sm text-gray-400 mt-1">Pruebe con otro término de búsqueda</p>
+                </div>
+              ) : filteredRequerimiento.length > 0 ? (
                 <div className="space-y-4">
                   <h3 className="text-lg font-semibold text-amber-900 mb-3">Clientes con Documentos Pendientes</h3>
-                  {requerimiento.map((client) => {
+                  {filteredRequerimiento.map((client) => {
                     const pendingDocs = (client.requested_documents || []).filter((d: any) => !d.submitted);
                     return (
                       <div
@@ -1464,7 +1666,7 @@ export default function Dashboard({ onNavigate }: DashboardProps) {
       {showRecursoModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
           <div className="bg-white rounded-xl sm:rounded-2xl max-w-4xl w-full max-h-[95vh] sm:max-h-[90vh] overflow-hidden flex flex-col m-2 sm:m-0">
-            <div className="p-6 border-b border-gray-200 bg-gradient-to-r from-amber-50 to-amber-100">
+            <div className="flex-shrink-0 p-6 border-b border-gray-200 bg-gradient-to-r from-amber-50 to-amber-100">
               <div className="flex items-center justify-between">
                 <div>
                   <h2 className="text-2xl font-bold text-amber-900">{t('dashboard.recurso')}</h2>
@@ -1491,7 +1693,10 @@ export default function Dashboard({ onNavigate }: DashboardProps) {
                     <Plus className="w-5 h-5" />
                   </button>
                   <button
-                    onClick={() => setShowRecursoModal(false)}
+                    onClick={() => {
+                      setShowRecursoModal(false);
+                      setRecursoModalSearchQuery('');
+                    }}
                     className="p-2 text-gray-400 hover:text-gray-600 rounded-lg transition-colors"
                   >
                     <X className="w-6 h-6" />
@@ -1499,14 +1704,20 @@ export default function Dashboard({ onNavigate }: DashboardProps) {
                 </div>
               </div>
             </div>
-            <div className="flex-1 overflow-y-auto p-6">
+            <DashboardListSearchBar
+              id="dashboard-recurso-search"
+              value={recursoModalSearchQuery}
+              onChange={setRecursoModalSearchQuery}
+              placeholder="Buscar por nombre, teléfono, notas..."
+            />
+            <div className="flex-1 min-h-0 overflow-y-auto p-6">
               {renderGenericReminderForm(showRecursoReminderForm, () => setShowRecursoReminderForm(false), 'RECURSO', 'Nuevo Recordatorio')}
               
               {/* RECURSO Reminders */}
-              {recursoReminders.length > 0 && (
+              {filteredRecursoReminders.length > 0 && (
                 <div className="mb-6">
                   <div className="space-y-3">
-                    {recursoReminders.map((reminder) => {
+                    {filteredRecursoReminders.map((reminder) => {
                       const reminderDate = new Date(reminder.reminder_date);
                       return (
                         <div
@@ -1583,12 +1794,22 @@ export default function Dashboard({ onNavigate }: DashboardProps) {
                   <p className="text-gray-500 font-medium text-lg">No hay recursos pendientes</p>
                   <p className="text-sm text-gray-400 mt-1">No hay casos que requieran presentar recurso</p>
                 </div>
+              ) : dashboardListSearchNormalized(recursoModalSearchQuery) &&
+                filteredRecursoReminders.length === 0 &&
+                filteredRecurso.length === 0 &&
+                !showRecursoReminderForm &&
+                (recurso.length > 0 || recursoReminders.length > 0) ? (
+                <div className="text-center py-12">
+                  <Search className="w-16 h-16 mx-auto text-amber-300 mb-4" />
+                  <p className="text-gray-500 font-medium text-lg">Sin coincidencias</p>
+                  <p className="text-sm text-gray-400 mt-1">Pruebe con otro término de búsqueda</p>
+                </div>
               ) : (
                 <div className="space-y-4">
-                  {recurso.length > 0 && (
+                  {filteredRecurso.length > 0 && (
                     <h3 className="text-lg font-semibold text-amber-900 mb-3">Clientes con Recursos Pendientes</h3>
                   )}
-                  {recurso.map((client) => (
+                  {filteredRecurso.map((client) => (
                     <div
                       key={client.id}
                       onClick={() => {
@@ -1622,7 +1843,7 @@ export default function Dashboard({ onNavigate }: DashboardProps) {
       {showUrgentesModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
           <div className="bg-white rounded-xl sm:rounded-2xl max-w-4xl w-full max-h-[95vh] sm:max-h-[90vh] overflow-hidden flex flex-col m-2 sm:m-0">
-            <div className="p-6 border-b border-gray-200 bg-gradient-to-r from-red-50 to-red-100">
+            <div className="flex-shrink-0 p-6 border-b border-gray-200 bg-gradient-to-r from-red-50 to-red-100">
               <div className="flex items-center justify-between">
                 <div>
                   <h2 className="text-2xl font-bold text-red-900">{t('dashboard.urgentes')}</h2>
@@ -1649,7 +1870,10 @@ export default function Dashboard({ onNavigate }: DashboardProps) {
                     <Plus className="w-5 h-5" />
                   </button>
                   <button
-                    onClick={() => setShowUrgentesModal(false)}
+                    onClick={() => {
+                      setShowUrgentesModal(false);
+                      setUrgentesModalSearchQuery('');
+                    }}
                     className="p-2 text-gray-400 hover:text-gray-600 rounded-lg transition-colors"
                   >
                     <X className="w-6 h-6" />
@@ -1657,14 +1881,21 @@ export default function Dashboard({ onNavigate }: DashboardProps) {
                 </div>
               </div>
             </div>
-            <div className="flex-1 overflow-y-auto p-6">
+            <DashboardListSearchBar
+              id="dashboard-urgentes-search"
+              value={urgentesModalSearchQuery}
+              onChange={setUrgentesModalSearchQuery}
+              placeholder="Buscar clientes o recordatorios urgentes..."
+              tone="red"
+            />
+            <div className="flex-1 min-h-0 overflow-y-auto p-6">
               {renderGenericReminderForm(showUrgentesReminderForm, () => setShowUrgentesReminderForm(false), 'URGENTES', 'Nuevo Recordatorio')}
               
               {/* URGENTES Reminders */}
-              {urgentesReminders.length > 0 && (
+              {filteredUrgentesReminders.length > 0 && (
                 <div className="mb-6">
                   <div className="space-y-3">
-                    {urgentesReminders.map((reminder) => {
+                    {filteredUrgentesReminders.map((reminder) => {
                       const reminderDate = new Date(reminder.reminder_date);
                       return (
                         <div
@@ -1741,10 +1972,21 @@ export default function Dashboard({ onNavigate }: DashboardProps) {
                   <p className="text-gray-500 font-medium text-lg">No hay trámites urgentes</p>
                   <p className="text-sm text-gray-400 mt-1">Todos los trámites están al día</p>
                 </div>
+              ) : dashboardListSearchNormalized(urgentesModalSearchQuery) &&
+                filteredUrgentesReminders.length === 0 &&
+                filteredUrgentReminders.length === 0 &&
+                filteredUrgentes.length === 0 &&
+                !showUrgentesReminderForm &&
+                (urgentes.length > 0 || urgentReminders.length > 0 || urgentesReminders.length > 0) ? (
+                <div className="text-center py-12">
+                  <Search className="w-16 h-16 mx-auto text-red-300 mb-4" />
+                  <p className="text-gray-500 font-medium text-lg">Sin coincidencias</p>
+                  <p className="text-sm text-gray-400 mt-1">Pruebe con otro término de búsqueda</p>
+                </div>
               ) : (
                 <div className="space-y-4">
                   {/* Urgent Reminders */}
-                  {urgentReminders.map((reminder) => {
+                  {filteredUrgentReminders.map((reminder) => {
                     const reminderDate = new Date(reminder.reminder_date);
                     return (
                       <div
@@ -1802,7 +2044,7 @@ export default function Dashboard({ onNavigate }: DashboardProps) {
                     );
                   })}
                   {/* Urgent Clients */}
-                  {urgentes.map((client) => (
+                  {filteredUrgentes.map((client) => (
                     <div
                       key={client.id}
                       onClick={() => {
@@ -2257,7 +2499,7 @@ export default function Dashboard({ onNavigate }: DashboardProps) {
       {showPagosModal && paymentsUnlocked && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
           <div className="bg-white rounded-xl sm:rounded-2xl max-w-4xl w-full max-h-[95vh] sm:max-h-[90vh] overflow-hidden flex flex-col m-2 sm:m-0">
-            <div className="p-6 border-b border-gray-200 bg-gradient-to-r from-amber-50 to-amber-100">
+            <div className="flex-shrink-0 p-6 border-b border-gray-200 bg-gradient-to-r from-amber-50 to-amber-100">
               <div className="flex items-center justify-between">
                 <div>
                   <h2 className="text-2xl font-bold text-amber-900">{t('dashboard.pagos')}</h2>
@@ -2284,7 +2526,10 @@ export default function Dashboard({ onNavigate }: DashboardProps) {
                     <Plus className="w-5 h-5" />
                   </button>
                   <button
-                    onClick={() => setShowPagosModal(false)}
+                    onClick={() => {
+                      setShowPagosModal(false);
+                      setPagosModalSearchQuery('');
+                    }}
                     className="p-2 text-gray-400 hover:text-gray-600 rounded-lg transition-colors"
                   >
                     <X className="w-6 h-6" />
@@ -2292,15 +2537,21 @@ export default function Dashboard({ onNavigate }: DashboardProps) {
                 </div>
               </div>
             </div>
-            <div className="flex-1 overflow-y-auto p-6">
+            <DashboardListSearchBar
+              id="dashboard-pagos-search"
+              value={pagosModalSearchQuery}
+              onChange={setPagosModalSearchQuery}
+              placeholder="Buscar clientes o recordatorios de pago..."
+            />
+            <div className="flex-1 min-h-0 overflow-y-auto p-6">
               {renderGenericReminderForm(showPagosReminderForm, () => setShowPagosReminderForm(false), 'PAGOS', 'Nuevo Recordatorio')}
               
               {/* PAGOS Reminders */}
-              {pagosReminders.length > 0 && (
+              {filteredPagosReminders.length > 0 && (
                 <div className="mb-6">
                   <h3 className="text-lg font-semibold text-amber-900 mb-3">Recordatorios de Pago</h3>
                   <div className="space-y-3">
-                    {pagosReminders.map((reminder) => {
+                    {filteredPagosReminders.map((reminder) => {
                       const reminderDate = new Date(reminder.reminder_date);
                       return (
                         <div
@@ -2619,9 +2870,18 @@ export default function Dashboard({ onNavigate }: DashboardProps) {
                   <p className="text-gray-500 font-medium text-lg">No hay pagos pendientes</p>
                   <p className="text-sm text-gray-400 mt-1">Todos los pagos están al día</p>
                 </div>
+              ) : dashboardListSearchNormalized(pagosModalSearchQuery) &&
+                filteredPagos.length === 0 &&
+                filteredPagosReminders.length === 0 &&
+                (pagos.length > 0 || pagosReminders.length > 0) ? (
+                <div className="text-center py-12">
+                  <Search className="w-16 h-16 mx-auto text-amber-300 mb-4" />
+                  <p className="text-gray-500 font-medium text-lg">Sin coincidencias</p>
+                  <p className="text-sm text-gray-400 mt-1">Pruebe con otro término de búsqueda</p>
+                </div>
               ) : (
                 <div className="space-y-4">
-                  {pagos.map((client) => {
+                  {filteredPagos.map((client) => {
                     const totalFee = client.payment?.totalFee || 0;
                     const paidAmount = client.payment?.paidAmount || 0;
                     const remaining = totalFee - paidAmount;
@@ -2697,19 +2957,32 @@ export default function Dashboard({ onNavigate }: DashboardProps) {
       {/* Ready to Submit Modal */}
       {showReadyToSubmitModal && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-2 sm:p-4 animate-fade-in overflow-y-auto">
-          <div className="bg-white rounded-xl sm:rounded-2xl p-4 sm:p-6 max-w-4xl w-full max-h-[95vh] sm:max-h-[90vh] overflow-y-auto shadow-2xl animate-scale-in my-4 sm:my-8">
-            <div className="flex justify-between items-center mb-6">
-              <div>
-                <h2 className="text-2xl font-bold text-slate-900">{t('dashboard.readyToSubmitTitle')}</h2>
-                <p className="text-slate-600 mt-1">{t('dashboard.readyToSubmitDesc')}</p>
+          <div className="bg-white rounded-xl sm:rounded-2xl max-w-4xl w-full max-h-[95vh] sm:max-h-[90vh] overflow-hidden shadow-2xl animate-scale-in my-4 sm:my-8 flex flex-col">
+            <div className="flex-shrink-0 p-4 sm:p-6 pb-4 border-b border-slate-100">
+              <div className="flex justify-between items-center">
+                <div>
+                  <h2 className="text-2xl font-bold text-slate-900">{t('dashboard.readyToSubmitTitle')}</h2>
+                  <p className="text-slate-600 mt-1">{t('dashboard.readyToSubmitDesc')}</p>
+                </div>
+                <button
+                  onClick={() => {
+                    setShowReadyToSubmitModal(false);
+                    setReadyToSubmitModalSearchQuery('');
+                  }}
+                  className="p-2 text-gray-600 hover:bg-gray-100 rounded-lg transition-colors"
+                >
+                  <X className="w-5 h-5" />
+                </button>
               </div>
-              <button
-                onClick={() => setShowReadyToSubmitModal(false)}
-                className="p-2 text-gray-600 hover:bg-gray-100 rounded-lg transition-colors"
-              >
-                <X className="w-5 h-5" />
-              </button>
             </div>
+            <DashboardListSearchBar
+              id="dashboard-ready-search"
+              value={readyToSubmitModalSearchQuery}
+              onChange={setReadyToSubmitModalSearchQuery}
+              placeholder="Buscar por nombre, plantilla, teléfono..."
+              tone="green"
+            />
+            <div className="flex-1 min-h-0 overflow-y-auto p-4 sm:p-6 pt-4">
 
             {readyToSubmit.length === 0 ? (
               <div className="text-center py-12">
@@ -2717,9 +2990,17 @@ export default function Dashboard({ onNavigate }: DashboardProps) {
                 <p className="text-slate-500 font-medium text-lg">{t('dashboard.allSubmitted')}</p>
                 <p className="text-sm text-slate-400 mt-1">{t('dashboard.noAwaiting')}</p>
               </div>
+            ) : dashboardListSearchNormalized(readyToSubmitModalSearchQuery) &&
+              filteredReadyToSubmit.length === 0 &&
+              readyToSubmit.length > 0 ? (
+              <div className="text-center py-12">
+                <Search className="w-16 h-16 mx-auto text-emerald-300 mb-4" />
+                <p className="text-slate-500 font-medium text-lg">Sin coincidencias</p>
+                <p className="text-sm text-slate-400 mt-1">Pruebe con otro término de búsqueda</p>
+              </div>
             ) : (
               <div className="space-y-3">
-                {readyToSubmit.map((client) => (
+                {filteredReadyToSubmit.map((client) => (
                   <div
                     key={client.id}
                     onClick={() => {
@@ -2755,6 +3036,7 @@ export default function Dashboard({ onNavigate }: DashboardProps) {
                 ))}
               </div>
             )}
+            </div>
           </div>
         </div>
       )}
@@ -2762,19 +3044,32 @@ export default function Dashboard({ onNavigate }: DashboardProps) {
       {/* Awaiting Submission Modal */}
       {showAwaitingModal && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-2 sm:p-4 animate-fade-in overflow-y-auto">
-          <div className="bg-white rounded-xl sm:rounded-2xl p-4 sm:p-6 max-w-4xl w-full max-h-[95vh] sm:max-h-[90vh] overflow-y-auto shadow-2xl animate-scale-in my-4 sm:my-8">
-            <div className="flex justify-between items-center mb-6">
-              <div>
-                <h2 className="text-2xl font-bold text-slate-900">{t('dashboard.awaitingSubmissionTitle')}</h2>
-                <p className="text-slate-600 mt-1">{t('dashboard.awaitingSubmissionDesc')}</p>
+          <div className="bg-white rounded-xl sm:rounded-2xl max-w-4xl w-full max-h-[95vh] sm:max-h-[90vh] overflow-hidden shadow-2xl animate-scale-in my-4 sm:my-8 flex flex-col">
+            <div className="flex-shrink-0 p-4 sm:p-6 pb-4 border-b border-slate-100">
+              <div className="flex justify-between items-center">
+                <div>
+                  <h2 className="text-2xl font-bold text-slate-900">{t('dashboard.awaitingSubmissionTitle')}</h2>
+                  <p className="text-slate-600 mt-1">{t('dashboard.awaitingSubmissionDesc')}</p>
+                </div>
+                <button
+                  onClick={() => {
+                    setShowAwaitingModal(false);
+                    setAwaitingModalSearchQuery('');
+                  }}
+                  className="p-2 text-gray-600 hover:bg-gray-100 rounded-lg transition-colors"
+                >
+                  <X className="w-5 h-5" />
+                </button>
               </div>
-              <button
-                onClick={() => setShowAwaitingModal(false)}
-                className="p-2 text-gray-600 hover:bg-gray-100 rounded-lg transition-colors"
-              >
-                <X className="w-5 h-5" />
-              </button>
             </div>
+            <DashboardListSearchBar
+              id="dashboard-awaiting-search"
+              value={awaitingModalSearchQuery}
+              onChange={setAwaitingModalSearchQuery}
+              placeholder="Buscar por nombre, plantilla, teléfono..."
+              tone="slate"
+            />
+            <div className="flex-1 min-h-0 overflow-y-auto p-4 sm:p-6 pt-4">
 
             {awaitingSubmission.length === 0 ? (
               <div className="text-center py-12">
@@ -2782,9 +3077,17 @@ export default function Dashboard({ onNavigate }: DashboardProps) {
                 <p className="text-slate-500 font-medium text-lg">{t('dashboard.allSubmitted')}</p>
                 <p className="text-sm text-slate-400 mt-1">{t('dashboard.noAwaiting')}</p>
               </div>
+            ) : dashboardListSearchNormalized(awaitingModalSearchQuery) &&
+              filteredAwaitingSubmission.length === 0 &&
+              awaitingSubmission.length > 0 ? (
+              <div className="text-center py-12">
+                <Search className="w-16 h-16 mx-auto text-slate-300 mb-4" />
+                <p className="text-slate-500 font-medium text-lg">Sin coincidencias</p>
+                <p className="text-sm text-slate-400 mt-1">Pruebe con otro término de búsqueda</p>
+              </div>
             ) : (
               <div className="space-y-3">
-                {awaitingSubmission.map((client) => (
+                {filteredAwaitingSubmission.map((client) => (
                   <div
                     key={client.id}
                     onClick={() => {
@@ -2899,6 +3202,7 @@ export default function Dashboard({ onNavigate }: DashboardProps) {
                 ))}
               </div>
             )}
+            </div>
           </div>
         </div>
       )}
@@ -2906,19 +3210,32 @@ export default function Dashboard({ onNavigate }: DashboardProps) {
       {/* Submitted to Administrative Modal */}
       {showSubmittedModal && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-2 sm:p-4 animate-fade-in overflow-y-auto">
-          <div className="bg-white rounded-xl sm:rounded-2xl p-4 sm:p-6 max-w-4xl w-full max-h-[95vh] sm:max-h-[90vh] overflow-y-auto shadow-2xl animate-scale-in my-4 sm:my-8">
-            <div className="flex justify-between items-center mb-6">
-              <div>
-                <h2 className="text-2xl font-bold text-slate-900">{t('dashboard.submittedToAdminTitle')}</h2>
-                <p className="text-slate-600 mt-1">{t('dashboard.submittedToAdminDesc')}</p>
+          <div className="bg-white rounded-xl sm:rounded-2xl max-w-4xl w-full max-h-[95vh] sm:max-h-[90vh] overflow-hidden shadow-2xl animate-scale-in my-4 sm:my-8 flex flex-col">
+            <div className="flex-shrink-0 p-4 sm:p-6 pb-4 border-b border-slate-100">
+              <div className="flex justify-between items-center">
+                <div>
+                  <h2 className="text-2xl font-bold text-slate-900">{t('dashboard.submittedToAdminTitle')}</h2>
+                  <p className="text-slate-600 mt-1">{t('dashboard.submittedToAdminDesc')}</p>
+                </div>
+                <button
+                  onClick={() => {
+                    setShowSubmittedModal(false);
+                    setSubmittedModalSearchQuery('');
+                  }}
+                  className="p-2 text-gray-600 hover:bg-gray-100 rounded-lg transition-colors"
+                >
+                  <X className="w-5 h-5" />
+                </button>
               </div>
-              <button
-                onClick={() => setShowSubmittedModal(false)}
-                className="p-2 text-gray-600 hover:bg-gray-100 rounded-lg transition-colors"
-              >
-                <X className="w-5 h-5" />
-              </button>
             </div>
+            <DashboardListSearchBar
+              id="dashboard-submitted-search"
+              value={submittedModalSearchQuery}
+              onChange={setSubmittedModalSearchQuery}
+              placeholder="Buscar por nombre, plantilla, fecha de presentación..."
+              tone="slate"
+            />
+            <div className="flex-1 min-h-0 overflow-y-auto p-4 sm:p-6 pt-4">
 
             {submittedToAdmin.length === 0 ? (
               <div className="text-center py-12">
@@ -2926,9 +3243,17 @@ export default function Dashboard({ onNavigate }: DashboardProps) {
                 <p className="text-slate-500 font-medium text-lg">{t('dashboard.noSubmitted')}</p>
                 <p className="text-sm text-slate-400 mt-1">{t('dashboard.submitCases')}</p>
               </div>
+            ) : dashboardListSearchNormalized(submittedModalSearchQuery) &&
+              filteredSubmittedToAdmin.length === 0 &&
+              submittedToAdmin.length > 0 ? (
+              <div className="text-center py-12">
+                <Search className="w-16 h-16 mx-auto text-slate-300 mb-4" />
+                <p className="text-slate-500 font-medium text-lg">Sin coincidencias</p>
+                <p className="text-sm text-slate-400 mt-1">Pruebe con otro término de búsqueda</p>
+              </div>
             ) : (
               <div className="space-y-3">
-                {submittedToAdmin.map((client) => {
+                {filteredSubmittedToAdmin.map((client) => {
                   // Calculate administrative silence countdown
                   const calculateSilenceCountdown = () => {
                     if (!client.application_date) return null;
@@ -3049,6 +3374,7 @@ export default function Dashboard({ onNavigate }: DashboardProps) {
                 })}
               </div>
             )}
+            </div>
           </div>
         </div>
       )}
