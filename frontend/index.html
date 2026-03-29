@@ -41,11 +41,12 @@
       // Register service worker for PWA
       if ('serviceWorker' in navigator) {
         window.addEventListener('load', () => {
-          navigator.serviceWorker.register('/sw.js', { scope: '/' })
+          // Always revalidate sw.js from network (avoids stale SW script behind CDN/browser cache)
+          navigator.serviceWorker
+            .register('/sw.js', { scope: '/', updateViaCache: 'none' })
             .then((registration) => {
               console.log('Service Worker registered successfully:', registration.scope);
-              
-              // Check for updates
+
               registration.addEventListener('updatefound', () => {
                 const newWorker = registration.installing;
                 if (newWorker) {
@@ -60,6 +61,13 @@
             .catch((registrationError) => {
               console.error('Service Worker registration failed:', registrationError);
             });
+
+          // Pick up new deployments when user returns to the tab
+          document.addEventListener('visibilitychange', () => {
+            if (document.visibilityState === 'visible') {
+              navigator.serviceWorker.getRegistration().then((r) => r?.update());
+            }
+          });
         });
       }
 

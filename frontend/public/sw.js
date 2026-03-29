@@ -1,92 +1,99 @@
-const CACHE_NAME = 'ims-v1';
-const urlsToCache = [
-  '/',
-  '/index.html',
-  '/logo_AB.svg',
-  '/manifest.json'
-];
+// Bump this on any SW logic change so old caches are dropped.
+const CACHE_NAME = 'ims-v3';
 
-// Install event - cache resources
+// Only precache assets that are safe to keep long-term (not index.html — that caused stale app shells).
+const PRECACHE_URLS = ['/logo_AB.svg', '/manifest.json'];
+
 self.addEventListener('install', (event) => {
   event.waitUntil(
-    caches.open(CACHE_NAME)
-      .then((cache) => {
-        console.log('Opened cache');
-        // Cache basic resources, but don't fail if some are missing
-        return Promise.allSettled(
-          urlsToCache.map((url) => 
-            cache.add(url).catch((err) => {
-              console.warn(`Failed to cache ${url}:`, err);
-            })
+    caches
+      .open(CACHE_NAME)
+      .then((cache) =>
+        Promise.allSettled(
+          PRECACHE_URLS.map((url) =>
+            cache.add(url).catch((err) => console.warn(`Precache failed ${url}:`, err))
           )
-        );
-      })
-      .catch((error) => {
-        console.error('Cache install failed:', error);
-      })
+        )
+      )
   );
   self.skipWaiting();
 });
 
-// Activate event - clean up old caches
 self.addEventListener('activate', (event) => {
   event.waitUntil(
-    caches.keys().then((cacheNames) => {
-      return Promise.all(
+    caches.keys().then((cacheNames) =>
+      Promise.all(
         cacheNames.map((cacheName) => {
           if (cacheName !== CACHE_NAME) {
-            console.log('Deleting old cache:', cacheName);
+            console.log('[sw] Deleting old cache:', cacheName);
             return caches.delete(cacheName);
           }
         })
-      );
-    })
+      )
+    )
   );
   self.clients.claim();
 });
 
-// Fetch event - serve from cache, fallback to network
+function isApiOrCrossOrigin(request) {
+  if (request.url.includes('/api/')) return true;
+  try {
+    const u = new URL(request.url);
+    return u.origin !== self.location.origin;
+  } catch {
+    return true;
+  }
+}
+
+function isNavigationOrHtmlDocument(request) {
+  if (request.mode === 'navigate') return true;
+  const dest = request.destination;
+  if (dest === 'document') return true;
+  try {
+    const u = new URL(request.url);
+    if (u.pathname === '/' || u.pathname.endsWith('/index.html')) return true;
+  } catch {
+    /* ignore */
+  }
+  const accept = request.headers.get('accept') || '';
+  return accept.includes('text/html');
+}
+
+// Network-first for HTML so new deploys load immediately; cache-first for hashed build assets is OK.
 self.addEventListener('fetch', (event) => {
-  // Skip caching for API calls and external resources
-  if (event.request.url.includes('/api/') || 
-      event.request.url.startsWith('http') && !event.request.url.includes(self.location.origin)) {
+  if (event.request.method !== 'GET') return;
+  if (isApiOrCrossOrigin(event.request)) return;
+
+  const url = new URL(event.request.url);
+  if (!url.href.startsWith(self.location.origin)) return;
+
+  // HTML / app shell: network first, then cache (offline fallback)
+  if (isNavigationOrHtmlDocument(event.request)) {
+    event.respondWith(
+      fetch(event.request)
+        .then((response) => {
+          if (response && response.status === 200 && response.type === 'basic') {
+            const copy = response.clone();
+            caches.open(CACHE_NAME).then((cache) => cache.put(event.request, copy));
+          }
+          return response;
+        })
+        .catch(() => caches.match(event.request).then((r) => r || caches.match('/index.html')))
+    );
     return;
   }
 
+  // Hashed JS/CSS and static files: cache-first (URLs change each build once HTML is fresh)
   event.respondWith(
-    caches.match(event.request)
-      .then((response) => {
-        // Return cached version or fetch from network
-        if (response) {
-          return response;
+    caches.match(event.request).then((response) => {
+      if (response) return response;
+      return fetch(event.request).then((res) => {
+        if (res && res.status === 200 && res.type === 'basic') {
+          const copy = res.clone();
+          caches.open(CACHE_NAME).then((cache) => cache.put(event.request, copy));
         }
-
-        return fetch(event.request).then((response) => {
-          // Don't cache if not a valid response
-          if (!response || response.status !== 200) {
-            return response;
-          }
-
-          // Cache GET requests for same-origin resources
-          if (event.request.method === 'GET' && 
-              event.request.url.startsWith(self.location.origin) &&
-              response.type === 'basic') {
-            const responseToCache = response.clone();
-            caches.open(CACHE_NAME)
-              .then((cache) => {
-                cache.put(event.request, responseToCache);
-              });
-          }
-          return response;
-        });
-      })
-      .catch(() => {
-        // If both cache and network fail, return offline page if available
-        if (event.request.destination === 'document' || 
-            event.request.mode === 'navigate') {
-          return caches.match('/index.html');
-        }
-      })
+        return res;
+      });
+    })
   );
 });
-
