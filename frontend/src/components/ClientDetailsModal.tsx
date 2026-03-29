@@ -2065,18 +2065,18 @@ export default function ClientDetailsModal({ client, onClose, onSuccess }: Props
             const remainingAmount = (clientData.payment?.totalFee || 0) - (clientData.payment?.paidAmount || 0);
             return (
               <>
-                <div className="flex justify-between items-center mb-4">
-                  <h3 className="text-lg font-bold text-gray-900 flex items-center space-x-2">
+                <div className="flex flex-col gap-3 sm:flex-row sm:justify-between sm:items-start mb-4 min-w-0">
+                  <h3 className="text-lg font-bold text-gray-900 flex items-center space-x-2 shrink-0">
                     <div className="p-2 bg-green-100 rounded-lg">
                       <DollarSign className="w-5 h-5 text-green-700" />
                     </div>
                     <span>Payments</span>
                   </h3>
-                  <div className="flex items-center space-x-2">
+                  <div className="flex flex-wrap items-center gap-2 sm:justify-end sm:max-w-full min-w-0">
                     {remainingAmount > 0 && (
                       <button
                         onClick={handleOpenReminderCalendar}
-                        className={`px-3 py-2 text-sm rounded-lg transition-colors flex items-center space-x-2 ${
+                        className={`px-3 py-2 text-sm rounded-lg transition-colors flex items-center space-x-2 shrink-0 ${
                           customReminderDate
                             ? 'bg-purple-100 text-purple-700 hover:bg-purple-200'
                             : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
@@ -2103,14 +2103,14 @@ export default function ClientDetailsModal({ client, onClose, onSuccess }: Props
                         setEditingPaymentTotals(true);
                         setShowPaymentForm(false);
                       }}
-                      className="px-4 py-2 bg-white border border-green-600 text-green-700 text-sm rounded-lg hover:bg-green-50 transition-colors flex items-center space-x-2"
+                      className="px-4 py-2 bg-green-50 border-2 border-green-600 text-green-800 text-sm font-medium rounded-lg hover:bg-green-100 transition-colors flex items-center space-x-2 shrink-0 shadow-sm"
                     >
                       <Edit2 className="w-4 h-4" />
                       <span>Edit payment</span>
                     </button>
                     <button
                       onClick={() => setShowPaymentForm(!showPaymentForm)}
-                      className="px-4 py-2 bg-green-600 text-white text-sm rounded-lg hover:bg-green-700 transition-colors flex items-center space-x-2"
+                      className="px-4 py-2 bg-green-600 text-white text-sm rounded-lg hover:bg-green-700 transition-colors flex items-center space-x-2 shrink-0"
                     >
                       <Plus className="w-4 h-4" />
                       <span>Add Payment</span>
