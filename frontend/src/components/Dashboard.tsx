@@ -1832,13 +1832,13 @@ export default function Dashboard({ onNavigate }: DashboardProps) {
       {showRecordatorioModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
           <div className="bg-white rounded-xl sm:rounded-2xl max-w-4xl w-full max-h-[95vh] sm:max-h-[90vh] overflow-hidden flex flex-col m-2 sm:m-0">
-            <div className="p-6 border-b border-gray-200 bg-gradient-to-r from-amber-50 to-amber-100">
-              <div className="flex items-center justify-between">
-                <div>
+            <div className="flex-shrink-0 p-6 pb-4 border-b border-gray-200 bg-gradient-to-r from-amber-50 to-amber-100">
+              <div className="flex items-start justify-between gap-4">
+                <div className="min-w-0 flex-1">
                   <h2 className="text-2xl font-bold text-amber-900">{t('dashboard.recordatorio')}</h2>
                   <p className="text-amber-700 mt-1">{t('dashboard.recordatorioDesc')}</p>
                 </div>
-                <div className="flex items-center space-x-2">
+                <div className="flex flex-shrink-0 items-center space-x-2">
                   <button
                     onClick={() => {
                       setShowReminderForm(true);
@@ -1868,20 +1868,26 @@ export default function Dashboard({ onNavigate }: DashboardProps) {
                   </button>
                 </div>
               </div>
-              <div className="mt-3">
-                <div className="relative">
-                  <Search className="w-4 h-4 text-amber-400 absolute left-3 top-1/2 -translate-y-1/2" />
-                  <input
-                    value={recordatorioSearchQuery}
-                    onChange={(e) => setRecordatorioSearchQuery(e.target.value)}
-                    placeholder="Buscar recordatorios..."
-                    className="w-full pl-9 pr-3 py-2 text-sm border border-amber-200 rounded-lg bg-white text-amber-900 placeholder:text-amber-400 focus:outline-none focus:ring-2 focus:ring-amber-200"
-                    aria-label="Buscar recordatorios"
-                  />
-                </div>
+            </div>
+            {/* Dedicated search strip so it is always visible (not clipped by flex/overflow) */}
+            <div className="flex-shrink-0 px-6 py-3 border-b border-amber-200/80 bg-amber-50/90">
+              <label htmlFor="recordatorio-search" className="sr-only">
+                Buscar recordatorios
+              </label>
+              <div className="relative">
+                <Search className="w-5 h-5 text-amber-600 absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" />
+                <input
+                  id="recordatorio-search"
+                  type="search"
+                  value={recordatorioSearchQuery}
+                  onChange={(e) => setRecordatorioSearchQuery(e.target.value)}
+                  placeholder="Buscar por nombre, teléfono, notas o fecha..."
+                  autoComplete="off"
+                  className="w-full pl-11 pr-4 py-3 text-base border-2 border-amber-300 rounded-xl bg-white text-amber-950 placeholder:text-amber-600/70 shadow-sm focus:outline-none focus:ring-2 focus:ring-amber-400 focus:border-amber-500"
+                />
               </div>
             </div>
-            <div className="flex-1 overflow-y-auto p-6">
+            <div className="flex-1 min-h-0 overflow-y-auto p-6">
               {recordatorioFilteredReminders.length === 0 ? (
                 normalizedRecordatorioSearchQuery ? (
                   <div className="text-center py-12">
